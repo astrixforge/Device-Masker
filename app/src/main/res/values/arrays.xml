@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 
+    Xposed/LSPosed module scope configuration.
+    Empty array means all apps can be selected in LSPosed Manager.
+    Users will select which apps to hook via the LSPosed scope settings.
+    -->
+    <string-array name="xposed_scope">
+        <!-- Empty scope: Apps are selected by user in LSPosed Manager -->
+    </string-array>
+</resources>

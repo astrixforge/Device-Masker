@@ -1,0 +1,146 @@
+# ═══════════════════════════════════════════════════════════
+# ANDROID & GRADLE BUILD FILES
+# ═══════════════════════════════════════════════════════════
+*.iml
+.gradle
+.gradle/
+/build
+/*/build
+/app/build
+/buildSrc/build
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+bin/
+gen/
+out/
+.cxx
+.externalNativeBuild
+*.log
+
+# ═══════════════════════════════════════════════════════════
+# ANDROID STUDIO / INTELLIJ IDEA
+# ═══════════════════════════════════════════════════════════
+/.idea/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/gradle.xml
+.idea/assetWizardSettings.xml
+.idea/dictionaries
+.idea/libraries
+.idea/caches
+.idea/modules.xml
+.idea/navEditor.xml
+.idea/.name
+.idea/compiler.xml
+.idea/runConfigurations.xml
+.idea/misc.xml
+.idea/deploymentTargetSelector.xml
+*.iws
+*.ipr
+*.iml
+
+# ═══════════════════════════════════════════════════════════
+# SENSITIVE FILES - NEVER COMMIT THESE!
+# ═══════════════════════════════════════════════════════════
+/local.properties
+local.properties
+keystore.properties
+*.keystore
+*.jks
+*.key
+*.p12
+*.pem
+google-services.json
+GoogleService-Info.plist
+
+# API keys and secrets
+api_keys.xml
+secrets.properties
+.env
+.env.local
+
+# ═══════════════════════════════════════════════════════════
+# RELEASE BUILDS & SIGNING
+# ═══════════════════════════════════════════════════════════
+/app/release
+/app/debug
+release/
+*.keystore
+*.jks
+signing.properties
+
+# ═══════════════════════════════════════════════════════════
+# YUKIHOOKAPI AUTO-GENERATED FILES
+# ═══════════════════════════════════════════════════════════
+assets/xposed_init
+resources/META-INF/yukihookapi_init
+LogsOutput
+
+# ═══════════════════════════════════════════════════════════
+# KOTLIN
+# ═══════════════════════════════════════════════════════════
+.kotlin/
+/.kotlin/errors
+*.kotlin_module
+*.kotlin_builtins
+
+# ═══════════════════════════════════════════════════════════
+# OS-SPECIFIC
+# ═══════════════════════════════════════════════════════════
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ═══════════════════════════════════════════════════════════
+# CAPTURES & PROFILING
+# ═══════════════════════════════════════════════════════════
+/captures
+*.hprof
+*.trace
+*.prof
+
+# ═══════════════════════════════════════════════════════════
+# MEMORY BANK & OPENSPEC (Project-specific)
+# ═══════════════════════════════════════════════════════════
+# Keep memory-bank/ and openspec/ - these are safe
+# Keep .agent/ - workflow definitions
+
+# ═══════════════════════════════════════════════════════════
+# VERSION CONTROL
+# ═══════════════════════════════════════════════════════════
+.vscode/
+.history/
+*.swp
+*.swo
+*~
+
+# ═══════════════════════════════════════════════════════════
+# CODING ASSISTANT
+# ═══════════════════════════════════════════════════════════
+.agent
+.gemini
+.cursorrule
+.cursor 
+.claude
+GEMINI.md 
+AGENTS.md
+CLAUD.md
+openspec/ 
+memory-bank/
+docs/
+
+# ═══════════════════════════════════════════════════════════
+# OTHER
+# ═══════════════════════════════════════════════════════════
+*.bak
+*.orig
+*.rej
+*.tmp
+

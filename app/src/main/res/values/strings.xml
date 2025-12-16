@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Device Masker</string>
+    <string name="app_description">Device Spoofing Module with Anti-Detection</string>
+    <string name="xposed_description">Device Masker - Comprehensive device spoofing with
+        anti-detection</string>
+
+    <!-- Module Status -->
+    <string name="module_active">Module Active</string>
+    <string name="module_inactive">Module Inactive</string>
+    <string name="module_not_activated">Module not activated in LSPosed</string>
+    <string name="protected_apps">Protected apps</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_apps">Apps</string>
+    <string name="nav_spoof">Spoof</string>
+    <string name="nav_profiles">Profiles</string>
+    <string name="nav_diagnostics">Diagnostics</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Home Screen -->
+    <string name="quick_stats">Quick Stats</string>
+    <string name="active_profile">Active Profile</string>
+    <string name="configure_apps">Configure Apps</string>
+    <string name="regenerate_all">Regenerate All</string>
+    <string name="switch_profile">Switch Profile</string>
+
+    <!-- Spoof Categories -->
+    <string name="category_device">Device Identifiers</string>
+    <string name="category_network">Network Identifiers</string>
+    <string name="category_advertising">Advertising IDs</string>
+    <string name="category_system">System Properties</string>
+    <string name="category_location">Location</string>
+
+    <!-- Spoof Types -->
+    <string name="spoof_imei">IMEI</string>
+    <string name="spoof_imsi">IMSI</string>
+    <string name="spoof_serial">Serial Number</string>
+    <string name="spoof_android_id">Android ID</string>
+    <string name="spoof_wifi_mac">WiFi MAC</string>
+    <string name="spoof_bluetooth_mac">Bluetooth MAC</string>
+    <string name="spoof_ssid">SSID</string>
+    <string name="spoof_bssid">BSSID</string>
+    <string name="spoof_gsf_id">GSF ID</string>
+    <string name="spoof_advertising_id">Advertising ID</string>
+    <string name="spoof_manufacturer">Manufacturer</string>
+    <string name="spoof_model">Model</string>
+    <string name="spoof_device">Device</string>
+    <string name="spoof_brand">Brand</string>
+    <string name="spoof_fingerprint">Fingerprint</string>
+    <string name="spoof_latitude">Latitude</string>
+    <string name="spoof_longitude">Longitude</string>
+    <string name="spoof_timezone">Timezone</string>
+
+    <!-- Actions -->
+    <string name="action_regenerate">Regenerate</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_create">Create</string>
+    <string name="action_select_all">Select All</string>
+    <string name="action_clear_all">Clear All</string>
+
+    <!-- Profile Management -->
+    <string name="profile_default">Default Profile</string>
+    <string name="profile_new">New Profile</string>
+    <string name="profile_name_hint">Profile name</string>
+    <string name="profile_set_default">Set as default</string>
+    <string name="profile_delete_confirm">Delete this profile?</string>
+
+    <!-- App Selection -->
+    <string name="apps_search_hint">Search apps…</string>
+    <string name="apps_enabled">Enabled</string>
+    <string name="apps_disabled">Disabled</string>
+    <string name="apps_using_profile">Using: %s</string>
+    <string name="apps_not_enabled">Not enabled</string>
+
+    <!-- Settings -->
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_dark_mode">Dark mode</string>
+    <string name="settings_dynamic_colors">Dynamic colors</string>
+    <string name="settings_amoled_mode">AMOLED mode</string>
+    <string name="settings_debug">Debug</string>
+    <string name="settings_debug_logging">Debug logging</string>
+    <string name="settings_about">About</string>
+    <string name="settings_version">Version</string>
+
+    <!-- Diagnostics -->
+    <string name="diagnostics_current_values">Current Detected Values</string>
+    <string name="diagnostics_spoofed_values">Spoofed Values</string>
+    <string name="diagnostics_refresh">Refresh</string>
+    <string name="diagnostics_anti_detection">Anti-Detection Status</string>
+    <string name="diagnostics_passed">Passed</string>
+    <string name="diagnostics_failed">Failed</string>
+
+    <!-- Validation -->
+    <string name="validation_imei_invalid">Invalid IMEI format (15 digits required)</string>
+    <string name="validation_mac_invalid">Invalid MAC address format</string>
+    <string name="validation_android_id_invalid">Invalid Android ID (16 hex chars required)</string>
+
+    <!-- Misc -->
+    <string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="value_regenerated">Value regenerated</string>
+    <string name="all_values_regenerated">All values regenerated</string>
+</resources>
