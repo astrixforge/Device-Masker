@@ -32,16 +32,16 @@ object HookEntry : IYukiHookXposedInit {
 
     /** Called once when the module is first loaded. Used to configure YukiHookAPI settings. */
     override fun onInit() =
-            YukiHookAPI.configs {
-                // Debug logging configuration
-                debugLog {
-                    tag = "DeviceMasker"
-                    isEnable = BuildConfig.DEBUG
-                }
-
-                // General debug mode
-                isDebug = BuildConfig.DEBUG
+        YukiHookAPI.configs {
+            // Debug logging configuration
+            debugLog {
+                tag = "DeviceMasker"
+                isEnable = BuildConfig.DEBUG
             }
+
+            // General debug mode
+            isDebug = BuildConfig.DEBUG
+        }
 
     /**
      * Called for each app process where the module is active. This is where all hooking logic is
@@ -60,15 +60,16 @@ object HookEntry : IYukiHookXposedInit {
         val selfPackage = "com.astrixforge.devicemasker"
         val selfApplicationId = BuildConfig.APPLICATION_ID
 
-        if (packageName == selfPackage ||
-                        packageName == selfApplicationId ||
-                        processName == selfPackage ||
-                        processName == selfApplicationId ||
-                        processName.startsWith(selfPackage) ||
-                        processName.startsWith(selfApplicationId)
+        if (
+            packageName == selfPackage ||
+                packageName == selfApplicationId ||
+                processName == selfPackage ||
+                processName == selfApplicationId ||
+                processName.startsWith(selfPackage) ||
+                processName.startsWith(selfApplicationId)
         ) {
             YLog.debug(
-                    "DeviceMasker: Skipping hooks for SELF (module app): pkg=$packageName, process=$processName"
+                "DeviceMasker: Skipping hooks for SELF (module app): pkg=$packageName, process=$processName"
             )
             return@encase
         }
@@ -78,15 +79,15 @@ object HookEntry : IYukiHookXposedInit {
         // Hooking "android" core process breaks all apps including ours
         // ═══════════════════════════════════════════════════════════════
         val forbiddenProcesses =
-                listOf(
-                        "android", // Core Android framework
-                        "system_server", // System server (already dangerous)
-                        "com.android.systemui", // SystemUI - hooks can cause UI glitches
-                )
+            listOf(
+                "android", // Core Android framework
+                "system_server", // System server (already dangerous)
+                "com.android.systemui", // SystemUI - hooks can cause UI glitches
+            )
 
         if (packageName in forbiddenProcesses || processName in forbiddenProcesses) {
             YLog.debug(
-                    "DeviceMasker: Skipping hooks for SYSTEM process: pkg=$packageName, process=$processName"
+                "DeviceMasker: Skipping hooks for SYSTEM process: pkg=$packageName, process=$processName"
             )
             return@encase
         }
@@ -95,7 +96,7 @@ object HookEntry : IYukiHookXposedInit {
         // SAFE TO PROCEED: Log and apply hooks to target app
         // ═══════════════════════════════════════════════════════════════
         YLog.info(
-                "DeviceMasker: Starting hooks for target app: $packageName (process: $processName)"
+            "DeviceMasker: Starting hooks for target app: $packageName (process: $processName)"
         )
 
         // ═══════════════════════════════════════════════════════════════

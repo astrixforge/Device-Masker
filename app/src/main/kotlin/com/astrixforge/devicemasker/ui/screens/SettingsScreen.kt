@@ -6,6 +6,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
@@ -31,13 +34,17 @@ import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,25 +53,33 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.astrixforge.devicemasker.BuildConfig
 import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 
+/** Theme mode options for the app. */
+enum class ThemeMode(val displayName: String) {
+        SYSTEM("System default"),
+        LIGHT("Light"),
+        DARK("Dark")
+}
+
 /**
  * Settings screen for app preferences.
  *
  * Provides options for:
- * - Theme settings (dark mode, AMOLED dark mode, dynamic colors)
+ * - Theme settings (theme mode, AMOLED dark mode, dynamic colors)
  * - Debug options
  * - About information
  *
- * @param darkMode Whether dark mode is enabled
+ * @param themeMode Current theme mode (System, Light, Dark)
  * @param amoledDarkMode Whether AMOLED dark mode is enabled (pure black)
  * @param dynamicColors Whether dynamic colors are enabled
  * @param debugLogging Whether debug logging is enabled
- * @param onDarkModeChange Callback when dark mode preference changes
+ * @param onThemeModeChange Callback when theme mode preference changes
  * @param onAmoledDarkModeChange Callback when AMOLED dark mode preference changes
  * @param onDynamicColorChange Callback when dynamic color preference changes
  * @param onDebugLogChange Callback when debug logging preference changes
@@ -73,26 +88,50 @@ import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
  */
 @Composable
 fun SettingsScreen(
-        darkMode: Boolean = true,
+        themeMode: ThemeMode = ThemeMode.SYSTEM,
         amoledDarkMode: Boolean = true,
         dynamicColors: Boolean = true,
         debugLogging: Boolean = false,
-        onDarkModeChange: (Boolean) -> Unit = {},
+        onThemeModeChange: (ThemeMode) -> Unit = {},
         onAmoledDarkModeChange: (Boolean) -> Unit = {},
         onDynamicColorChange: (Boolean) -> Unit = {},
         onDebugLogChange: (Boolean) -> Unit = {},
         onNavigateToDiagnostics: () -> Unit = {},
-        modifier: Modifier = Modifier
+        modifier: Modifier = Modifier,
 ) {
-        var currentDarkMode by remember { mutableStateOf(darkMode) }
+        // Use effect to sync local state with prop changes from upstream
+        var currentThemeMode by remember { mutableStateOf(themeMode) }
         var currentAmoledDarkMode by remember { mutableStateOf(amoledDarkMode) }
         var currentDynamicColors by remember { mutableStateOf(dynamicColors) }
         var currentDebugLogging by remember { mutableStateOf(debugLogging) }
 
+        // Sync local state when parameters change (e.g., from DataStore updates)
+        LaunchedEffect(themeMode) { currentThemeMode = themeMode }
+        LaunchedEffect(amoledDarkMode) { currentAmoledDarkMode = amoledDarkMode }
+        LaunchedEffect(dynamicColors) { currentDynamicColors = dynamicColors }
+        LaunchedEffect(debugLogging) { currentDebugLogging = debugLogging }
+
+        // Dialog state for theme mode selection
+        var showThemeModeDialog by remember { mutableStateOf(false) }
+
+        // Get actual system dark mode state
+        val isSystemDark = isSystemInDarkTheme()
+
+        // Determine if dark mode is ACTUALLY active (for showing AMOLED option)
+        // - If SYSTEM: follow the system setting
+        // - If DARK: always dark
+        // - If LIGHT: always light
+        val isDarkModeActive =
+                when (currentThemeMode) {
+                        ThemeMode.SYSTEM -> isSystemDark
+                        ThemeMode.DARK -> true
+                        ThemeMode.LIGHT -> false
+                }
+
         LazyColumn(
                 modifier = modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
                 // Header
                 item {
@@ -101,39 +140,31 @@ fun SettingsScreen(
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.padding(vertical = 8.dp)
+                                modifier = Modifier.padding(vertical = 8.dp),
                         )
                 }
 
                 // Appearance Section
                 item {
                         SettingsSection(title = "Appearance") {
-                                // Dark Mode Toggle
-                                SettingsSwitchItem(
+                                // Theme Mode (opens dialog)
+                                SettingsClickableItemWithValue(
                                         icon =
-                                                if (currentDarkMode) Icons.Outlined.DarkMode
-                                                else Icons.Outlined.LightMode,
-                                        title = "Dark Mode",
-                                        description =
-                                                if (currentDarkMode) "Dark theme enabled"
-                                                else "Light theme enabled",
-                                        checked = currentDarkMode,
-                                        onCheckedChange = {
-                                                currentDarkMode = it
-                                                onDarkModeChange(it)
-                                                // If dark mode is disabled, also disable AMOLED
-                                                if (!it) {
-                                                        currentAmoledDarkMode = false
-                                                        onAmoledDarkModeChange(false)
-                                                }
-                                        }
+                                                when (currentThemeMode) {
+                                                        ThemeMode.DARK -> Icons.Outlined.DarkMode
+                                                        ThemeMode.LIGHT -> Icons.Outlined.LightMode
+                                                        ThemeMode.SYSTEM -> Icons.Outlined.Contrast
+                                                },
+                                        title = "Theme",
+                                        description = currentThemeMode.displayName,
+                                        onClick = { showThemeModeDialog = true },
                                 )
 
-                                // AMOLED Dark Mode (only visible when dark mode is enabled)
+                                // AMOLED Dark Mode (only visible when dark mode is active)
                                 AnimatedVisibility(
-                                        visible = currentDarkMode,
+                                        visible = isDarkModeActive,
                                         enter = expandVertically(),
-                                        exit = shrinkVertically()
+                                        exit = shrinkVertically(),
                                 ) {
                                         Column {
                                                 Spacer(modifier = Modifier.height(8.dp))
@@ -146,7 +177,7 @@ fun SettingsScreen(
                                                         onCheckedChange = {
                                                                 currentAmoledDarkMode = it
                                                                 onAmoledDarkModeChange(it)
-                                                        }
+                                                        },
                                                 )
                                         }
                                 }
@@ -162,7 +193,7 @@ fun SettingsScreen(
                                                 onCheckedChange = {
                                                         currentDynamicColors = it
                                                         onDynamicColorChange(it)
-                                                }
+                                                },
                                         )
                                 }
                         }
@@ -179,7 +210,7 @@ fun SettingsScreen(
                                         onCheckedChange = {
                                                 currentDebugLogging = it
                                                 onDebugLogChange(it)
-                                        }
+                                        },
                                 )
 
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -189,7 +220,7 @@ fun SettingsScreen(
                                         title = "Diagnostics",
                                         description =
                                                 "Test spoofing effectiveness and anti-detection",
-                                        onClick = onNavigateToDiagnostics
+                                        onClick = onNavigateToDiagnostics,
                                 )
                         }
                 }
@@ -201,7 +232,7 @@ fun SettingsScreen(
                                         icon = Icons.Outlined.Info,
                                         title = "Version",
                                         value =
-                                                "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
+                                                "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
                                 )
 
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -209,7 +240,7 @@ fun SettingsScreen(
                                 SettingsInfoItem(
                                         icon = Icons.Outlined.Code,
                                         title = "Build Type",
-                                        value = if (BuildConfig.DEBUG) "Debug" else "Release"
+                                        value = if (BuildConfig.DEBUG) "Debug" else "Release",
                                 )
 
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -218,7 +249,7 @@ fun SettingsScreen(
                                         icon = Icons.Outlined.Tune,
                                         title = "Module Info",
                                         description = "YukiHookAPI 1.3.1 • LSPosed Module",
-                                        onClick = { /* Open module info */}
+                                        onClick = { /* Open module info */},
                                 )
                         }
                 }
@@ -226,6 +257,89 @@ fun SettingsScreen(
                 // Bottom spacing
                 item { Spacer(modifier = Modifier.height(24.dp)) }
         }
+
+        // Theme Mode Selection Dialog
+        if (showThemeModeDialog) {
+                ThemeModeDialog(
+                        currentMode = currentThemeMode,
+                        onModeSelected = { mode ->
+                                currentThemeMode = mode
+                                onThemeModeChange(mode)
+                                showThemeModeDialog = false
+                        },
+                        onDismiss = { showThemeModeDialog = false }
+                )
+        }
+}
+
+/** Theme mode selection dialog with radio buttons. */
+@Composable
+private fun ThemeModeDialog(
+        currentMode: ThemeMode,
+        onModeSelected: (ThemeMode) -> Unit,
+        onDismiss: () -> Unit,
+) {
+        AlertDialog(
+                onDismissRequest = onDismiss,
+                title = {
+                        Text(
+                                text = "Theme",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.SemiBold,
+                        )
+                },
+                text = {
+                        Column(modifier = Modifier.selectableGroup()) {
+                                ThemeMode.entries.forEach { mode ->
+                                        Row(
+                                                modifier =
+                                                        Modifier.fillMaxWidth()
+                                                                .selectable(
+                                                                        selected =
+                                                                                mode == currentMode,
+                                                                        onClick = {
+                                                                                onModeSelected(mode)
+                                                                        },
+                                                                        role = Role.RadioButton
+                                                                )
+                                                                .padding(vertical = 12.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                                RadioButton(
+                                                        selected = mode == currentMode,
+                                                        onClick = null, // null recommended for
+                                                        // accessibility
+                                                        )
+                                                Spacer(modifier = Modifier.width(12.dp))
+                                                Column {
+                                                        Text(
+                                                                text = mode.displayName,
+                                                                style =
+                                                                        MaterialTheme.typography
+                                                                                .bodyLarge,
+                                                                fontWeight = FontWeight.Medium,
+                                                        )
+                                                        if (mode == ThemeMode.SYSTEM) {
+                                                                Text(
+                                                                        text =
+                                                                                "Follow system settings",
+                                                                        style =
+                                                                                MaterialTheme
+                                                                                        .typography
+                                                                                        .bodySmall,
+                                                                        color =
+                                                                                MaterialTheme
+                                                                                        .colorScheme
+                                                                                        .onSurfaceVariant,
+                                                                )
+                                                        }
+                                                }
+                                        }
+                                }
+                        }
+                },
+                confirmButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        )
 }
 
 /** Settings section with title and content. */
@@ -237,7 +351,7 @@ private fun SettingsSection(title: String, content: @Composable () -> Unit) {
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier.padding(bottom = 8.dp),
                 )
 
                 ElevatedCard(
@@ -247,7 +361,7 @@ private fun SettingsSection(title: String, content: @Composable () -> Unit) {
                                         containerColor =
                                                 MaterialTheme.colorScheme.surfaceContainerHigh
                                 ),
-                        shape = MaterialTheme.shapes.large
+                        shape = MaterialTheme.shapes.large,
                 ) { Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) { content() } }
         }
 }
@@ -259,7 +373,7 @@ private fun SettingsSwitchItem(
         title: String,
         description: String,
         checked: Boolean,
-        onCheckedChange: (Boolean) -> Unit
+        onCheckedChange: (Boolean) -> Unit,
 ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Box(
@@ -267,13 +381,13 @@ private fun SettingsSwitchItem(
                                 Modifier.size(40.dp)
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.primaryContainer),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                 ) {
                         Icon(
                                 imageVector = icon,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(20.dp),
                         )
                 }
 
@@ -284,12 +398,12 @@ private fun SettingsSwitchItem(
                                 text = title,
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
                                 text = description,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                 }
 
@@ -306,13 +420,13 @@ private fun SettingsInfoItem(icon: ImageVector, title: String, value: String) {
                                 Modifier.size(40.dp)
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.secondaryContainer),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                 ) {
                         Icon(
                                 imageVector = icon,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(20.dp),
                         )
                 }
 
@@ -323,12 +437,12 @@ private fun SettingsInfoItem(icon: ImageVector, title: String, value: String) {
                                 text = title,
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
                                 text = value,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                 }
         }
@@ -340,24 +454,24 @@ private fun SettingsClickableItem(
         icon: ImageVector,
         title: String,
         description: String,
-        onClick: () -> Unit
+        onClick: () -> Unit,
 ) {
         Row(
                 modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
         ) {
                 Box(
                         modifier =
                                 Modifier.size(40.dp)
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.tertiaryContainer),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                 ) {
                         Icon(
                                 imageVector = icon,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(20.dp),
                         )
                 }
 
@@ -368,19 +482,70 @@ private fun SettingsClickableItem(
                                 text = title,
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
                                 text = description,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                 }
 
                 Icon(
                         imageVector = Icons.Filled.ChevronRight,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+        }
+}
+
+/** Settings clickable item that shows current value. */
+@Composable
+private fun SettingsClickableItemWithValue(
+        icon: ImageVector,
+        title: String,
+        description: String,
+        onClick: () -> Unit,
+) {
+        Row(
+                modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+                verticalAlignment = Alignment.CenterVertically,
+        ) {
+                Box(
+                        modifier =
+                                Modifier.size(40.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center,
+                ) {
+                        Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(20.dp),
+                        )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                                text = title,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                                text = description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                        )
+                }
+
+                Icon(
+                        imageVector = Icons.Filled.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
         }
 }

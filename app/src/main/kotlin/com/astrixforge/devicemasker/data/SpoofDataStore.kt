@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.astrixforge.devicemasker.data.models.SpoofType
+import com.astrixforge.devicemasker.ui.screens.ThemeMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -67,10 +68,13 @@ class SpoofDataStore(private val context: Context) {
         }
 
         // Theme settings
-        val KEY_DARK_MODE = booleanPreferencesKey("theme_dark_mode")
+        val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
         val KEY_AMOLED_MODE = booleanPreferencesKey("theme_amoled_mode")
         val KEY_DYNAMIC_COLORS = booleanPreferencesKey("theme_dynamic_colors")
         val KEY_DEBUG_LOGGING = booleanPreferencesKey("debug_logging")
+
+        // Migration version
+        val KEY_MIGRATION_VERSION = stringPreferencesKey("migration_version")
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -105,10 +109,15 @@ class SpoofDataStore(private val context: Context) {
     // THEME SETTINGS
     // ═══════════════════════════════════════════════════════════
 
-    /** Flow of dark mode enabled state. */
-    val darkMode: Flow<Boolean> =
+    /** Flow of theme mode (SYSTEM, LIGHT, DARK). */
+    val themeMode: Flow<ThemeMode> =
             dataStore.data.map { prefs ->
-                prefs[KEY_DARK_MODE] ?: true // Default true (dark mode on)
+                val modeName = prefs[KEY_THEME_MODE] ?: ThemeMode.SYSTEM.name
+                try {
+                    ThemeMode.valueOf(modeName)
+                } catch (e: IllegalArgumentException) {
+                    ThemeMode.SYSTEM
+                }
             }
 
     /** Flow of AMOLED mode enabled state. */
@@ -129,9 +138,9 @@ class SpoofDataStore(private val context: Context) {
                 prefs[KEY_DEBUG_LOGGING] ?: false // Default false
             }
 
-    /** Sets dark mode. */
-    suspend fun setDarkMode(enabled: Boolean) {
-        dataStore.edit { prefs -> prefs[KEY_DARK_MODE] = enabled }
+    /** Sets theme mode. */
+    suspend fun setThemeMode(mode: ThemeMode) {
+        dataStore.edit { prefs -> prefs[KEY_THEME_MODE] = mode.name }
     }
 
     /** Sets AMOLED mode. */
@@ -238,6 +247,11 @@ class SpoofDataStore(private val context: Context) {
     /** Saves app configs as JSON. */
     suspend fun saveAppConfigsJson(json: String) {
         dataStore.edit { prefs -> prefs[KEY_APP_CONFIGS_JSON] = json }
+    }
+
+    /** Gets profiles JSON synchronously (blocking) for hook context. */
+    fun getProfilesJsonBlocking(): String? {
+        return runBlocking { profilesJson.first() }
     }
 
     // ═══════════════════════════════════════════════════════════

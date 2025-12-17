@@ -14,7 +14,7 @@ kotlin {
             "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
             "-opt-in=androidx.compose.animation.ExperimentalAnimationApi",
             "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi",
-            "-Xwarning-level=DEPRECATION:disabled"
+            "-Xwarning-level=DEPRECATION:disabled",
         )
     }
 }
@@ -34,15 +34,13 @@ android {
     }
 
     buildTypes {
-        debug {
-            isMinifyEnabled = false
-        }
+        debug { isMinifyEnabled = false }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -52,8 +50,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-
-
     buildFeatures {
         compose = true
         buildConfig = true
@@ -61,16 +57,11 @@ android {
 
     // CRITICAL: Prevent synthetic lambda classes that cause ClassNotFoundException in Xposed
     packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
+        resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
         // Ensure all module classes are in the primary dex
-        dex {
-            useLegacyPackaging = true
-        }
+        dex { useLegacyPackaging = true }
     }
 }
-
 
 dependencies {
     // ═══════════════════════════════════════════════════════════

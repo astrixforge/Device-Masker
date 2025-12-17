@@ -20,40 +20,61 @@ import kotlin.random.Random
 object MACGenerator {
 
     /**
-     * Real OUI prefixes from major device manufacturers.
-     * These are 24-bit identifiers assigned by IEEE.
+     * Real OUI prefixes from major device manufacturers. These are 24-bit identifiers assigned by
+     * IEEE.
      */
-    private val MANUFACTURER_OUIS = mapOf(
-        // Samsung
-        "samsung" to listOf("00:16:32", "00:21:19", "00:24:54", "00:26:37", "00:E0:91", "3C:5A:B4", "78:AB:BB"),
-        // Apple
-        "apple" to listOf("00:03:93", "00:0A:27", "00:0D:93", "00:1D:4F", "00:1E:C2", "00:1F:5B", "00:22:41", "00:26:BB"),
-        // Google
-        "google" to listOf("3C:5A:B4", "F4:F5:D8", "54:60:09", "94:EB:2C"),
-        // Xiaomi
-        "xiaomi" to listOf("04:CF:8C", "0C:1D:AF", "14:F6:5A", "18:59:36", "28:6C:07", "34:CE:00"),
-        // Huawei
-        "huawei" to listOf("00:1E:10", "00:25:68", "00:25:9E", "00:46:4B", "00:66:4B", "04:F9:38"),
-        // Intel (common in laptops)
-        "intel" to listOf("00:1C:C0", "00:1D:E0", "00:1E:67", "00:1F:3B", "00:22:FA", "00:24:D7"),
-        // Qualcomm/Broadcom (common in phones)
-        "qualcomm" to listOf("00:00:F0", "00:15:FF", "00:18:0A", "00:1A:6B", "00:1C:57"),
-        // Realtek (common WiFi chips)
-        "realtek" to listOf("00:1E:E3", "00:60:DE", "00:E0:4C", "18:02:AE", "34:29:12"),
-        // Generic random
-        "generic" to listOf("02:00:00", "06:00:00", "0A:00:00", "0E:00:00")
-    )
+    private val MANUFACTURER_OUIS =
+        mapOf(
+            // Samsung
+            "samsung" to
+                listOf(
+                    "00:16:32",
+                    "00:21:19",
+                    "00:24:54",
+                    "00:26:37",
+                    "00:E0:91",
+                    "3C:5A:B4",
+                    "78:AB:BB",
+                ),
+            // Apple
+            "apple" to
+                listOf(
+                    "00:03:93",
+                    "00:0A:27",
+                    "00:0D:93",
+                    "00:1D:4F",
+                    "00:1E:C2",
+                    "00:1F:5B",
+                    "00:22:41",
+                    "00:26:BB",
+                ),
+            // Google
+            "google" to listOf("3C:5A:B4", "F4:F5:D8", "54:60:09", "94:EB:2C"),
+            // Xiaomi
+            "xiaomi" to
+                listOf("04:CF:8C", "0C:1D:AF", "14:F6:5A", "18:59:36", "28:6C:07", "34:CE:00"),
+            // Huawei
+            "huawei" to
+                listOf("00:1E:10", "00:25:68", "00:25:9E", "00:46:4B", "00:66:4B", "04:F9:38"),
+            // Intel (common in laptops)
+            "intel" to
+                listOf("00:1C:C0", "00:1D:E0", "00:1E:67", "00:1F:3B", "00:22:FA", "00:24:D7"),
+            // Qualcomm/Broadcom (common in phones)
+            "qualcomm" to listOf("00:00:F0", "00:15:FF", "00:18:0A", "00:1A:6B", "00:1C:57"),
+            // Realtek (common WiFi chips)
+            "realtek" to listOf("00:1E:E3", "00:60:DE", "00:E0:4C", "18:02:AE", "34:29:12"),
+            // Generic random
+            "generic" to listOf("02:00:00", "06:00:00", "0A:00:00", "0E:00:00"),
+        )
 
     /**
-     * Generates a random valid unicast MAC address.
-     * Uses locally administered bit for maximum compatibility.
+     * Generates a random valid unicast MAC address. Uses locally administered bit for maximum
+     * compatibility.
      *
      * @return A MAC address in XX:XX:XX:XX:XX:XX format
      */
     fun generate(): String {
-        val octets = ByteArray(6).apply {
-            Random.nextBytes(this)
-        }
+        val octets = ByteArray(6).apply { Random.nextBytes(this) }
 
         // Ensure unicast (clear bit 0) and locally administered (set bit 1)
         octets[0] = (octets[0].toInt() and 0xFC or 0x02).toByte()
@@ -62,21 +83,20 @@ object MACGenerator {
     }
 
     /**
-     * Generates a MAC address with a real manufacturer OUI prefix.
-     * This makes the address appear to be from a legitimate device.
+     * Generates a MAC address with a real manufacturer OUI prefix. This makes the address appear to
+     * be from a legitimate device.
      *
      * @param manufacturer The manufacturer name (samsung, apple, google, etc.)
      * @return A MAC address with the specified manufacturer's OUI
      */
     fun generateForManufacturer(manufacturer: String): String {
-        val oui = MANUFACTURER_OUIS[manufacturer.lowercase()]?.random()
-            ?: MANUFACTURER_OUIS["generic"]?.random()
-            ?: return generate()
+        val oui =
+            MANUFACTURER_OUIS[manufacturer.lowercase()]?.random()
+                ?: MANUFACTURER_OUIS["generic"]?.random()
+                ?: return generate()
 
         // Generate the last 3 octets randomly
-        val nicBytes = ByteArray(3).apply {
-            Random.nextBytes(this)
-        }
+        val nicBytes = ByteArray(3).apply { Random.nextBytes(this) }
 
         val nicPart = nicBytes.joinToString(":") { "%02X".format(it) }
 
@@ -84,8 +104,8 @@ object MACGenerator {
     }
 
     /**
-     * Generates a locally administered MAC address.
-     * Bit 1 of first octet is set, which indicates this is not a globally unique address.
+     * Generates a locally administered MAC address. Bit 1 of first octet is set, which indicates
+     * this is not a globally unique address.
      *
      * @return A locally administered MAC address
      */
@@ -102,9 +122,7 @@ object MACGenerator {
     fun generateWithOUI(oui: String): String {
         require(isValidOUI(oui)) { "Invalid OUI format. Expected XX:XX:XX" }
 
-        val nicBytes = ByteArray(3).apply {
-            Random.nextBytes(this)
-        }
+        val nicBytes = ByteArray(3).apply { Random.nextBytes(this) }
 
         val nicPart = nicBytes.joinToString(":") { "%02X".format(it) }
 
@@ -184,13 +202,14 @@ object MACGenerator {
      * @return A MAC address typical for WiFi interfaces
      */
     fun generateWiFiMAC(): String {
-        val wifiManufacturers = listOf("samsung", "apple", "google", "xiaomi", "qualcomm", "realtek")
+        val wifiManufacturers =
+            listOf("samsung", "apple", "google", "xiaomi", "qualcomm", "realtek")
         return generateForManufacturer(wifiManufacturers.random())
     }
 
     /**
-     * Generates a Bluetooth-typical MAC address.
-     * Note: Bluetooth MACs often use similar OUIs but may have different conventions.
+     * Generates a Bluetooth-typical MAC address. Note: Bluetooth MACs often use similar OUIs but
+     * may have different conventions.
      *
      * @return A MAC address typical for Bluetooth interfaces
      */

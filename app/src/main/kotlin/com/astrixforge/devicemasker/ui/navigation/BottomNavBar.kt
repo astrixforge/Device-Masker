@@ -21,8 +21,8 @@ import com.astrixforge.devicemasker.ui.theme.AppMotion
 /**
  * Bottom navigation bar for DeviceMasker.
  *
- * Uses Material 3 NavigationBar with animated icons and labels.
- * Supports spring-based animations for smooth transitions.
+ * Uses Material 3 NavigationBar with animated icons and labels. Supports spring-based animations
+ * for smooth transitions.
  *
  * @param currentRoute Current active route string
  * @param onNavigate Callback when user selects a route
@@ -32,89 +32,72 @@ import com.astrixforge.devicemasker.ui.theme.AppMotion
 fun BottomNavBar(
     currentRoute: String,
     onNavigate: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     NavigationBar(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
-        tonalElevation = 0.dp
+        tonalElevation = 0.dp,
     ) {
         bottomNavItems.forEach { item ->
             BottomNavItem(
                 item = item,
                 isSelected = currentRoute == item.route,
-                onClick = { onNavigate(item.route) }
+                onClick = { onNavigate(item.route) },
             )
         }
     }
 }
 
-/**
- * Individual navigation bar item.
- */
+/** Individual navigation bar item. */
 @Composable
-private fun RowScope.BottomNavItem(
-    item: NavItem,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
+private fun RowScope.BottomNavItem(item: NavItem, isSelected: Boolean, onClick: () -> Unit) {
     // Animate icon scale for selection
-    val scale by animateFloatAsState(
-        targetValue = if (isSelected) 1.1f else 1.0f,
-        animationSpec = AppMotion.FastSpring,
-        label = "iconScale_${item.route}"
-    )
+    val scale by
+        animateFloatAsState(
+            targetValue = if (isSelected) 1.1f else 1.0f,
+            animationSpec = AppMotion.FastSpring,
+            label = "iconScale_${item.route}",
+        )
 
     NavigationBarItem(
         selected = isSelected,
         onClick = onClick,
         icon = {
-            AnimatedNavIcon(
-                item = item,
-                isSelected = isSelected,
-                modifier = Modifier.scale(scale)
-            )
+            AnimatedNavIcon(item = item, isSelected = isSelected, modifier = Modifier.scale(scale))
         },
-        label = {
-            Text(
-                text = item.label,
-                style = MaterialTheme.typography.labelMedium
-            )
-        },
-        colors = NavigationBarItemDefaults.colors(
-            selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            selectedTextColor = MaterialTheme.colorScheme.onSurface,
-            indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
-            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        label = { Text(text = item.label, style = MaterialTheme.typography.labelMedium) },
+        colors =
+            NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
+                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
     )
 }
 
-/**
- * Animated icon that transitions between selected and unselected states.
- */
+/** Animated icon that transitions between selected and unselected states. */
 @Composable
-private fun AnimatedNavIcon(
-    item: NavItem,
-    isSelected: Boolean,
-    modifier: Modifier = Modifier
-) {
-    val iconColor by animateColorAsState(
-        targetValue = if (isSelected) {
-            MaterialTheme.colorScheme.onSecondaryContainer
-        } else {
-            MaterialTheme.colorScheme.onSurfaceVariant
-        },
-        animationSpec = spring(),
-        label = "iconColor"
-    )
+private fun AnimatedNavIcon(item: NavItem, isSelected: Boolean, modifier: Modifier = Modifier) {
+    val iconColor by
+        animateColorAsState(
+            targetValue =
+                if (isSelected) {
+                    MaterialTheme.colorScheme.onSecondaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            animationSpec = spring(),
+            label = "iconColor",
+        )
 
     Icon(
         imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
         contentDescription = item.label,
         modifier = modifier.size(24.dp),
-        tint = iconColor
+        tint = iconColor,
     )
 }

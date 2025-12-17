@@ -23,13 +23,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Devices
 import androidx.compose.material.icons.outlined.LocationOn
@@ -39,10 +37,8 @@ import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -58,7 +54,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -92,7 +87,7 @@ import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 fun SpoofSettingsScreen(
     repository: SpoofRepository,
     onEditValue: (SpoofType, String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val activeProfile by repository.activeProfile.collectAsState(initial = null)
 
@@ -105,25 +100,23 @@ fun SpoofSettingsScreen(
             // Toggle via repository
         },
         onEditValue = onEditValue,
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
-/**
- * Stateless content for SpoofSettingsScreen.
- */
+/** Stateless content for SpoofSettingsScreen. */
 @Composable
 fun SpoofSettingsContent(
     profile: SpoofProfile?,
     onRegenerate: (SpoofType) -> Unit,
     onToggle: (SpoofType, Boolean) -> Unit,
     onEditValue: (SpoofType, String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         // Header
         item {
@@ -132,7 +125,7 @@ fun SpoofSettingsContent(
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(vertical = 8.dp)
+                modifier = Modifier.padding(vertical = 8.dp),
             )
         }
 
@@ -144,82 +137,78 @@ fun SpoofSettingsContent(
                     profile = profile,
                     onRegenerate = onRegenerate,
                     onToggle = onToggle,
-                    onEditValue = onEditValue
+                    onEditValue = onEditValue,
                 )
             }
         }
 
         // Bottom spacing
-        item {
-            Spacer(modifier = Modifier.height(24.dp))
-        }
+        item { Spacer(modifier = Modifier.height(24.dp)) }
     }
 }
 
-/**
- * Expandable category section.
- */
+/** Expandable category section. */
 @Composable
 private fun CategorySection(
     category: SpoofCategory,
     profile: SpoofProfile?,
     onRegenerate: (SpoofType) -> Unit,
     onToggle: (SpoofType, Boolean) -> Unit,
-    onEditValue: (SpoofType, String) -> Unit
+    onEditValue: (SpoofType, String) -> Unit,
 ) {
     var isExpanded by remember { mutableStateOf(true) }
-    val rotationAngle by animateFloatAsState(
-        targetValue = if (isExpanded) 0f else 180f,
-        animationSpec = AppMotion.FastSpring,
-        label = "expandRotation"
-    )
+    val rotationAngle by
+        animateFloatAsState(
+            targetValue = if (isExpanded) 0f else 180f,
+            animationSpec = AppMotion.FastSpring,
+            label = "expandRotation",
+        )
 
-    val categoryIcon = when (category) {
-        SpoofCategory.DEVICE -> Icons.Outlined.Devices
-        SpoofCategory.NETWORK -> Icons.Outlined.Wifi
-        SpoofCategory.ADVERTISING -> Icons.Outlined.TrackChanges
-        SpoofCategory.SYSTEM -> Icons.Outlined.Settings
-        SpoofCategory.LOCATION -> Icons.Outlined.LocationOn
-    }
+    val categoryIcon =
+        when (category) {
+            SpoofCategory.DEVICE -> Icons.Outlined.Devices
+            SpoofCategory.NETWORK -> Icons.Outlined.Wifi
+            SpoofCategory.ADVERTISING -> Icons.Outlined.TrackChanges
+            SpoofCategory.SYSTEM -> Icons.Outlined.Settings
+            SpoofCategory.LOCATION -> Icons.Outlined.LocationOn
+        }
 
-    val categoryColor = when (category) {
-        SpoofCategory.DEVICE -> Color(0xFF00BCD4)
-        SpoofCategory.NETWORK -> Color(0xFF4CAF50)
-        SpoofCategory.ADVERTISING -> Color(0xFFFF9800)
-        SpoofCategory.SYSTEM -> Color(0xFF9C27B0)
-        SpoofCategory.LOCATION -> Color(0xFFE91E63)
-    }
+    val categoryColor =
+        when (category) {
+            SpoofCategory.DEVICE -> Color(0xFF00BCD4)
+            SpoofCategory.NETWORK -> Color(0xFF4CAF50)
+            SpoofCategory.ADVERTISING -> Color(0xFFFF9800)
+            SpoofCategory.SYSTEM -> Color(0xFF9C27B0)
+            SpoofCategory.LOCATION -> Color(0xFFE91E63)
+        }
 
     ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .animateContentSize(animationSpec = spring()),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
-        shape = MaterialTheme.shapes.large
+        modifier = Modifier.fillMaxWidth().animateContentSize(animationSpec = spring()),
+        colors =
+            CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ),
+        shape = MaterialTheme.shapes.large,
     ) {
         Column {
             // Category Header
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { isExpanded = !isExpanded }
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                modifier =
+                    Modifier.fillMaxWidth().clickable { isExpanded = !isExpanded }.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(categoryColor.copy(alpha = 0.2f)),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier.size(40.dp)
+                            .clip(CircleShape)
+                            .background(categoryColor.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = categoryIcon,
                         contentDescription = null,
                         tint = categoryColor,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(24.dp),
                     )
                 }
 
@@ -230,12 +219,12 @@ private fun CategorySection(
                         text = category.displayName,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
                         text = "${SpoofType.byCategory(category).size} identifiers",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
 
@@ -243,7 +232,7 @@ private fun CategorySection(
                     imageVector = Icons.Filled.ExpandLess,
                     contentDescription = if (isExpanded) "Collapse" else "Expand",
                     modifier = Modifier.rotate(rotationAngle),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -251,15 +240,11 @@ private fun CategorySection(
             AnimatedVisibility(
                 visible = isExpanded,
                 enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
+                exit = fadeOut() + shrinkVertically(),
             ) {
                 Column(
-                    modifier = Modifier.padding(
-                        start = 16.dp,
-                        end = 16.dp,
-                        bottom = 16.dp
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     SpoofType.byCategory(category).forEach { type ->
                         val identifier = profile?.getIdentifier(type)
@@ -268,7 +253,7 @@ private fun CategorySection(
                             identifier = identifier,
                             onRegenerate = { onRegenerate(type) },
                             onToggle = { enabled -> onToggle(type, enabled) },
-                            onEdit = { value -> onEditValue(type, value) }
+                            onEdit = { value -> onEditValue(type, value) },
                         )
                     }
                 }
@@ -277,64 +262,56 @@ private fun CategorySection(
     }
 }
 
-/**
- * Individual spoof value item with controls.
- */
+/** Individual spoof value item with controls. */
 @Composable
 private fun SpoofValueItem(
     type: SpoofType,
     identifier: DeviceIdentifier?,
     onRegenerate: () -> Unit,
     onToggle: (Boolean) -> Unit,
-    onEdit: (String) -> Unit
+    onEdit: (String) -> Unit,
 ) {
     val clipboardManager = LocalClipboardManager.current
     val value = identifier?.value ?: "Not set"
     val isEnabled = identifier?.isEnabled ?: true
 
-    val alpha by animateFloatAsState(
-        targetValue = if (isEnabled) 1f else 0.5f,
-        animationSpec = AppMotion.FastSpring,
-        label = "itemAlpha"
-    )
+    val alpha by
+        animateFloatAsState(
+            targetValue = if (isEnabled) 1f else 0.5f,
+            animationSpec = AppMotion.FastSpring,
+            label = "itemAlpha",
+        )
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .alpha(alpha),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        ),
-        shape = MaterialTheme.shapes.medium
+        modifier = Modifier.fillMaxWidth().alpha(alpha),
+        colors =
+            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        shape = MaterialTheme.shapes.medium,
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp)
-        ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
             // Header Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = type.displayName,
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
                         text = type.description,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
 
                 Switch(
                     checked = isEnabled,
                     onCheckedChange = onToggle,
-                    modifier = Modifier.padding(start = 8.dp)
+                    modifier = Modifier.padding(start = 8.dp),
                 )
             }
 
@@ -343,54 +320,47 @@ private fun SpoofValueItem(
             // Value Display
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = if (identifier?.value != null) maskValue(type, value) else "—",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontFamily = FontFamily.Monospace
-                    ),
+                    style =
+                        MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
                     color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
 
                 // Action Buttons
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     IconButton(
                         onClick = { clipboardManager.setText(AnnotatedString(value)) },
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(32.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Filled.ContentCopy,
                             contentDescription = "Copy",
                             modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
 
-                    IconButton(
-                        onClick = onRegenerate,
-                        modifier = Modifier.size(32.dp)
-                    ) {
+                    IconButton(onClick = onRegenerate, modifier = Modifier.size(32.dp)) {
                         Icon(
                             imageVector = Icons.Filled.Refresh,
                             contentDescription = "Regenerate",
                             modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
                         )
                     }
 
-                    IconButton(
-                        onClick = { onEdit(value) },
-                        modifier = Modifier.size(32.dp)
-                    ) {
+                    IconButton(onClick = { onEdit(value) }, modifier = Modifier.size(32.dp)) {
                         Icon(
                             imageVector = Icons.Filled.Edit,
                             contentDescription = "Edit",
                             modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.secondary
+                            tint = MaterialTheme.colorScheme.secondary,
                         )
                     }
                 }
@@ -399,20 +369,23 @@ private fun SpoofValueItem(
     }
 }
 
-/**
- * Masks sensitive values for display.
- */
+/** Masks sensitive values for display. */
 private fun maskValue(type: SpoofType, value: String): String {
     if (value.length < 8) return value
 
     return when (type) {
-        SpoofType.IMEI, SpoofType.MEID, SpoofType.IMSI, SpoofType.ICCID -> {
+        SpoofType.IMEI,
+        SpoofType.MEID,
+        SpoofType.IMSI,
+        SpoofType.ICCID -> {
             value.take(4) + "****" + value.takeLast(4)
         }
         SpoofType.PHONE_NUMBER -> {
             value.take(3) + "****" + value.takeLast(4)
         }
-        SpoofType.WIFI_MAC, SpoofType.BLUETOOTH_MAC, SpoofType.WIFI_BSSID -> {
+        SpoofType.WIFI_MAC,
+        SpoofType.BLUETOOTH_MAC,
+        SpoofType.WIFI_BSSID -> {
             val parts = value.split(":")
             if (parts.size == 6) {
                 "${parts[0]}:${parts[1]}:**:**:**:${parts[5]}"
@@ -440,7 +413,7 @@ fun SpoofSettingsContentPreview() {
             profile = sampleProfile,
             onRegenerate = {},
             onToggle = { _, _ -> },
-            onEditValue = { _, _ -> }
+            onEditValue = { _, _ -> },
         )
     }
 }

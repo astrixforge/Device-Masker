@@ -31,66 +31,66 @@ object AntiDetectHooker : YukiBaseHooker() {
      * Class.forName() blocking.
      */
     private val HIDDEN_CLASS_PATTERNS =
-            listOf(
-                    // Xposed Framework
-                    "de.robv.android.xposed",
-                    "XposedBridge",
-                    "XposedHelpers",
-                    "XC_MethodHook",
-                    "XC_MethodReplacement",
+        listOf(
+            // Xposed Framework
+            "de.robv.android.xposed",
+            "XposedBridge",
+            "XposedHelpers",
+            "XC_MethodHook",
+            "XC_MethodReplacement",
 
-                    // LSPosed
-                    "io.github.lsposed",
-                    "LSPHooker",
-                    "LSPosed",
+            // LSPosed
+            "io.github.lsposed",
+            "LSPHooker",
+            "LSPosed",
 
-                    // YukiHookAPI
-                    "com.highcapable.yukihookapi",
-                    "YukiHookAPI",
-                    "YukiBaseHooker",
-                    "YukiMemberHookCreator",
+            // YukiHookAPI
+            "com.highcapable.yukihookapi",
+            "YukiHookAPI",
+            "YukiBaseHooker",
+            "YukiMemberHookCreator",
 
-                    // EdXposed
-                    "EdHooker",
-                    "EdXposed",
-                    "com.elderdrivers.riru",
+            // EdXposed
+            "EdHooker",
+            "EdXposed",
+            "com.elderdrivers.riru",
 
-                    // Riru
-                    "rikka.ndk",
-                    "org.lsposed.lspd",
+            // Riru
+            "rikka.ndk",
+            "org.lsposed.lspd",
 
-                    // General hook patterns
-                    // REMOVED: "HookEntry", "DeviceMasker" to prevent module self-crash
-                    "LSPosedService"
-            )
+            // General hook patterns
+            // REMOVED: "HookEntry", "DeviceMasker" to prevent module self-crash
+            "LSPosedService",
+        )
 
     /** Native library paths that indicate Xposed presence. Used for /proc/self/maps filtering. */
     private val HIDDEN_LIBRARY_PATTERNS =
-            listOf(
-                    "libxposed",
-                    "liblspd",
-                    "libriru",
-                    "libsandhook",
-                    "libpine",
-                    "libwhale",
-                    "libdobby",
-                    "libsubstrate",
-                    "libandroid_runtime_ext"
-            )
+        listOf(
+            "libxposed",
+            "liblspd",
+            "libriru",
+            "libsandhook",
+            "libpine",
+            "libwhale",
+            "libdobby",
+            "libsubstrate",
+            "libandroid_runtime_ext",
+        )
 
     /**
      * Package names of Xposed installers and managers. Used for PackageManager hook to hide these
      * apps.
      */
     private val HIDDEN_PACKAGES =
-            listOf(
-                    "de.robv.android.xposed.installer",
-                    "org.lsposed.manager",
-                    "io.github.lsposed.manager",
-                    "com.topjohnwu.magisk",
-                    "me.weishu.exp",
-                    "org.meowcat.edxposed.manager"
-            )
+        listOf(
+            "de.robv.android.xposed.installer",
+            "org.lsposed.manager",
+            "io.github.lsposed.manager",
+            "com.topjohnwu.magisk",
+            "me.weishu.exp",
+            "org.meowcat.edxposed.manager",
+        )
 
     override fun onHook() {
         // ═══════════════════════════════════════════════════════════════
@@ -148,21 +148,21 @@ object AntiDetectHooker : YukiBaseHooker() {
         runCatching {
             "java.lang.Thread".toClass().apply {
                 method {
-                    name = "getStackTrace"
-                    emptyParam()
-                }
-                        .hook {
-                            after {
-                                val originalStack = result as? Array<StackTraceElement>
-                                if (originalStack.isNullOrEmpty()) return@after
+                        name = "getStackTrace"
+                        emptyParam()
+                    }
+                    .hook {
+                        after {
+                            val originalStack = result as? Array<StackTraceElement>
+                            if (originalStack.isNullOrEmpty()) return@after
 
-                                runCatching {
+                            runCatching {
                                     @Suppress("UNCHECKED_CAST")
                                     result = filterStackTrace(originalStack)
                                 }
-                                        .onFailure { result = originalStack }
-                            }
+                                .onFailure { result = originalStack }
                         }
+                    }
             }
         }
 
@@ -171,21 +171,21 @@ object AntiDetectHooker : YukiBaseHooker() {
         runCatching {
             "java.lang.Throwable".toClass().apply {
                 method {
-                    name = "getStackTrace"
-                    emptyParam()
-                }
-                        .hook {
-                            after {
-                                val originalStack = result as? Array<StackTraceElement>
-                                if (originalStack.isNullOrEmpty()) return@after
+                        name = "getStackTrace"
+                        emptyParam()
+                    }
+                    .hook {
+                        after {
+                            val originalStack = result as? Array<StackTraceElement>
+                            if (originalStack.isNullOrEmpty()) return@after
 
-                                runCatching {
+                            runCatching {
                                     @Suppress("UNCHECKED_CAST")
                                     result = filterStackTrace(originalStack)
                                 }
-                                        .onFailure { result = originalStack }
-                            }
+                                .onFailure { result = originalStack }
                         }
+                    }
             }
         }
 
@@ -195,20 +195,20 @@ object AntiDetectHooker : YukiBaseHooker() {
     /** Filters a stack trace array, removing frames that match hidden patterns. */
     private fun filterStackTrace(stack: Array<StackTraceElement>): Array<StackTraceElement> {
         return stack
-                .filterNot { element ->
-                    val className = element.className
-                    // Safety: Never filter our own classes or standard Android/Java classes
-                    if (className.startsWith("com.astrixforge.devicemasker")) return@filterNot false
-                    if (className.startsWith("android.")) return@filterNot false
-                    if (className.startsWith("java.")) return@filterNot false
-                    if (className.startsWith("kotlin.")) return@filterNot false
-                    if (className.startsWith("androidx.")) return@filterNot false
+            .filterNot { element ->
+                val className = element.className
+                // Safety: Never filter our own classes or standard Android/Java classes
+                if (className.startsWith("com.astrixforge.devicemasker")) return@filterNot false
+                if (className.startsWith("android.")) return@filterNot false
+                if (className.startsWith("java.")) return@filterNot false
+                if (className.startsWith("kotlin.")) return@filterNot false
+                if (className.startsWith("androidx.")) return@filterNot false
 
-                    HIDDEN_CLASS_PATTERNS.any { pattern ->
-                        className.contains(pattern, ignoreCase = true)
-                    }
+                HIDDEN_CLASS_PATTERNS.any { pattern ->
+                    className.contains(pattern, ignoreCase = true)
                 }
-                .toTypedArray()
+            }
+            .toTypedArray()
     }
 
     /** Hooks class loading methods to block loading of Xposed classes. */
@@ -216,71 +216,69 @@ object AntiDetectHooker : YukiBaseHooker() {
         // Hook Class.forName(String)
         "java.lang.Class".toClass().apply {
             method {
-                name = "forName"
-                param(StringClass)
-            }
-                    .hook {
-                        before {
-                            val className = args(0).string()
-                            if (shouldBlockClass(className)) {
-                                YLog.debug("AntiDetectHooker: Blocking Class.forName($className)")
-                                // Throw exception to block class loading
-                                throw ClassNotFoundException(className)
-                            }
+                    name = "forName"
+                    param(StringClass)
+                }
+                .hook {
+                    before {
+                        val className = args(0).string()
+                        if (shouldBlockClass(className)) {
+                            YLog.debug("AntiDetectHooker: Blocking Class.forName($className)")
+                            // Throw exception to block class loading
+                            throw ClassNotFoundException(className)
                         }
                     }
+                }
 
             // Hook Class.forName(String, boolean, ClassLoader)
             method {
-                name = "forName"
-                param(StringClass, BooleanType, ClassLoader::class.java)
-            }
-                    .hook {
-                        before {
-                            val className = args(0).string()
-                            if (shouldBlockClass(className)) {
-                                YLog.debug(
-                                        "AntiDetectHooker: Blocking Class.forName($className, ...)"
-                                )
-                                throw ClassNotFoundException(className)
-                            }
+                    name = "forName"
+                    param(StringClass, BooleanType, ClassLoader::class.java)
+                }
+                .hook {
+                    before {
+                        val className = args(0).string()
+                        if (shouldBlockClass(className)) {
+                            YLog.debug("AntiDetectHooker: Blocking Class.forName($className, ...)")
+                            throw ClassNotFoundException(className)
                         }
                     }
+                }
         }
 
         // Hook ClassLoader.loadClass()
         "java.lang.ClassLoader".toClass().apply {
             method {
-                name = "loadClass"
-                param(StringClass)
-            }
-                    .hook {
-                        before {
-                            val className = args(0).string()
-                            if (shouldBlockClass(className)) {
-                                YLog.debug(
-                                        "AntiDetectHooker: Blocking ClassLoader.loadClass($className)"
-                                )
-                                throw ClassNotFoundException(className)
-                            }
+                    name = "loadClass"
+                    param(StringClass)
+                }
+                .hook {
+                    before {
+                        val className = args(0).string()
+                        if (shouldBlockClass(className)) {
+                            YLog.debug(
+                                "AntiDetectHooker: Blocking ClassLoader.loadClass($className)"
+                            )
+                            throw ClassNotFoundException(className)
                         }
                     }
+                }
 
             method {
-                name = "loadClass"
-                param(StringClass, BooleanType)
-            }
-                    .hook {
-                        before {
-                            val className = args(0).string()
-                            if (shouldBlockClass(className)) {
-                                YLog.debug(
-                                        "AntiDetectHooker: Blocking ClassLoader.loadClass($className, ...)"
-                                )
-                                throw ClassNotFoundException(className)
-                            }
+                    name = "loadClass"
+                    param(StringClass, BooleanType)
+                }
+                .hook {
+                    before {
+                        val className = args(0).string()
+                        if (shouldBlockClass(className)) {
+                            YLog.debug(
+                                "AntiDetectHooker: Blocking ClassLoader.loadClass($className, ...)"
+                            )
+                            throw ClassNotFoundException(className)
                         }
                     }
+                }
         }
 
         YLog.debug("AntiDetectHooker: Class loading hooks registered")
@@ -293,15 +291,15 @@ object AntiDetectHooker : YukiBaseHooker() {
         // Blocking these would crash the module app or break functionality
         // ═══════════════════════════════════════════════════════════════
         val allowedPatterns =
-                listOf(
-                        "com.astrixforge.devicemasker", // Our own module
-                        "androidx.", // AndroidX libraries
-                        "kotlin.", // Kotlin stdlib
-                        "kotlinx.", // Kotlin extensions
-                        "com.google.android", // Google libraries
-                        "android.", // Android framework
-                        "java.", // Java stdlib
-                )
+            listOf(
+                "com.astrixforge.devicemasker", // Our own module
+                "androidx.", // AndroidX libraries
+                "kotlin.", // Kotlin stdlib
+                "kotlinx.", // Kotlin extensions
+                "com.google.android", // Google libraries
+                "android.", // Android framework
+                "java.", // Java stdlib
+            )
 
         if (allowedPatterns.any { className.startsWith(it) }) {
             return false
@@ -321,20 +319,20 @@ object AntiDetectHooker : YukiBaseHooker() {
         // Hook BufferedReader.readLine() for /proc/self/maps filtering
         "java.io.BufferedReader".toClass().apply {
             method {
-                name = "readLine"
-                emptyParam()
-            }
-                    .hook {
-                        after {
-                            val line = result as? String ?: return@after
+                    name = "readLine"
+                    emptyParam()
+                }
+                .hook {
+                    after {
+                        val line = result as? String ?: return@after
 
-                            // Filter lines containing hidden library patterns
-                            if (shouldFilterMapsLine(line)) {
-                                // Skip this line by returning empty string
-                                result = ""
-                            }
+                        // Filter lines containing hidden library patterns
+                        if (shouldFilterMapsLine(line)) {
+                            // Skip this line by returning empty string
+                            result = ""
                         }
                     }
+                }
         }
 
         YLog.debug("AntiDetectHooker: /proc/maps hooks registered")
@@ -351,69 +349,69 @@ object AntiDetectHooker : YukiBaseHooker() {
         "android.app.ApplicationPackageManager".toClass().apply {
             // getPackageInfo(String, int)
             method {
-                name = "getPackageInfo"
-                paramCount = 2
-            }
-                    .hook {
-                        before {
-                            val packageName = args(0).string()
-                            if (shouldHidePackage(packageName)) {
-                                YLog.debug("AntiDetectHooker: Hiding package $packageName")
-                                throw android.content.pm.PackageManager.NameNotFoundException(
-                                        packageName
-                                )
-                            }
+                    name = "getPackageInfo"
+                    paramCount = 2
+                }
+                .hook {
+                    before {
+                        val packageName = args(0).string()
+                        if (shouldHidePackage(packageName)) {
+                            YLog.debug("AntiDetectHooker: Hiding package $packageName")
+                            throw android.content.pm.PackageManager.NameNotFoundException(
+                                packageName
+                            )
                         }
                     }
+                }
 
             // getApplicationInfo(String, int)
             method {
-                name = "getApplicationInfo"
-                paramCount = 2
-            }
-                    .hook {
-                        before {
-                            val packageName = args(0).string()
-                            if (shouldHidePackage(packageName)) {
-                                YLog.debug("AntiDetectHooker: Hiding app info for $packageName")
-                                throw android.content.pm.PackageManager.NameNotFoundException(
-                                        packageName
-                                )
-                            }
+                    name = "getApplicationInfo"
+                    paramCount = 2
+                }
+                .hook {
+                    before {
+                        val packageName = args(0).string()
+                        if (shouldHidePackage(packageName)) {
+                            YLog.debug("AntiDetectHooker: Hiding app info for $packageName")
+                            throw android.content.pm.PackageManager.NameNotFoundException(
+                                packageName
+                            )
                         }
                     }
+                }
         }
 
         // Also hook getInstalledPackages and getInstalledApplications to filter lists
         runCatching {
             "android.app.ApplicationPackageManager".toClass().apply {
                 method {
-                    name = "getInstalledPackages"
-                    paramCount = 1
-                }
-                        .hook {
-                            after {
-                                val packages = result as? MutableList<*> ?: return@after
-                                packages.removeAll { pkg ->
-                                    val pkgInfo = pkg as? android.content.pm.PackageInfo
-                                    pkgInfo?.packageName?.let { shouldHidePackage(it) } ?: false
-                                }
+                        name = "getInstalledPackages"
+                        paramCount = 1
+                    }
+                    .hook {
+                        after {
+                            val packages = result as? MutableList<*> ?: return@after
+                            packages.removeAll { pkg ->
+                                val pkgInfo = pkg as? android.content.pm.PackageInfo
+                                pkgInfo?.packageName?.let { shouldHidePackage(it) } ?: false
                             }
                         }
+                    }
 
                 method {
-                    name = "getInstalledApplications"
-                    paramCount = 1
-                }
-                        .hook {
-                            after {
-                                val apps = result as? MutableList<*> ?: return@after
-                                apps.removeAll { app ->
-                                    val appInfo = app as? android.content.pm.ApplicationInfo
-                                    appInfo?.packageName?.let { shouldHidePackage(it) } ?: false
-                                }
+                        name = "getInstalledApplications"
+                        paramCount = 1
+                    }
+                    .hook {
+                        after {
+                            val apps = result as? MutableList<*> ?: return@after
+                            apps.removeAll { app ->
+                                val appInfo = app as? android.content.pm.ApplicationInfo
+                                appInfo?.packageName?.let { shouldHidePackage(it) } ?: false
                             }
                         }
+                    }
             }
         }
 

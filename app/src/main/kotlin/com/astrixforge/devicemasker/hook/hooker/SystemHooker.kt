@@ -1,11 +1,13 @@
 package com.astrixforge.devicemasker.hook.hooker
 
+import android.content.Context
 import com.astrixforge.devicemasker.data.generators.FingerprintGenerator
+import com.astrixforge.devicemasker.data.models.SpoofType
+import com.astrixforge.devicemasker.hook.HookDataProvider
 import com.highcapable.yukihookapi.hook.entity.YukiBaseHooker
-import com.highcapable.yukihookapi.hook.factory.field
 import com.highcapable.yukihookapi.hook.factory.method
-import com.highcapable.yukihookapi.hook.type.java.StringClass
 import com.highcapable.yukihookapi.hook.log.YLog
+import com.highcapable.yukihookapi.hook.type.java.StringClass
 
 /**
  * System Properties Hooker - Spoofs Build.* fields and SystemProperties.
@@ -15,121 +17,116 @@ import com.highcapable.yukihookapi.hook.log.YLog
  * - Build.VERSION.* fields (RELEASE, SDK_INT, SECURITY_PATCH)
  * - SystemProperties.get() for ro.build.* and ro.product.* properties
  *
- * This hooker requires Phase 4 (DataStore) for persistent values.
- * Currently uses generator defaults.
+ * Uses HookDataProvider to read profile-based values and global config.
  */
 object SystemHooker : YukiBaseHooker() {
 
     // ═══════════════════════════════════════════════════════════
-    // CACHED SPOOFED VALUES
-    // These will be replaced with DataStore reads in Phase 4
+    // DATA PROVIDER
     // ═══════════════════════════════════════════════════════════
 
-    private val buildProperties: Map<String, String> by lazy {
+    private var dataProvider: HookDataProvider? = null
+
+    private fun getProvider(context: Context?): HookDataProvider? {
+        if (dataProvider == null && context != null) {
+            dataProvider =
+                runCatching { HookDataProvider.getInstance(context, packageName) }
+                    .onFailure {
+                        YLog.error("SystemHooker: Failed to create HookDataProvider: ${it.message}")
+                    }
+                    .getOrNull()
+        }
+        return dataProvider
+    }
+
+    private fun getSpoofValueOrGenerate(
+        context: Context?,
+        type: SpoofType,
+        generator: () -> String,
+    ): String? {
+        val provider = getProvider(context)
+        if (provider == null) {
+            YLog.debug("SystemHooker: No provider for $type, using generated value")
+            return generator()
+        }
+
+        // getSpoofValue now handles all profile-based checks (profile exists, profile enabled, type
+        // enabled)
+        return provider.getSpoofValue(type) ?: generator()
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // FALLBACK GENERATORS
+    // ═══════════════════════════════════════════════════════════
+
+    private val fallbackBuildProperties: Map<String, String> by lazy {
         FingerprintGenerator.generateBuildProperties()
     }
 
-    private val spoofedFingerprint: String
-        get() = buildProperties["FINGERPRINT"] ?: FingerprintGenerator.generate()
+    private val fallbackFingerprint: String
+        get() = fallbackBuildProperties["FINGERPRINT"] ?: FingerprintGenerator.generate()
 
-    private val spoofedModel: String
-        get() = buildProperties["MODEL"] ?: "Pixel 8"
+    private val fallbackModel: String
+        get() = fallbackBuildProperties["MODEL"] ?: "Pixel 8"
 
-    private val spoofedManufacturer: String
-        get() = buildProperties["MANUFACTURER"] ?: "Google"
+    private val fallbackManufacturer: String
+        get() = fallbackBuildProperties["MANUFACTURER"] ?: "Google"
 
-    private val spoofedBrand: String
-        get() = buildProperties["BRAND"] ?: "google"
+    private val fallbackBrand: String
+        get() = fallbackBuildProperties["BRAND"] ?: "google"
 
-    private val spoofedDevice: String
-        get() = buildProperties["DEVICE"] ?: "shiba"
+    private val fallbackDevice: String
+        get() = fallbackBuildProperties["DEVICE"] ?: "shiba"
 
-    private val spoofedProduct: String
-        get() = buildProperties["PRODUCT"] ?: "shiba"
+    private val fallbackProduct: String
+        get() = fallbackBuildProperties["PRODUCT"] ?: "shiba"
 
-    private val spoofedBoard: String
-        get() = buildProperties["BOARD"] ?: "shiba"
+    private val fallbackBoard: String
+        get() = fallbackBuildProperties["BOARD"] ?: "shiba"
 
-    private val spoofedHardware: String
-        get() = buildProperties["HARDWARE"] ?: "shiba"
-
-    private val spoofedBuildId: String
-        get() = buildProperties["ID"] ?: "AP2A.240905.003"
-
-    private val spoofedDisplay: String
-        get() = buildProperties["DISPLAY"] ?: "AP2A.240905.003"
+    // Context for hook callbacks
+    private var hookContext: Context? = null
 
     override fun onHook() {
         YLog.debug("SystemHooker: Starting hooks for package: $packageName")
 
-        // ═══════════════════════════════════════════════════════════
-        // BUILD CLASS STATIC FIELD HOOKS
-        // ═══════════════════════════════════════════════════════════
-
         hookBuildFields()
-
-        // ═══════════════════════════════════════════════════════════
-        // BUILD.VERSION HOOKS
-        // ═══════════════════════════════════════════════════════════
-
         hookBuildVersion()
-
-        // ═══════════════════════════════════════════════════════════
-        // SYSTEM PROPERTIES HOOKS
-        // ═══════════════════════════════════════════════════════════
-
         hookSystemProperties()
 
         YLog.debug("SystemHooker: Hooks registered for package: $packageName")
     }
 
-    /**
-     * Hooks Build class static fields.
-     * Note: Static fields need special handling - we hook accessors and
-     * SystemProperties as the source of truth.
-     */
+    /** Hooks Build class static fields. */
     private fun hookBuildFields() {
-        // Build class fields are populated from SystemProperties at class load time
-        // The most reliable way to spoof them is to hook SystemProperties.get()
-        // which is done in hookSystemProperties()
-
-        // However, for completeness, we also try to modify the fields directly
-        // This may not work for all apps but provides additional coverage
-
         runCatching {
-            val buildClass = "android.os.Build".toClass()
+                val buildClass = "android.os.Build".toClass()
 
-            // These field modifications happen at hook time
-            // They may be overwritten if the class hasn't been loaded yet
-            modifyBuildField(buildClass, "FINGERPRINT", spoofedFingerprint)
-            modifyBuildField(buildClass, "MODEL", spoofedModel)
-            modifyBuildField(buildClass, "MANUFACTURER", spoofedManufacturer)
-            modifyBuildField(buildClass, "BRAND", spoofedBrand)
-            modifyBuildField(buildClass, "DEVICE", spoofedDevice)
-            modifyBuildField(buildClass, "PRODUCT", spoofedProduct)
-            modifyBuildField(buildClass, "BOARD", spoofedBoard)
-            modifyBuildField(buildClass, "HARDWARE", spoofedHardware)
-            modifyBuildField(buildClass, "ID", spoofedBuildId)
-            modifyBuildField(buildClass, "DISPLAY", spoofedDisplay)
-            modifyBuildField(buildClass, "HOST", "build.google.com")
-            modifyBuildField(buildClass, "TYPE", "user")
-            modifyBuildField(buildClass, "TAGS", "release-keys")
+                // These field modifications happen at hook time
+                modifyBuildField(buildClass, "FINGERPRINT", fallbackFingerprint)
+                modifyBuildField(buildClass, "MODEL", fallbackModel)
+                modifyBuildField(buildClass, "MANUFACTURER", fallbackManufacturer)
+                modifyBuildField(buildClass, "BRAND", fallbackBrand)
+                modifyBuildField(buildClass, "DEVICE", fallbackDevice)
+                modifyBuildField(buildClass, "PRODUCT", fallbackProduct)
+                modifyBuildField(buildClass, "BOARD", fallbackBoard)
+                modifyBuildField(buildClass, "HOST", "build.google.com")
+                modifyBuildField(buildClass, "TYPE", "user")
+                modifyBuildField(buildClass, "TAGS", "release-keys")
 
-            YLog.debug("SystemHooker: Build fields modified")
-        }.onFailure { e ->
-            YLog.warn("SystemHooker: Failed to modify Build fields: ${e.message}")
-        }
+                YLog.debug("SystemHooker: Build fields modified")
+            }
+            .onFailure { e ->
+                YLog.warn("SystemHooker: Failed to modify Build fields: ${e.message}")
+            }
     }
 
-    /**
-     * Modifies a static field value using reflection.
-     */
+    /** Modifies a static field value using reflection. */
     private fun modifyBuildField(clazz: Class<*>, fieldName: String, value: String) {
         try {
             val field = clazz.getDeclaredField(fieldName)
             field.isAccessible = true
 
-            // Remove final modifier
             val modifiersField = java.lang.reflect.Field::class.java.getDeclaredField("modifiers")
             modifiersField.isAccessible = true
             modifiersField.setInt(field, field.modifiers and java.lang.reflect.Modifier.FINAL.inv())
@@ -141,99 +138,117 @@ object SystemHooker : YukiBaseHooker() {
         }
     }
 
-    /**
-     * Hooks Build.VERSION fields.
-     */
+    /** Hooks Build.VERSION fields. */
     private fun hookBuildVersion() {
         // VERSION fields are also populated from SystemProperties
         // We hook via SystemProperties for reliability
     }
 
-    /**
-     * Hooks SystemProperties.get() for property-based spoofing.
-     * This is the most reliable method as Build fields read from here.
-     */
+    /** Hooks SystemProperties.get() for property-based spoofing. */
     private fun hookSystemProperties() {
         "android.os.SystemProperties".toClass().apply {
-
-            // get(String key) - Single argument version
             method {
-                name = "get"
-                param(StringClass)
-            }.hook {
-                after {
-                    val key = args(0).string()
-                    val spoofed = getSpoofedProperty(key)
-                    if (spoofed != null) {
-                        YLog.debug("SystemHooker: Spoofing SystemProperties.get($key) -> $spoofed")
-                        result = spoofed
+                    name = "get"
+                    param(StringClass)
+                }
+                .hook {
+                    after {
+                        val key = args(0).string()
+                        hookContext = appContext
+                        val spoofed = getSpoofedProperty(appContext, key)
+                        if (spoofed != null) {
+                            YLog.debug(
+                                "SystemHooker: Spoofing SystemProperties.get($key) -> $spoofed"
+                            )
+                            result = spoofed
+                        }
                     }
                 }
-            }
 
-            // get(String key, String def) - With default value
             method {
-                name = "get"
-                param(StringClass, StringClass)
-            }.hook {
-                after {
-                    val key = args(0).string()
-                    val spoofed = getSpoofedProperty(key)
-                    if (spoofed != null) {
-                        YLog.debug("SystemHooker: Spoofing SystemProperties.get($key, def) -> $spoofed")
-                        result = spoofed
+                    name = "get"
+                    param(StringClass, StringClass)
+                }
+                .hook {
+                    after {
+                        val key = args(0).string()
+                        hookContext = appContext
+                        val spoofed = getSpoofedProperty(appContext, key)
+                        if (spoofed != null) {
+                            YLog.debug(
+                                "SystemHooker: Spoofing SystemProperties.get($key, def) -> $spoofed"
+                            )
+                            result = spoofed
+                        }
                     }
                 }
-            }
         }
     }
 
-    /**
-     * Returns the spoofed value for a system property, or null if not spoofed.
-     */
-    private fun getSpoofedProperty(key: String): String? {
+    /** Returns the spoofed value for a system property, or null if not spoofed. */
+    private fun getSpoofedProperty(context: Context?, key: String): String? {
         return when (key) {
             // Build fingerprint
-            "ro.build.fingerprint" -> spoofedFingerprint
-            "ro.bootimage.build.fingerprint" -> spoofedFingerprint
-            "ro.vendor.build.fingerprint" -> spoofedFingerprint
+            "ro.build.fingerprint",
+            "ro.bootimage.build.fingerprint",
+            "ro.vendor.build.fingerprint" -> {
+                getSpoofValueOrGenerate(context, SpoofType.BUILD_FINGERPRINT) {
+                    fallbackFingerprint
+                }
+            }
 
-            // Product info
-            "ro.product.model" -> spoofedModel
-            "ro.product.manufacturer" -> spoofedManufacturer
-            "ro.product.brand" -> spoofedBrand
-            "ro.product.device" -> spoofedDevice
-            "ro.product.name" -> spoofedProduct
-            "ro.product.board" -> spoofedBoard
-            "ro.hardware" -> spoofedHardware
+            // Product info - model
+            "ro.product.model",
+            "ro.product.odm.model",
+            "ro.product.vendor.model",
+            "ro.product.system.model" -> {
+                getSpoofValueOrGenerate(context, SpoofType.BUILD_MODEL) { fallbackModel }
+            }
 
-            // ODM/Vendor product info
-            "ro.product.odm.model" -> spoofedModel
-            "ro.product.odm.manufacturer" -> spoofedManufacturer
-            "ro.product.odm.brand" -> spoofedBrand
-            "ro.product.odm.device" -> spoofedDevice
-            "ro.product.odm.name" -> spoofedProduct
+            // Manufacturer
+            "ro.product.manufacturer",
+            "ro.product.odm.manufacturer",
+            "ro.product.vendor.manufacturer",
+            "ro.product.system.manufacturer" -> {
+                getSpoofValueOrGenerate(context, SpoofType.BUILD_MANUFACTURER) {
+                    fallbackManufacturer
+                }
+            }
 
-            "ro.product.vendor.model" -> spoofedModel
-            "ro.product.vendor.manufacturer" -> spoofedManufacturer
-            "ro.product.vendor.brand" -> spoofedBrand
-            "ro.product.vendor.device" -> spoofedDevice
-            "ro.product.vendor.name" -> spoofedProduct
+            // Brand
+            "ro.product.brand",
+            "ro.product.odm.brand",
+            "ro.product.vendor.brand",
+            "ro.product.system.brand" -> {
+                getSpoofValueOrGenerate(context, SpoofType.BUILD_BRAND) { fallbackBrand }
+            }
 
-            "ro.product.system.model" -> spoofedModel
-            "ro.product.system.manufacturer" -> spoofedManufacturer
-            "ro.product.system.brand" -> spoofedBrand
-            "ro.product.system.device" -> spoofedDevice
-            "ro.product.system.name" -> spoofedProduct
+            // Device
+            "ro.product.device",
+            "ro.product.odm.device",
+            "ro.product.vendor.device",
+            "ro.product.system.device" -> {
+                getSpoofValueOrGenerate(context, SpoofType.BUILD_DEVICE) { fallbackDevice }
+            }
 
-            // Build info
-            "ro.build.id" -> spoofedBuildId
-            "ro.build.display.id" -> spoofedDisplay
+            // Product
+            "ro.product.name",
+            "ro.product.odm.name",
+            "ro.product.vendor.name",
+            "ro.product.system.name" -> {
+                getSpoofValueOrGenerate(context, SpoofType.BUILD_PRODUCT) { fallbackProduct }
+            }
+
+            // Board
+            "ro.product.board",
+            "ro.hardware" -> {
+                getSpoofValueOrGenerate(context, SpoofType.BUILD_BOARD) { fallbackBoard }
+            }
+
+            // Build info (not profile-specific, just use hardcoded)
             "ro.build.type" -> "user"
             "ro.build.tags" -> "release-keys"
             "ro.build.host" -> "build.google.com"
-
-            // Return null for properties we don't want to spoof
             else -> null
         }
     }

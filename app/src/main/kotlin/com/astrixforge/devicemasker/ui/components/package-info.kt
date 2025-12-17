@@ -1,6 +1,6 @@
 /**
  * Placeholder package for reusable UI components.
- * 
+ *
  * This package will contain:
  * - AppListItem.kt (Phase 5)
  * - SpoofValueCard.kt (Phase 5)

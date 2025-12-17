@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
  * @property id Unique identifier for this profile
  * @property name User-defined profile name
  * @property description Optional description
+ * @property isEnabled Whether spoofing is active for this profile (master switch)
  * @property isDefault Whether this is the default profile for new apps
  * @property createdAt Timestamp when profile was created (epoch millis)
  * @property updatedAt Timestamp of last modification (epoch millis)
@@ -20,13 +21,15 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class SpoofProfile(
-        val id: String = UUID.randomUUID().toString(),
-        val name: String,
-        val description: String = "",
-        val isDefault: Boolean = false,
-        val createdAt: Long = System.currentTimeMillis(),
-        val updatedAt: Long = System.currentTimeMillis(),
-        val identifiers: Map<SpoofType, DeviceIdentifier> = emptyMap()
+    val id: String = UUID.randomUUID().toString(),
+    val name: String,
+    val description: String = "",
+    val isEnabled: Boolean = true,
+    val isDefault: Boolean = false,
+    val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis(),
+    val identifiers: Map<SpoofType, DeviceIdentifier> = emptyMap(),
+    val assignedApps: Set<String> = emptySet(),
 ) {
     /**
      * Gets a specific identifier value from this profile.
@@ -102,6 +105,65 @@ data class SpoofProfile(
         return copy(isDefault = isDefault, updatedAt = System.currentTimeMillis())
     }
 
+    /** Creates a copy with updated enabled state. */
+    fun withEnabled(enabled: Boolean): SpoofProfile {
+        return copy(isEnabled = enabled, updatedAt = System.currentTimeMillis())
+    }
+
+    /** Creates a copy with toggled enabled state. */
+    fun toggleEnabled(): SpoofProfile {
+        return copy(isEnabled = !isEnabled, updatedAt = System.currentTimeMillis())
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // ASSIGNED APPS MANAGEMENT
+    // ═══════════════════════════════════════════════════════════
+
+    /**
+     * Checks if an app is assigned to this profile.
+     *
+     * @param packageName The app's package name to check
+     * @return True if the app is assigned to this profile
+     */
+    fun isAppAssigned(packageName: String): Boolean {
+        return packageName in assignedApps
+    }
+
+    /**
+     * Creates a copy with an app added to assignedApps.
+     *
+     * @param packageName The app's package name to add
+     * @return Updated SpoofProfile with the app assigned
+     */
+    fun addApp(packageName: String): SpoofProfile {
+        val newAssignedApps = assignedApps + packageName
+        return copy(assignedApps = newAssignedApps, updatedAt = System.currentTimeMillis())
+    }
+
+    /**
+     * Creates a copy with an app removed from assignedApps.
+     *
+     * @param packageName The app's package name to remove
+     * @return Updated SpoofProfile with the app removed
+     */
+    fun removeApp(packageName: String): SpoofProfile {
+        val newAssignedApps = assignedApps - packageName
+        return copy(assignedApps = newAssignedApps, updatedAt = System.currentTimeMillis())
+    }
+
+    /**
+     * Creates a copy with a new set of assigned apps.
+     *
+     * @param apps The new set of assigned app package names
+     * @return Updated SpoofProfile with the new assigned apps
+     */
+    fun withAssignedApps(apps: Set<String>): SpoofProfile {
+        return copy(assignedApps = apps, updatedAt = System.currentTimeMillis())
+    }
+
+    /** Returns the count of assigned apps. */
+    fun assignedAppCount(): Int = assignedApps.size
+
     /** Returns a summary string for display in lists. */
     fun summary(): String {
         val enabled = enabledCount()
@@ -119,12 +181,12 @@ data class SpoofProfile(
          */
         fun createNew(name: String, isDefault: Boolean = false): SpoofProfile {
             val defaultIdentifiers =
-                    SpoofType.entries.associateWith { type -> DeviceIdentifier.createDefault(type) }
+                SpoofType.entries.associateWith { type -> DeviceIdentifier.createDefault(type) }
 
             return SpoofProfile(
-                    name = name,
-                    isDefault = isDefault,
-                    identifiers = defaultIdentifiers
+                name = name,
+                isDefault = isDefault,
+                identifiers = defaultIdentifiers,
             )
         }
 
@@ -144,8 +206,8 @@ data class SpoofProfile(
 
             // Import build properties for the manufacturer
             val buildProps =
-                    com.astrixforge.devicemasker.data.generators.FingerprintGenerator
-                            .generateBuildProperties(manufacturer)
+                com.astrixforge.devicemasker.data.generators.FingerprintGenerator
+                    .generateBuildProperties(manufacturer)
 
             var result = profile
 

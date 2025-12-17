@@ -38,8 +38,8 @@ import com.astrixforge.devicemasker.ui.theme.StatusInactive
 /**
  * List item displaying an installed app with selection checkbox.
  *
- * Shows app icon, name, package name, and spoofing status.
- * Used in AppSelectionScreen for enabling/disabling per-app spoofing.
+ * Shows app icon, name, package name, and spoofing status. Used in AppSelectionScreen for
+ * enabling/disabling per-app spoofing.
  *
  * @param app The installed app data
  * @param isSelected Whether the app is selected for spoofing
@@ -55,51 +55,37 @@ fun AppListItem(
     onSelectionChange: (Boolean) -> Unit,
     onClick: () -> Unit,
     icon: Drawable? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
+        modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
         color = MaterialTheme.colorScheme.surface,
-        shape = MaterialTheme.shapes.medium
+        shape = MaterialTheme.shapes.medium,
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             // Checkbox
-            Checkbox(
-                checked = isSelected,
-                onCheckedChange = onSelectionChange
-            )
+            Checkbox(checked = isSelected, onCheckedChange = onSelectionChange)
 
             Spacer(modifier = Modifier.width(8.dp))
 
             // App Icon
-            AppIconImage(
-                icon = icon,
-                modifier = Modifier.size(48.dp)
-            )
+            AppIconImage(icon = icon, modifier = Modifier.size(48.dp))
 
             Spacer(modifier = Modifier.width(16.dp))
 
             // App Info
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = app.label,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
+                        modifier = Modifier.weight(1f, fill = false),
                     )
 
                     if (app.isSystemApp) {
@@ -115,7 +101,7 @@ fun AppListItem(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
 
                 if (app.isConfigured) {
@@ -123,11 +109,12 @@ fun AppListItem(
                     Text(
                         text = app.config?.summary() ?: "",
                         style = MaterialTheme.typography.labelSmall,
-                        color = if (app.isSpoofEnabled) {
-                            StatusActive
-                        } else {
-                            StatusInactive
-                        }
+                        color =
+                            if (app.isSpoofEnabled) {
+                                StatusActive
+                            } else {
+                                StatusInactive
+                            },
                     )
                 }
             }
@@ -137,41 +124,34 @@ fun AppListItem(
             // Status Indicator
             StatusIndicator(
                 status = if (isSelected) StatusState.ACTIVE else StatusState.INACTIVE,
-                size = 10.dp
+                size = 10.dp,
             )
         }
     }
 }
 
-/**
- * Compact app list item for dense layouts.
- */
+/** Compact app list item for dense layouts. */
 @Composable
 fun CompactAppListItem(
     app: InstalledApp,
     isSelected: Boolean,
     onSelectionChange: (Boolean) -> Unit,
     icon: Drawable? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onSelectionChange(!isSelected) }
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clickable { onSelectionChange(!isSelected) }
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Checkbox(
-            checked = isSelected,
-            onCheckedChange = onSelectionChange
-        )
+        Checkbox(checked = isSelected, onCheckedChange = onSelectionChange)
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        AppIconImage(
-            icon = icon,
-            modifier = Modifier.size(36.dp)
-        )
+        AppIconImage(icon = icon, modifier = Modifier.size(36.dp))
 
         Spacer(modifier = Modifier.width(12.dp))
 
@@ -181,7 +161,7 @@ fun CompactAppListItem(
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
 
         if (app.isSystemApp) {
@@ -190,56 +170,49 @@ fun CompactAppListItem(
     }
 }
 
-/**
- * Displays app icon or fallback.
- */
+/** Displays app icon or fallback. */
 @Composable
-private fun AppIconImage(
-    icon: Drawable?,
-    modifier: Modifier = Modifier
-) {
+private fun AppIconImage(icon: Drawable?, modifier: Modifier = Modifier) {
     Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-        contentAlignment = Alignment.Center
+        modifier =
+            modifier
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+        contentAlignment = Alignment.Center,
     ) {
         if (icon != null) {
             Image(
                 bitmap = icon.toBitmap().asImageBitmap(),
                 contentDescription = null,
-                modifier = Modifier.matchParentSize()
+                modifier = Modifier.matchParentSize(),
             )
         } else {
             Icon(
                 imageVector = Icons.Default.Android,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(24.dp),
             )
         }
     }
 }
 
-/**
- * Badge indicating a system app.
- */
+/** Badge indicating a system app. */
 @Composable
-private fun SystemAppBadge(
-    modifier: Modifier = Modifier
-) {
+private fun SystemAppBadge(modifier: Modifier = Modifier) {
     Box(
-        modifier = modifier
-            .background(
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                shape = MaterialTheme.shapes.small
-            )
-            .padding(horizontal = 6.dp, vertical = 2.dp)
+        modifier =
+            modifier
+                .background(
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                    shape = MaterialTheme.shapes.small,
+                )
+                .padding(horizontal = 6.dp, vertical = 2.dp)
     ) {
         Text(
             text = "System",
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
         )
     }
 }
@@ -253,15 +226,16 @@ private fun SystemAppBadge(
 private fun AppListItemSelectedPreview() {
     DeviceMaskerTheme {
         AppListItem(
-            app = InstalledApp(
-                packageName = "com.example.app",
-                label = "Example App",
-                isSystemApp = false,
-                versionName = "1.0.0"
-            ),
+            app =
+                InstalledApp(
+                    packageName = "com.example.app",
+                    label = "Example App",
+                    isSystemApp = false,
+                    versionName = "1.0.0",
+                ),
             isSelected = true,
             onSelectionChange = {},
-            onClick = {}
+            onClick = {},
         )
     }
 }
@@ -271,15 +245,16 @@ private fun AppListItemSelectedPreview() {
 private fun AppListItemSystemPreview() {
     DeviceMaskerTheme {
         AppListItem(
-            app = InstalledApp(
-                packageName = "com.android.settings",
-                label = "Settings",
-                isSystemApp = true,
-                versionName = "14.0"
-            ),
+            app =
+                InstalledApp(
+                    packageName = "com.android.settings",
+                    label = "Settings",
+                    isSystemApp = true,
+                    versionName = "14.0",
+                ),
             isSelected = false,
             onSelectionChange = {},
-            onClick = {}
+            onClick = {},
         )
     }
 }
@@ -289,12 +264,9 @@ private fun AppListItemSystemPreview() {
 private fun CompactAppListItemPreview() {
     DeviceMaskerTheme {
         CompactAppListItem(
-            app = InstalledApp(
-                packageName = "com.example.app",
-                label = "Example App"
-            ),
+            app = InstalledApp(packageName = "com.example.app", label = "Example App"),
             isSelected = true,
-            onSelectionChange = {}
+            onSelectionChange = {},
         )
     }
 }

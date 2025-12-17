@@ -62,25 +62,25 @@ import kotlinx.coroutines.delay
 
 /** Data class representing a diagnostic result. */
 data class DiagnosticResult(
-        val type: SpoofType,
-        val realValue: String?,
-        val spoofedValue: String?,
-        val isActive: Boolean,
-        val isSpoofed: Boolean
+    val type: SpoofType,
+    val realValue: String?,
+    val spoofedValue: String?,
+    val isActive: Boolean,
+    val isSpoofed: Boolean,
 ) {
     val status: DiagnosticStatus
         get() =
-                when {
-                    !isActive -> DiagnosticStatus.INACTIVE
-                    isSpoofed -> DiagnosticStatus.SUCCESS
-                    else -> DiagnosticStatus.WARNING
-                }
+            when {
+                !isActive -> DiagnosticStatus.INACTIVE
+                isSpoofed -> DiagnosticStatus.SUCCESS
+                else -> DiagnosticStatus.WARNING
+            }
 }
 
 enum class DiagnosticStatus {
     SUCCESS,
     WARNING,
-    INACTIVE
+    INACTIVE,
 }
 
 /**
@@ -97,9 +97,9 @@ enum class DiagnosticStatus {
  */
 @Composable
 fun DiagnosticsScreen(
-        repository: SpoofRepository,
-        onNavigateBack: () -> Unit,
-        modifier: Modifier = Modifier
+    repository: SpoofRepository,
+    onNavigateBack: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     var isRefreshing by remember { mutableStateOf(false) }
@@ -128,59 +128,59 @@ fun DiagnosticsScreen(
     }
 
     DiagnosticsContent(
-            isXposedActive = DeviceMaskerApp.isXposedModuleActive,
-            diagnosticResults = diagnosticResults,
-            antiDetectionResults = antiDetectionResults,
-            isRefreshing = isRefreshing,
-            onRefresh = { refresh() },
-            onNavigateBack = onNavigateBack,
-            modifier = modifier
+        isXposedActive = DeviceMaskerApp.isXposedModuleActive,
+        diagnosticResults = diagnosticResults,
+        antiDetectionResults = antiDetectionResults,
+        isRefreshing = isRefreshing,
+        onRefresh = { refresh() },
+        onNavigateBack = onNavigateBack,
+        modifier = modifier,
     )
 }
 
 /** Stateless content for DiagnosticsScreen. */
 @Composable
 fun DiagnosticsContent(
-        isXposedActive: Boolean,
-        diagnosticResults: List<DiagnosticResult>,
-        antiDetectionResults: List<AntiDetectionTest>,
-        isRefreshing: Boolean,
-        onRefresh: () -> Unit,
-        onNavigateBack: () -> Unit,
-        modifier: Modifier = Modifier
+    isXposedActive: Boolean,
+    diagnosticResults: List<DiagnosticResult>,
+    antiDetectionResults: List<AntiDetectionTest>,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
+    onNavigateBack: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     LazyColumn(
-            modifier = modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Header with back button and refresh - same style as Settings/Apps
         item {
             Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back"
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                            text = "Diagnostics",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                        text = "Diagnostics",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
                 IconButton(onClick = onRefresh, enabled = !isRefreshing) {
                     if (isRefreshing) {
                         CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                strokeWidth = 2.dp
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp,
                         )
                     } else {
                         Icon(imageVector = Icons.Default.Refresh, contentDescription = "Refresh")
@@ -209,33 +209,31 @@ fun DiagnosticsContent(
 @Composable
 private fun ModuleStatusCard(isXposedActive: Boolean) {
     ElevatedCard(
-            modifier = Modifier.fillMaxWidth(),
-            colors =
-                    CardDefaults.elevatedCardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ),
-            shape = MaterialTheme.shapes.large
+        modifier = Modifier.fillMaxWidth(),
+        colors =
+            CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ),
+        shape = MaterialTheme.shapes.large,
     ) {
         Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
-                    modifier =
-                            Modifier.size(48.dp)
-                                    .background(
-                                            color =
-                                                    if (isXposedActive) StatusActive
-                                                    else StatusInactive,
-                                            shape = CircleShape
-                                    ),
-                    contentAlignment = Alignment.Center
+                modifier =
+                    Modifier.size(48.dp)
+                        .background(
+                            color = if (isXposedActive) StatusActive else StatusInactive,
+                            shape = CircleShape,
+                        ),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                        imageVector = Icons.Default.Shield,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(28.dp)
+                    imageVector = Icons.Default.Shield,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(28.dp),
                 )
             }
 
@@ -243,21 +241,21 @@ private fun ModuleStatusCard(isXposedActive: Boolean) {
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                        text = if (isXposedActive) "Module Active" else "Module Inactive",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (isXposedActive) StatusActive else StatusInactive
+                    text = if (isXposedActive) "Module Active" else "Module Inactive",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (isXposedActive) StatusActive else StatusInactive,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                        text =
-                                if (isXposedActive) {
-                                    "Hooks are being applied to target apps"
-                                } else {
-                                    "Enable module in LSPosed Manager"
-                                },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text =
+                        if (isXposedActive) {
+                            "Hooks are being applied to target apps"
+                        } else {
+                            "Enable module in LSPosed Manager"
+                        },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -273,60 +271,60 @@ private fun AntiDetectionSection(tests: List<AntiDetectionTest>) {
     var isExpanded by remember { mutableStateOf(true) }
 
     ElevatedCard(
-            modifier = Modifier.fillMaxWidth(),
-            colors =
-                    CardDefaults.elevatedCardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ),
-            shape = MaterialTheme.shapes.large
+        modifier = Modifier.fillMaxWidth(),
+        colors =
+            CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ),
+        shape = MaterialTheme.shapes.large,
     ) {
         Column {
             Row(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                            imageVector = Icons.Outlined.Security,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
+                        imageVector = Icons.Outlined.Security,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp),
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(text = "Anti-Detection", style = MaterialTheme.typography.titleMedium)
                         val passedCount = tests.count { it.isPassed }
                         Text(
-                                text = "$passedCount/${tests.size} tests passed",
-                                style = MaterialTheme.typography.bodySmall,
-                                color =
-                                        if (passedCount == tests.size) {
-                                            StatusActive
-                                        } else {
-                                            StatusWarning
-                                        }
+                            text = "$passedCount/${tests.size} tests passed",
+                            style = MaterialTheme.typography.bodySmall,
+                            color =
+                                if (passedCount == tests.size) {
+                                    StatusActive
+                                } else {
+                                    StatusWarning
+                                },
                         )
                     }
                 }
 
                 IconButton(onClick = { isExpanded = !isExpanded }) {
                     Icon(
-                            imageVector =
-                                    if (isExpanded) {
-                                        Icons.Default.ExpandLess
-                                    } else {
-                                        Icons.Default.ExpandMore
-                                    },
-                            contentDescription = null
+                        imageVector =
+                            if (isExpanded) {
+                                Icons.Default.ExpandLess
+                            } else {
+                                Icons.Default.ExpandMore
+                            },
+                        contentDescription = null,
                     )
                 }
             }
 
             AnimatedVisibility(
-                    visible = isExpanded,
-                    enter = expandVertically(),
-                    exit = shrinkVertically()
+                visible = isExpanded,
+                enter = expandVertically(),
+                exit = shrinkVertically(),
             ) {
                 Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
                     tests.forEach { test ->
@@ -346,19 +344,19 @@ private fun AntiDetectionSection(tests: List<AntiDetectionTest>) {
 private fun AntiDetectionTestItem(test: AntiDetectionTest) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Box(
-                modifier =
-                        Modifier.size(24.dp)
-                                .background(
-                                        color = if (test.isPassed) StatusActive else StatusInactive,
-                                        shape = CircleShape
-                                ),
-                contentAlignment = Alignment.Center
+            modifier =
+                Modifier.size(24.dp)
+                    .background(
+                        color = if (test.isPassed) StatusActive else StatusInactive,
+                        shape = CircleShape,
+                    ),
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
-                    imageVector = if (test.isPassed) Icons.Default.Check else Icons.Default.Close,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(16.dp)
+                imageVector = if (test.isPassed) Icons.Default.Check else Icons.Default.Close,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(16.dp),
             )
         }
 
@@ -366,14 +364,14 @@ private fun AntiDetectionTestItem(test: AntiDetectionTest) {
 
         Column {
             Text(
-                    text = test.name,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                text = test.name,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                    text = test.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = test.description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -385,42 +383,42 @@ private fun CategoryDiagnosticSection(category: SpoofCategory, results: List<Dia
     var isExpanded by remember { mutableStateOf(true) }
 
     ElevatedCard(
-            modifier = Modifier.fillMaxWidth(),
-            colors =
-                    CardDefaults.elevatedCardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ),
-            shape = MaterialTheme.shapes.large
+        modifier = Modifier.fillMaxWidth(),
+        colors =
+            CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ),
+        shape = MaterialTheme.shapes.large,
     ) {
         Column {
             Row(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                        text = category.displayName,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                    text = category.displayName,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 IconButton(onClick = { isExpanded = !isExpanded }) {
                     Icon(
-                            imageVector =
-                                    if (isExpanded) {
-                                        Icons.Default.ExpandLess
-                                    } else {
-                                        Icons.Default.ExpandMore
-                                    },
-                            contentDescription = null
+                        imageVector =
+                            if (isExpanded) {
+                                Icons.Default.ExpandLess
+                            } else {
+                                Icons.Default.ExpandMore
+                            },
+                        contentDescription = null,
                     )
                 }
             }
 
             AnimatedVisibility(
-                    visible = isExpanded,
-                    enter = expandVertically(),
-                    exit = shrinkVertically()
+                visible = isExpanded,
+                enter = expandVertically(),
+                exit = shrinkVertically(),
             ) {
                 Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
                     results.forEach { result ->
@@ -440,14 +438,14 @@ private fun CategoryDiagnosticSection(category: SpoofCategory, results: List<Dia
 private fun DiagnosticResultItem(result: DiagnosticResult) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                    text = result.type.displayName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                text = result.type.displayName,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
             )
 
             StatusBadge(status = result.status)
@@ -457,14 +455,14 @@ private fun DiagnosticResultItem(result: DiagnosticResult) {
 
         // Value comparison
         Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             ValueColumn(label = "Real", value = result.realValue, modifier = Modifier.weight(1f))
             ValueColumn(
-                    label = "Spoofed",
-                    value = result.spoofedValue,
-                    modifier = Modifier.weight(1f)
+                label = "Spoofed",
+                value = result.spoofedValue,
+                modifier = Modifier.weight(1f),
             )
         }
     }
@@ -474,21 +472,22 @@ private fun DiagnosticResultItem(result: DiagnosticResult) {
 @Composable
 private fun StatusBadge(status: DiagnosticStatus) {
     val (color, text) =
-            when (status) {
-                DiagnosticStatus.SUCCESS -> StatusActive to "Spoofed"
-                DiagnosticStatus.WARNING -> StatusWarning to "Not Spoofed"
-                DiagnosticStatus.INACTIVE ->
-                        MaterialTheme.colorScheme.onSurfaceVariant to "Inactive"
-            }
+        when (status) {
+            DiagnosticStatus.SUCCESS -> StatusActive to "Spoofed"
+            DiagnosticStatus.WARNING -> StatusWarning to "Not Spoofed"
+            DiagnosticStatus.INACTIVE -> MaterialTheme.colorScheme.onSurfaceVariant to "Inactive"
+        }
 
     Box(
-            modifier =
-                    Modifier.background(
-                                    color = color.copy(alpha = 0.15f),
-                                    shape = MaterialTheme.shapes.small
-                            )
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-    ) { Text(text = text, style = MaterialTheme.typography.labelSmall, color = color) }
+        modifier =
+            Modifier.background(
+                    color = color.copy(alpha = 0.15f),
+                    shape = MaterialTheme.shapes.small,
+                )
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+        Text(text = text, style = MaterialTheme.typography.labelSmall, color = color)
+    }
 }
 
 /** Column showing a value with label. */
@@ -496,113 +495,107 @@ private fun StatusBadge(status: DiagnosticStatus) {
 private fun ValueColumn(label: String, value: String?, modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
         Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
-                text = value ?: "Unknown",
-                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                color =
-                        if (value != null) {
-                            MaterialTheme.colorScheme.onSurface
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                maxLines = 1
+            text = value ?: "Unknown",
+            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+            color =
+                if (value != null) {
+                    MaterialTheme.colorScheme.onSurface
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            maxLines = 1,
         )
     }
 }
 
 /** Runs diagnostics to compare real and spoofed values. */
 private fun runDiagnostics(
-        context: android.content.Context,
-        repository: SpoofRepository
+    context: android.content.Context,
+    repository: SpoofRepository,
 ): List<DiagnosticResult> {
     // Get current spoofed profile
     val profile = repository.getActiveProfileBlocking()
 
     return listOf(
-            // Device Identifiers
-            DiagnosticResult(
-                    type = SpoofType.ANDROID_ID,
-                    realValue =
-                            try {
-                                Settings.Secure.getString(
-                                        context.contentResolver,
-                                        Settings.Secure.ANDROID_ID
-                                )
-                            } catch (e: Exception) {
-                                null
-                            },
-                    spoofedValue = profile?.getValue(SpoofType.ANDROID_ID),
-                    isActive = profile?.isTypeEnabled(SpoofType.ANDROID_ID) == true,
-                    isSpoofed = profile?.getValue(SpoofType.ANDROID_ID) != null
-            ),
-            DiagnosticResult(
-                    type = SpoofType.BUILD_MODEL,
-                    realValue = Build.MODEL,
-                    spoofedValue = profile?.getValue(SpoofType.BUILD_MODEL),
-                    isActive = profile?.isTypeEnabled(SpoofType.BUILD_MODEL) == true,
-                    isSpoofed = profile?.getValue(SpoofType.BUILD_MODEL) != null
-            ),
-            DiagnosticResult(
-                    type = SpoofType.BUILD_MANUFACTURER,
-                    realValue = Build.MANUFACTURER,
-                    spoofedValue = profile?.getValue(SpoofType.BUILD_MANUFACTURER),
-                    isActive = profile?.isTypeEnabled(SpoofType.BUILD_MANUFACTURER) == true,
-                    isSpoofed = profile?.getValue(SpoofType.BUILD_MANUFACTURER) != null
-            ),
-            DiagnosticResult(
-                    type = SpoofType.BUILD_FINGERPRINT,
-                    realValue = Build.FINGERPRINT.take(40) + "...",
-                    spoofedValue =
-                            profile?.getValue(SpoofType.BUILD_FINGERPRINT)?.take(40)?.plus("..."),
-                    isActive = profile?.isTypeEnabled(SpoofType.BUILD_FINGERPRINT) == true,
-                    isSpoofed = profile?.getValue(SpoofType.BUILD_FINGERPRINT) != null
-            )
+        // Device Identifiers
+        DiagnosticResult(
+            type = SpoofType.ANDROID_ID,
+            realValue =
+                try {
+                    Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+                } catch (_: Exception) {
+                    null
+                },
+            spoofedValue = profile?.getValue(SpoofType.ANDROID_ID),
+            isActive = profile?.isTypeEnabled(SpoofType.ANDROID_ID) == true,
+            isSpoofed = profile?.getValue(SpoofType.ANDROID_ID) != null,
+        ),
+        DiagnosticResult(
+            type = SpoofType.BUILD_MODEL,
+            realValue = Build.MODEL,
+            spoofedValue = profile?.getValue(SpoofType.BUILD_MODEL),
+            isActive = profile?.isTypeEnabled(SpoofType.BUILD_MODEL) == true,
+            isSpoofed = profile?.getValue(SpoofType.BUILD_MODEL) != null,
+        ),
+        DiagnosticResult(
+            type = SpoofType.BUILD_MANUFACTURER,
+            realValue = Build.MANUFACTURER,
+            spoofedValue = profile?.getValue(SpoofType.BUILD_MANUFACTURER),
+            isActive = profile?.isTypeEnabled(SpoofType.BUILD_MANUFACTURER) == true,
+            isSpoofed = profile?.getValue(SpoofType.BUILD_MANUFACTURER) != null,
+        ),
+        DiagnosticResult(
+            type = SpoofType.BUILD_FINGERPRINT,
+            realValue = Build.FINGERPRINT.take(40) + "...",
+            spoofedValue = profile?.getValue(SpoofType.BUILD_FINGERPRINT)?.take(40)?.plus("..."),
+            isActive = profile?.isTypeEnabled(SpoofType.BUILD_FINGERPRINT) == true,
+            isSpoofed = profile?.getValue(SpoofType.BUILD_FINGERPRINT) != null,
+        ),
     )
 }
 
 /** Runs anti-detection tests. */
 private fun runAntiDetectionTests(): List<AntiDetectionTest> {
     return listOf(
-            AntiDetectionTest(
-                    name = "Stack Trace Filtering",
-                    description = "Xposed classes hidden from stack traces",
-                    isPassed =
-                            try {
-                                val stackTrace = Thread.currentThread().stackTrace
-                                stackTrace.none {
-                                    it.className.contains("xposed", ignoreCase = true)
-                                }
-                            } catch (e: Exception) {
-                                false
-                            }
-            ),
-            AntiDetectionTest(
-                    name = "Class Loading Protection",
-                    description = "XposedBridge class not loadable",
-                    isPassed =
-                            try {
-                                Class.forName("de.robv.android.xposed.XposedBridge")
-                                false
-                            } catch (e: ClassNotFoundException) {
-                                true
-                            } catch (e: Exception) {
-                                false
-                            }
-            ),
-            AntiDetectionTest(
-                    name = "Native Library Hiding",
-                    description = "/proc/maps filtered",
-                    isPassed = true // Assume success if module is active
-            ),
-            AntiDetectionTest(
-                    name = "Package Hiding",
-                    description = "LSPosed package not visible",
-                    isPassed = true // Assume success if module is active
-            )
+        AntiDetectionTest(
+            name = "Stack Trace Filtering",
+            description = "Xposed classes hidden from stack traces",
+            isPassed =
+                try {
+                    val stackTrace = Thread.currentThread().stackTrace
+                    stackTrace.none { it.className.contains("xposed", ignoreCase = true) }
+                } catch (_: Exception) {
+                    false
+                },
+        ),
+        AntiDetectionTest(
+            name = "Class Loading Protection",
+            description = "XposedBridge class not loadable",
+            isPassed =
+                try {
+                    Class.forName("de.robv.android.xposed.XposedBridge")
+                    false
+                } catch (_: ClassNotFoundException) {
+                    true
+                } catch (_: Exception) {
+                    false
+                },
+        ),
+        AntiDetectionTest(
+            name = "Native Library Hiding",
+            description = "/proc/maps filtered",
+            isPassed = true, // Assume success if module is active
+        ),
+        AntiDetectionTest(
+            name = "Package Hiding",
+            description = "LSPosed package not visible",
+            isPassed = true, // Assume success if module is active
+        ),
     )
 }
 
@@ -615,33 +608,33 @@ private fun runAntiDetectionTests(): List<AntiDetectionTest> {
 private fun DiagnosticsContentPreview() {
     DeviceMaskerTheme {
         DiagnosticsContent(
-                isXposedActive = true,
-                diagnosticResults =
-                        listOf(
-                                DiagnosticResult(
-                                        type = SpoofType.ANDROID_ID,
-                                        realValue = "a1b2c3d4e5f6g7h8",
-                                        spoofedValue = "x1y2z3w4v5u6t7s8",
-                                        isActive = true,
-                                        isSpoofed = true
-                                ),
-                                DiagnosticResult(
-                                        type = SpoofType.BUILD_MODEL,
-                                        realValue = "Pixel 9",
-                                        spoofedValue = "Galaxy S24",
-                                        isActive = true,
-                                        isSpoofed = true
-                                )
-                        ),
-                antiDetectionResults =
-                        listOf(
-                                AntiDetectionTest("Stack Trace", "Hidden", true),
-                                AntiDetectionTest("Class Loading", "Protected", true),
-                                AntiDetectionTest("Native Libs", "Filtered", false)
-                        ),
-                isRefreshing = false,
-                onRefresh = {},
-                onNavigateBack = {}
+            isXposedActive = true,
+            diagnosticResults =
+                listOf(
+                    DiagnosticResult(
+                        type = SpoofType.ANDROID_ID,
+                        realValue = "a1b2c3d4e5f6g7h8",
+                        spoofedValue = "x1y2z3w4v5u6t7s8",
+                        isActive = true,
+                        isSpoofed = true,
+                    ),
+                    DiagnosticResult(
+                        type = SpoofType.BUILD_MODEL,
+                        realValue = "Pixel 9",
+                        spoofedValue = "Galaxy S24",
+                        isActive = true,
+                        isSpoofed = true,
+                    ),
+                ),
+            antiDetectionResults =
+                listOf(
+                    AntiDetectionTest("Stack Trace", "Hidden", true),
+                    AntiDetectionTest("Class Loading", "Protected", true),
+                    AntiDetectionTest("Native Libs", "Filtered", false),
+                ),
+            isRefreshing = false,
+            onRefresh = {},
+            onNavigateBack = {},
         )
     }
 }

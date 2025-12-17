@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 
 /**
  * DeviceMasker Color Palette
- * 
+ *
  * Design Philosophy:
  * - Teal/Cyan primary colors for privacy theme
  * - AMOLED black background for battery efficiency
@@ -49,10 +49,10 @@ val TertiaryContainerLight = Color(0xFFEDE7F6)
 // ═══════════════════════════════════════════════════════════
 // Status Colors
 // ═══════════════════════════════════════════════════════════
-val StatusActive = Color(0xFF4CAF50)        // Green - Active/Success
-val StatusInactive = Color(0xFFFF5722)      // Orange-Red - Inactive/Error
-val StatusWarning = Color(0xFFFF9800)       // Orange - Warning
-val StatusInfo = Color(0xFF2196F3)          // Blue - Info
+val StatusActive = Color(0xFF4CAF50) // Green - Active/Success
+val StatusInactive = Color(0xFFFF5722) // Orange-Red - Inactive/Error
+val StatusWarning = Color(0xFFFF9800) // Orange - Warning
+val StatusInfo = Color(0xFF2196F3) // Blue - Info
 
 // ═══════════════════════════════════════════════════════════
 // Error Colors

@@ -1,6 +1,6 @@
 /**
  * Placeholder package for UI screens.
- * 
+ *
  * This package will contain:
  * - HomeScreen.kt (Phase 5)
  * - AppSelectionScreen.kt (Phase 5)

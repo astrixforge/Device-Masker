@@ -10,6 +10,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import com.astrixforge.devicemasker.ui.screens.ThemeMode
 
 /**
  * AMOLED Dark Color Scheme.
@@ -63,7 +64,7 @@ private val AmoledDarkColorScheme =
                 inverseSurface = Color(0xFFE3E3E3),
                 inverseOnSurface = Color(0xFF1A1A1A),
                 inversePrimary = PrimaryLight,
-                scrim = Color.Black
+                scrim = Color.Black,
         )
 
 /** Light Color Scheme for users who prefer light mode. */
@@ -91,29 +92,56 @@ private val LightColorScheme =
                 error = ErrorLight,
                 onError = Color.White,
                 errorContainer = ErrorContainerLight,
-                onErrorContainer = Color(0xFF410002)
+                onErrorContainer = Color(0xFF410002),
         )
 
 /**
- * Device Masker Theme composable.
+ * Device Masker Theme composable with ThemeMode support.
  *
- * Features:
- * - Dynamic colors on Android 12+ (Material You)
- * - AMOLED black in dark mode (optional)
- * - Regular dark mode option
- * - Custom Teal/Cyan color scheme as fallback
+ * This is the recommended way to apply theming - pass the ThemeMode directly and let the theme
+ * handle system dark mode detection internally.
  *
- * @param darkTheme Whether to use dark theme. Defaults to system preference.
+ * @param themeMode The theme mode (SYSTEM, LIGHT, DARK). Defaults to SYSTEM.
  * @param amoledBlack Whether to use AMOLED pure black when in dark mode. Defaults to true.
  * @param dynamicColor Whether to use dynamic colors on Android 12+. Defaults to true.
  * @param content The composable content to theme.
  */
 @Composable
 fun DeviceMaskerTheme(
-        darkTheme: Boolean = isSystemInDarkTheme(),
+        themeMode: ThemeMode = ThemeMode.SYSTEM,
         amoledBlack: Boolean = true,
         dynamicColor: Boolean = true,
-        content: @Composable () -> Unit
+        content: @Composable () -> Unit,
+) {
+    // Determine dark theme based on mode
+    // IMPORTANT: isSystemInDarkTheme() is evaluated inside this composable
+    // to ensure it's in the correct composition context
+    val darkTheme =
+            when (themeMode) {
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+            }
+
+    DeviceMaskerThemeInternal(
+            darkTheme = darkTheme,
+            amoledBlack = amoledBlack,
+            dynamicColor = dynamicColor,
+            content = content,
+    )
+}
+
+/**
+ * Internal Device Masker Theme implementation.
+ *
+ * Use [DeviceMaskerTheme] with ThemeMode parameter instead for proper system theme detection.
+ */
+@Composable
+private fun DeviceMaskerThemeInternal(
+        darkTheme: Boolean,
+        amoledBlack: Boolean = true,
+        dynamicColor: Boolean = true,
+        content: @Composable () -> Unit,
 ) {
     val colorScheme =
             when {
@@ -129,7 +157,7 @@ fun DeviceMaskerTheme(
                                             surface = AmoledBlack,
                                             surfaceContainer = AmoledSurfaceContainer,
                                             surfaceContainerLow = AmoledSurface,
-                                            surfaceContainerLowest = AmoledBlack
+                                            surfaceContainerLowest = AmoledBlack,
                                     )
                         } else {
                             // Regular dynamic dark colors
@@ -187,7 +215,7 @@ fun DeviceMaskerTheme(
                                 inverseSurface = Color(0xFFE3E3E3),
                                 inverseOnSurface = Color(0xFF1A1A1A),
                                 inversePrimary = PrimaryLight,
-                                scrim = Color.Black
+                                scrim = Color.Black,
                         )
                     }
                 }
@@ -200,6 +228,6 @@ fun DeviceMaskerTheme(
             colorScheme = colorScheme,
             typography = AppTypography,
             shapes = AppShapes,
-            content = content
+            content = content,
     )
 }

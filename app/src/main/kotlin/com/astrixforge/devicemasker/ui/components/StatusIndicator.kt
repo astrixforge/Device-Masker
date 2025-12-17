@@ -28,20 +28,18 @@ import com.astrixforge.devicemasker.ui.theme.StatusActive
 import com.astrixforge.devicemasker.ui.theme.StatusInactive
 import com.astrixforge.devicemasker.ui.theme.StatusWarning
 
-/**
- * Status state for the indicator.
- */
+/** Status state for the indicator. */
 enum class StatusState {
     ACTIVE,
     INACTIVE,
-    WARNING
+    WARNING,
 }
 
 /**
  * Animated status indicator dot with optional label.
  *
- * Shows a pulsing dot that changes color based on status.
- * Uses spring animations for smooth transitions.
+ * Shows a pulsing dot that changes color based on status. Uses spring animations for smooth
+ * transitions.
  *
  * @param status The current status state
  * @param modifier Optional modifier
@@ -55,73 +53,50 @@ fun StatusIndicator(
     modifier: Modifier = Modifier,
     size: Dp = 12.dp,
     showLabel: Boolean = false,
-    labelText: String? = null
+    labelText: String? = null,
 ) {
-    val color by animateColorAsState(
-        targetValue = when (status) {
-            StatusState.ACTIVE -> StatusActive
-            StatusState.INACTIVE -> StatusInactive
-            StatusState.WARNING -> StatusWarning
-        },
-        animationSpec = spring(),
-        label = "statusColor"
-    )
+    val color by
+        animateColorAsState(
+            targetValue =
+                when (status) {
+                    StatusState.ACTIVE -> StatusActive
+                    StatusState.INACTIVE -> StatusInactive
+                    StatusState.WARNING -> StatusWarning
+                },
+            animationSpec = spring(),
+            label = "statusColor",
+        )
 
-    val scale by animateFloatAsState(
-        targetValue = if (status == StatusState.ACTIVE) 1.0f else 0.9f,
-        animationSpec = AppMotion.DefaultSpring,
-        label = "statusScale"
-    )
+    val scale by
+        animateFloatAsState(
+            targetValue = if (status == StatusState.ACTIVE) 1.0f else 0.9f,
+            animationSpec = AppMotion.DefaultSpring,
+            label = "statusScale",
+        )
 
-    val label = labelText ?: when (status) {
-        StatusState.ACTIVE -> "Active"
-        StatusState.INACTIVE -> "Inactive"
-        StatusState.WARNING -> "Warning"
-    }
+    val label =
+        labelText
+            ?: when (status) {
+                StatusState.ACTIVE -> "Active"
+                StatusState.INACTIVE -> "Inactive"
+                StatusState.WARNING -> "Warning"
+            }
 
     if (showLabel) {
-        Row(
-            modifier = modifier,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            StatusDot(
-                color = color,
-                size = size,
-                scale = scale
-            )
+        Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+            StatusDot(color = color, size = size, scale = scale)
             Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = color
-            )
+            Text(text = label, style = MaterialTheme.typography.labelMedium, color = color)
         }
     } else {
-        StatusDot(
-            color = color,
-            size = size,
-            scale = scale,
-            modifier = modifier
-        )
+        StatusDot(color = color, size = size, scale = scale, modifier = modifier)
     }
 }
 
-/**
- * Simple status dot without label.
- */
+/** Simple status dot without label. */
 @Composable
-private fun StatusDot(
-    color: Color,
-    size: Dp,
-    scale: Float,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .size(size)
-            .scale(scale)
-            .background(color = color, shape = CircleShape)
-    )
+private fun StatusDot(color: Color, size: Dp, scale: Float, modifier: Modifier = Modifier) {
+    Box(modifier = modifier.size(size).scale(scale).background(color = color, shape = CircleShape))
 }
 
 /**
@@ -131,49 +106,45 @@ private fun StatusDot(
  * @param modifier Optional modifier
  */
 @Composable
-fun StatusBadge(
-    status: StatusState,
-    modifier: Modifier = Modifier
-) {
-    val backgroundColor by animateColorAsState(
-        targetValue = when (status) {
-            StatusState.ACTIVE -> StatusActive.copy(alpha = 0.15f)
-            StatusState.INACTIVE -> StatusInactive.copy(alpha = 0.15f)
-            StatusState.WARNING -> StatusWarning.copy(alpha = 0.15f)
-        },
-        animationSpec = spring(),
-        label = "badgeBgColor"
-    )
+fun StatusBadge(status: StatusState, modifier: Modifier = Modifier) {
+    val backgroundColor by
+        animateColorAsState(
+            targetValue =
+                when (status) {
+                    StatusState.ACTIVE -> StatusActive.copy(alpha = 0.15f)
+                    StatusState.INACTIVE -> StatusInactive.copy(alpha = 0.15f)
+                    StatusState.WARNING -> StatusWarning.copy(alpha = 0.15f)
+                },
+            animationSpec = spring(),
+            label = "badgeBgColor",
+        )
 
-    val textColor by animateColorAsState(
-        targetValue = when (status) {
-            StatusState.ACTIVE -> StatusActive
-            StatusState.INACTIVE -> StatusInactive
-            StatusState.WARNING -> StatusWarning
-        },
-        animationSpec = spring(),
-        label = "badgeTextColor"
-    )
+    val textColor by
+        animateColorAsState(
+            targetValue =
+                when (status) {
+                    StatusState.ACTIVE -> StatusActive
+                    StatusState.INACTIVE -> StatusInactive
+                    StatusState.WARNING -> StatusWarning
+                },
+            animationSpec = spring(),
+            label = "badgeTextColor",
+        )
 
-    val label = when (status) {
-        StatusState.ACTIVE -> "Active"
-        StatusState.INACTIVE -> "Inactive"
-        StatusState.WARNING -> "Warning"
-    }
+    val label =
+        when (status) {
+            StatusState.ACTIVE -> "Active"
+            StatusState.INACTIVE -> "Inactive"
+            StatusState.WARNING -> "Warning"
+        }
 
     Box(
-        modifier = modifier
-            .background(
-                color = backgroundColor,
-                shape = MaterialTheme.shapes.small
-            )
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+        modifier =
+            modifier
+                .background(color = backgroundColor, shape = MaterialTheme.shapes.small)
+                .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = textColor
-        )
+        Text(text = label, style = MaterialTheme.typography.labelSmall, color = textColor)
     }
 }
 
@@ -184,23 +155,13 @@ fun StatusBadge(
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
 private fun StatusIndicatorActivePreview() {
-    DeviceMaskerTheme {
-        StatusIndicator(
-            status = StatusState.ACTIVE,
-            showLabel = true
-        )
-    }
+    DeviceMaskerTheme { StatusIndicator(status = StatusState.ACTIVE, showLabel = true) }
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
 private fun StatusIndicatorInactivePreview() {
-    DeviceMaskerTheme {
-        StatusIndicator(
-            status = StatusState.INACTIVE,
-            showLabel = true
-        )
-    }
+    DeviceMaskerTheme { StatusIndicator(status = StatusState.INACTIVE, showLabel = true) }
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
