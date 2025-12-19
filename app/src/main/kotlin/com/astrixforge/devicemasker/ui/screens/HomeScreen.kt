@@ -2,7 +2,6 @@ package com.astrixforge.devicemasker.ui.screens
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,7 +20,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
@@ -34,12 +32,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -50,18 +45,30 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.astrixforge.devicemasker.DeviceMaskerApp
+import com.astrixforge.devicemasker.R
 import com.astrixforge.devicemasker.data.models.SpoofProfile
 import com.astrixforge.devicemasker.data.repository.SpoofRepository
+import com.astrixforge.devicemasker.ui.components.IconCircle
+import com.astrixforge.devicemasker.ui.components.StatCard
+import com.astrixforge.devicemasker.ui.components.expressive.AnimatedLoadingOverlay
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveLoadingIndicatorWithLabel
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveSwitch
+import com.astrixforge.devicemasker.ui.components.expressive.QuickAction
+import com.astrixforge.devicemasker.ui.components.expressive.QuickActionGroup
+import com.astrixforge.devicemasker.ui.components.expressive.animatedRoundedCornerShape
 import com.astrixforge.devicemasker.ui.theme.AppMotion
 import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 import com.astrixforge.devicemasker.ui.theme.StatusActive
@@ -87,8 +94,8 @@ fun HomeScreen(
     repository: SpoofRepository,
     onNavigateToSpoof: () -> Unit,
     onRegenerateAll: () -> Unit,
-    onNavigateToProfile: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier,
+    onNavigateToProfile: ((String) -> Unit)? = null,
 ) {
     val profiles by repository.profiles.collectAsState(initial = emptyList())
     val dashboardState by
@@ -123,7 +130,6 @@ fun HomeScreen(
         profiles = profiles,
         selectedProfile = selectedProfile,
         onProfileSelected = { profile ->
-            selectedProfileId = profile.id
             scope.launch { repository.setActiveProfile(profile.id) }
         },
         enabledAppsCount = protectedAppsCount,
@@ -166,19 +172,22 @@ fun HomeScreenContent(
     onRegenerateAll: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier =
-            modifier
+    Box(modifier = modifier.fillMaxSize()) {
+
+        Column(
+            modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .alpha(if (profiles.isEmpty() && selectedProfile == null) 0f else 1f),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
         // Status Card - Hero Section
         StatusCard(
             isXposedActive = isXposedActive,
             isModuleEnabled = isModuleEnabled,
             onModuleEnabledChange = onModuleEnabledChange,
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -191,13 +200,13 @@ fun HomeScreenContent(
             StatCard(
                 icon = Icons.Outlined.Apps,
                 value = enabledAppsCount.toString(),
-                label = "Protected Apps",
+                label = stringResource(id = R.string.home_protected_apps_label),
                 modifier = Modifier.weight(1f),
             )
             StatCard(
                 icon = Icons.Outlined.Fingerprint,
                 value = maskedIdentifiersCount.toString(),
-                label = "Masked IDs",
+                label = stringResource(id = R.string.home_masked_ids_label),
                 modifier = Modifier.weight(1f),
             )
         }
@@ -210,6 +219,7 @@ fun HomeScreenContent(
             selectedProfile = selectedProfile,
             onProfileSelected = onProfileSelected,
             onClick = onNavigateToSpoof,
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -218,10 +228,16 @@ fun HomeScreenContent(
         QuickActionsSection(
             onNavigateToSpoof = onNavigateToSpoof,
             onRegenerateAll = onRegenerateAll,
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(24.dp))
     }
+
+    AnimatedLoadingOverlay(isLoading = profiles.isEmpty() && selectedProfile == null) {
+        ExpressiveLoadingIndicatorWithLabel(label = "Loading Dashboard...")
+    }
+}
 }
 
 /** Hero status card showing module activation status. */
@@ -230,26 +246,32 @@ private fun StatusCard(
     isXposedActive: Boolean,
     isModuleEnabled: Boolean,
     onModuleEnabledChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val statusColor by
         animateColorAsState(
             targetValue = if (isXposedActive && isModuleEnabled) StatusActive else StatusInactive,
-            animationSpec = spring(),
+            animationSpec = AppMotion.Effect.Color,
             label = "statusColor",
         )
 
     val scale by
         animateFloatAsState(
             targetValue = if (isXposedActive && isModuleEnabled) 1f else 0.95f,
-            animationSpec = AppMotion.BouncySpring,
+            animationSpec = AppMotion.Spatial.Expressive,
             label = "cardScale",
         )
 
+    val statusShape = animatedRoundedCornerShape(
+        targetRadius = if (isXposedActive && isModuleEnabled) 28.dp else 16.dp,
+        label = "statusCardMorph"
+    )
+
     Card(
-        modifier = Modifier.fillMaxWidth().scale(scale),
+        modifier = modifier.scale(scale),
         colors =
             CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        shape = MaterialTheme.shapes.extraLarge,
+        shape = statusShape,
     ) {
         Box(
             modifier =
@@ -285,7 +307,7 @@ private fun StatusCard(
 
                 // Status Text
                 Text(
-                    text = "DeviceMasker",
+                    text = stringResource(id = R.string.app_name),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -303,9 +325,9 @@ private fun StatusCard(
                     Text(
                         text =
                             when {
-                                !isXposedActive -> "Module Not Injected"
-                                isModuleEnabled -> "Protection Active"
-                                else -> "Protection Disabled"
+                                !isXposedActive -> stringResource(id = R.string.home_module_not_injected)
+                                isModuleEnabled -> stringResource(id = R.string.home_protection_active)
+                                else -> stringResource(id = R.string.home_protection_disabled)
                             },
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -323,7 +345,7 @@ private fun StatusCard(
                             )
                     ) {
                         Text(
-                            text = "⚠️ Enable in LSPosed Manager and reboot",
+                            text = stringResource(id = R.string.home_enable_instruction),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -336,29 +358,14 @@ private fun StatusCard(
                     Spacer(modifier = Modifier.height(20.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "Module Enabled",
+                            text = stringResource(id = R.string.home_module_enabled_label),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Spacer(modifier = Modifier.width(16.dp))
-                        Switch(
+                        ExpressiveSwitch(
                             checked = isModuleEnabled,
                             onCheckedChange = onModuleEnabledChange,
-                            thumbContent = {
-                                Icon(
-                                    imageVector =
-                                        if (isModuleEnabled) Icons.Filled.Check
-                                        else Icons.Filled.Close,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize),
-                                )
-                            },
-                            colors =
-                                SwitchDefaults.colors(
-                                    checkedThumbColor = MaterialTheme.colorScheme.primary,
-                                    checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                                    checkedIconColor = MaterialTheme.colorScheme.onPrimary,
-                                ),
                         )
                     }
                 }
@@ -367,47 +374,7 @@ private fun StatusCard(
     }
 }
 
-/** Small stat card for displaying counts. */
-@Composable
-private fun StatCard(
-    icon: ImageVector,
-    value: String,
-    label: String,
-    modifier: Modifier = Modifier,
-) {
-    ElevatedCard(
-        modifier = modifier,
-        colors =
-            CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
-        shape = MaterialTheme.shapes.large,
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(28.dp),
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = value,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
+// StatCard moved to ui/components/StatCard.kt
 
 /** Profile selector card with dropdown menu. */
 @Composable
@@ -416,6 +383,7 @@ private fun ProfileSelectorCard(
     selectedProfile: SpoofProfile?,
     onProfileSelected: (SpoofProfile) -> Unit,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     var dropdownExpanded by remember { mutableStateOf(false) }
     val rotationAngle by
@@ -426,7 +394,7 @@ private fun ProfileSelectorCard(
         )
 
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
         colors =
             CardDefaults.elevatedCardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
@@ -439,29 +407,21 @@ private fun ProfileSelectorCard(
                     Modifier.fillMaxWidth().clickable { dropdownExpanded = true }.padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Box(
-                    modifier =
-                        Modifier.size(48.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Person,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                }
+                IconCircle(
+                    icon = Icons.Filled.Person,
+                    size = 48.dp,
+                    iconSize = 24.dp,
+                )
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Active Profile",
+                        text = stringResource(id = R.string.home_active_profile_label),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = selectedProfile?.name ?: "No Profile",
+                            text = selectedProfile?.name ?: stringResource(id = R.string.home_no_profile),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -469,7 +429,7 @@ private fun ProfileSelectorCard(
                         if (selectedProfile?.isEnabled == false) {
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "(Disabled)",
+                                text = stringResource(id = R.string.home_profile_disabled_tag),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.error,
                             )
@@ -477,7 +437,7 @@ private fun ProfileSelectorCard(
                     }
                     if (selectedProfile != null) {
                         Text(
-                            text = "${selectedProfile.assignedAppCount()} apps assigned",
+                            text = pluralStringResource(id = R.plurals.home_apps_assigned_count, count = selectedProfile.assignedAppCount(), selectedProfile.assignedAppCount()),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -507,7 +467,7 @@ private fun ProfileSelectorCard(
             ) {
                 if (profiles.isEmpty()) {
                     DropdownMenuItem(
-                        text = { Text("No profiles available") },
+                        text = { Text(stringResource(id = R.string.home_no_profiles_available)) },
                         onClick = { dropdownExpanded = false },
                         enabled = false,
                     )
@@ -529,7 +489,7 @@ private fun ProfileSelectorCard(
                                                 else FontWeight.Normal,
                                         )
                                         Text(
-                                            text = "${profile.assignedAppCount()} apps",
+                                            text = pluralStringResource(id = R.plurals.home_apps_count, count = profile.assignedAppCount(), profile.assignedAppCount()),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
@@ -537,7 +497,7 @@ private fun ProfileSelectorCard(
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                         if (!profile.isEnabled) {
                                             Text(
-                                                text = "Disabled",
+                                                text = stringResource(id = R.string.home_profile_disabled_tag).trim('(', ')'),
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.error,
                                             )
@@ -567,39 +527,34 @@ private fun ProfileSelectorCard(
 
 /** Quick actions section. */
 @Composable
-private fun QuickActionsSection(onNavigateToSpoof: () -> Unit, onRegenerateAll: () -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+private fun QuickActionsSection(
+    onNavigateToSpoof: () -> Unit,
+    onRegenerateAll: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
-            text = "Quick Actions",
+            text = stringResource(id = R.string.home_quick_actions),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface,
         )
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            FilledTonalButton(onClick = onNavigateToSpoof, modifier = Modifier.weight(1f)) {
-                Icon(
-                    imageVector = Icons.Outlined.Fingerprint,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
+        // Material 3 Expressive Button Group
+        QuickActionGroup(
+            actions = listOf(
+                QuickAction(
+                    label = stringResource(id = R.string.home_action_configure),
+                    icon = Icons.Outlined.Fingerprint,
+                    onClick = onNavigateToSpoof
+                ),
+                QuickAction(
+                    label = stringResource(id = R.string.action_regenerate),
+                    icon = Icons.Filled.Refresh,
+                    onClick = onRegenerateAll
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Configure")
-            }
-
-            FilledTonalButton(onClick = onRegenerateAll, modifier = Modifier.weight(1f)) {
-                Icon(
-                    imageVector = Icons.Filled.Refresh,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Regenerate All")
-            }
-        }
+            )
+        )
     }
 }
 

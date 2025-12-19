@@ -142,8 +142,9 @@ fun DeviceMaskerMainApp(
     val currentRoute = navBackStackEntry?.destination?.route ?: NavRoutes.HOME
     val scope = rememberCoroutineScope()
 
-    // Hide bottom nav on profile detail screen for a cleaner focused experience
-    val showBottomBar = !currentRoute.startsWith(NavRoutes.PROFILE_DETAIL)
+    // Hide bottom nav on profile detail and diagnostics screens for a cleaner focused experience
+    val showBottomBar = !currentRoute.startsWith(NavRoutes.PROFILE_DETAIL) && 
+                        currentRoute != NavRoutes.DIAGNOSTICS
 
     Scaffold(
             modifier = Modifier.fillMaxSize(),

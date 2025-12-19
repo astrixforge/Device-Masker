@@ -1,108 +1,149 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Device Masker</string>
-    <string name="app_description">Device Spoofing Module with Anti-Detection</string>
     <string name="xposed_description">Device Masker - Comprehensive device spoofing with
         anti-detection</string>
 
     <!-- Module Status -->
     <string name="module_active">Module Active</string>
     <string name="module_inactive">Module Inactive</string>
-    <string name="module_not_activated">Module not activated in LSPosed</string>
-    <string name="protected_apps">Protected apps</string>
 
     <!-- Navigation -->
-    <string name="nav_home">Home</string>
-    <string name="nav_apps">Apps</string>
-    <string name="nav_spoof">Spoof</string>
-    <string name="nav_profiles">Profiles</string>
-    <string name="nav_diagnostics">Diagnostics</string>
-    <string name="nav_settings">Settings</string>
 
     <!-- Home Screen -->
-    <string name="quick_stats">Quick Stats</string>
-    <string name="active_profile">Active Profile</string>
-    <string name="configure_apps">Configure Apps</string>
-    <string name="regenerate_all">Regenerate All</string>
-    <string name="switch_profile">Switch Profile</string>
+    <string name="home_module_not_injected">Module Not Injected</string>
+    <string name="home_protection_active">Protection Active</string>
+    <string name="home_protection_disabled">Protection Disabled</string>
+    <string name="home_enable_instruction">Enable in LSPosed Manager and reboot</string>
+    <string name="home_module_enabled_label">Module Enabled</string>
+    <string name="home_protected_apps_label">Protected Apps</string>
+    <string name="home_masked_ids_label">Masked IDs</string>
+    <string name="home_active_profile_label">Active Profile</string>
+    <string name="home_no_profile">No Profile</string>
+    <string name="home_profile_disabled_tag">(Disabled)</string>
+    <plurals name="home_apps_assigned_count">
+        <item quantity="one">%d app assigned</item>
+        <item quantity="other">%d apps assigned</item>
+    </plurals>
+    <plurals name="home_apps_count">
+        <item quantity="one">%d app</item>
+        <item quantity="other">%d apps</item>
+    </plurals>
+    <string name="home_no_profiles_available">No profiles available</string>
+    <string name="home_quick_actions">Quick Actions</string>
+    <string name="home_action_configure">Configure</string>
 
-    <!-- Spoof Categories -->
-    <string name="category_device">Device Identifiers</string>
-    <string name="category_network">Network Identifiers</string>
-    <string name="category_advertising">Advertising IDs</string>
-    <string name="category_system">System Properties</string>
-    <string name="category_location">Location</string>
+    <!-- Profile Screen -->
+    <string name="profile_screen_title">Profiles</string>
+    <string name="profile_list_empty">No profiles found</string>
+    <string name="profile_new">New Profile</string>
+    <string name="profile_import_export">Import/Export</string>
+    <string name="profile_create_new">Create New Profile</string>
+    <string name="profile_edit_dialog_title">Edit Profile</string>
+    <string name="profile_name_hint">Profile name</string>
+    <string name="profile_name_exists">A profile with this name already exists</string>
+    <string name="profile_description_hint">Description (optional)</string>
+    <string name="profile_delete_dialog_title">Delete Profile</string>
+    <string name="profile_delete_confirm">Delete this profile?</string>
+    <string name="profile_delete_warning">This action cannot be undone. All assigned apps will use
+        their default settings.</string>
+    <string name="profile_import_profiles">Import Profiles</string>
+    <string name="profile_export_profiles">Export Profiles</string>
 
-    <!-- Spoof Types -->
-    <string name="spoof_imei">IMEI</string>
-    <string name="spoof_imsi">IMSI</string>
-    <string name="spoof_serial">Serial Number</string>
-    <string name="spoof_android_id">Android ID</string>
-    <string name="spoof_wifi_mac">WiFi MAC</string>
-    <string name="spoof_bluetooth_mac">Bluetooth MAC</string>
-    <string name="spoof_ssid">SSID</string>
-    <string name="spoof_bssid">BSSID</string>
-    <string name="spoof_gsf_id">GSF ID</string>
-    <string name="spoof_advertising_id">Advertising ID</string>
-    <string name="spoof_manufacturer">Manufacturer</string>
-    <string name="spoof_model">Model</string>
-    <string name="spoof_device">Device</string>
-    <string name="spoof_brand">Brand</string>
-    <string name="spoof_fingerprint">Fingerprint</string>
-    <string name="spoof_latitude">Latitude</string>
-    <string name="spoof_longitude">Longitude</string>
-    <string name="spoof_timezone">Timezone</string>
+    <!-- Actions -->
+    <string name="action_more_options">More options</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_theme_mode">Theme Mode</string>
+    <string name="settings_amoled_mode">AMOLED mode</string>
+    <string name="settings_amoled_description">Pure black for OLED screens</string>
+    <string name="settings_dynamic_colors">Dynamic colors</string>
+    <string name="settings_dynamic_description">Material You dynamic colors</string>
+    <string name="settings_debug">Debug</string>
+    <string name="settings_debug_logging">Debug logging</string>
+    <string name="settings_debug_description">Enable verbose logging for debugging</string>
+    <string name="settings_diagnostics">Diagnostics</string>
+    <string name="settings_diagnostics_description">Check module health and hook status</string>
+    <string name="settings_about">About</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_version_info">Version %s</string>
+    <string name="settings_theme_system">System Default</string>
+    <string name="settings_theme_light">Light Mode</string>
+    <string name="settings_theme_dark">Dark Mode</string>
+    <string name="settings_theme_follow_system">Follow system dark/light mode settings</string>
+
+    <!-- Diagnostics Screen -->
+    <string name="diagnostics_title">Diagnostics</string>
+    <string name="diagnostics_pull_refresh">Pull down to refresh</string>
+    <string name="diagnostics_module_active_desc">Hooks are being applied to target apps</string>
+    <string name="diagnostics_module_inactive_desc">Enable module in LSPosed Manager</string>
+    <string name="diagnostics_hook_success">Spoofed</string>
+    <string name="diagnostics_hook_failure">Not Spoofed</string>
+    <string name="diagnostics_hook_inactive">Inactive</string>
+    <string name="diagnostics_real_label">Real</string>
+    <string name="diagnostics_spoofed_label">Spoofed</string>
+    <string name="diagnostics_unknown">Unknown</string>
+    <plurals name="diagnostics_tests_passed">
+        <item quantity="one">%d test passed</item>
+        <item quantity="other">%1$d/%2$d tests passed</item>
+    </plurals>
+    <plurals name="diagnostics_items_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
+    <string name="diagnostics_anti_detection">Anti-Detection</string>
+
+    <string name="diagnostics_test_stack_trace">Stack Trace Filtering</string>
+    <string name="diagnostics_test_stack_trace_desc">Xposed classes hidden from stack traces</string>
+    <string name="diagnostics_test_class_loading">Class Loading Protection</string>
+    <string name="diagnostics_test_class_loading_desc">XposedBridge class not loadable</string>
+    <string name="diagnostics_test_native_hiding">Native Library Hiding</string>
+    <string name="diagnostics_test_native_hiding_desc">/proc/maps filtered</string>
+    <string name="diagnostics_test_package_hiding">Package Hiding</string>
+    <string name="diagnostics_test_package_hiding_desc">LSPosed package not visible</string>
+
+    <string name="profile_detail_back">Back</string>
+    <string name="profile_detail_title">Profile</string>
+    <string name="profile_detail_tab_spoof">Spoof Values</string>
+    <string name="profile_detail_tab_apps">Apps</string>
+    <string name="profile_detail_spoof_desc">Configure which identifiers to spoof for this
+        profile.</string>
+    <string name="profile_detail_not_set">Not set</string>
+    <string name="profile_detail_search_hint">Search apps…</string>
+    <string name="profile_detail_loading_apps">Loading apps…</string>
+    <string name="profile_detail_no_apps_found">No apps found</string>
+    <string name="profile_detail_adjust_search">Try adjusting your search or filter</string>
+    <string name="profile_detail_assigned_to">Assigned to: %s</string>
+    <string name="profile_detail_locked">Assigned to another profile</string>
+    <plurals name="profile_detail_apps_assigned_stats">
+        <item quantity="one">%1$d app • %2$d assigned</item>
+        <item quantity="other">%1$d apps • %2$d assigned</item>
+    </plurals>
+
+    <plurals name="profile_card_apps_count">
+        <item quantity="one">%d app</item>
+        <item quantity="other">%d apps</item>
+    </plurals>
 
     <!-- Actions -->
     <string name="action_regenerate">Regenerate</string>
-    <string name="action_edit">Edit</string>
     <string name="action_copy">Copy</string>
     <string name="action_save">Save</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_delete">Delete</string>
     <string name="action_create">Create</string>
-    <string name="action_select_all">Select All</string>
-    <string name="action_clear_all">Clear All</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="action_expand">Expand</string>
+    <string name="action_collapse">Collapse</string>
 
-    <!-- Profile Management -->
-    <string name="profile_default">Default Profile</string>
-    <string name="profile_new">New Profile</string>
-    <string name="profile_name_hint">Profile name</string>
-    <string name="profile_set_default">Set as default</string>
-    <string name="profile_delete_confirm">Delete this profile?</string>
-
-    <!-- App Selection -->
-    <string name="apps_search_hint">Search apps…</string>
-    <string name="apps_enabled">Enabled</string>
-    <string name="apps_disabled">Disabled</string>
-    <string name="apps_using_profile">Using: %s</string>
-    <string name="apps_not_enabled">Not enabled</string>
-
-    <!-- Settings -->
-    <string name="settings_appearance">Appearance</string>
-    <string name="settings_dark_mode">Dark mode</string>
-    <string name="settings_dynamic_colors">Dynamic colors</string>
-    <string name="settings_amoled_mode">AMOLED mode</string>
-    <string name="settings_debug">Debug</string>
-    <string name="settings_debug_logging">Debug logging</string>
-    <string name="settings_about">About</string>
-    <string name="settings_version">Version</string>
-
-    <!-- Diagnostics -->
-    <string name="diagnostics_current_values">Current Detected Values</string>
-    <string name="diagnostics_spoofed_values">Spoofed Values</string>
-    <string name="diagnostics_refresh">Refresh</string>
-    <string name="diagnostics_anti_detection">Anti-Detection Status</string>
-    <string name="diagnostics_passed">Passed</string>
-    <string name="diagnostics_failed">Failed</string>
+    <!-- Dialogs -->
+    <string name="dialog_delete_title">Delete Item</string>
+    <string name="dialog_delete_message">Are you sure you want to delete \"%s\"? This action cannot
+        be undone.</string>
 
     <!-- Validation -->
-    <string name="validation_imei_invalid">Invalid IMEI format (15 digits required)</string>
-    <string name="validation_mac_invalid">Invalid MAC address format</string>
-    <string name="validation_android_id_invalid">Invalid Android ID (16 hex chars required)</string>
 
     <!-- Misc -->
-    <string name="copied_to_clipboard">Copied to clipboard</string>
-    <string name="value_regenerated">Value regenerated</string>
-    <string name="all_values_regenerated">All values regenerated</string>
 </resources>

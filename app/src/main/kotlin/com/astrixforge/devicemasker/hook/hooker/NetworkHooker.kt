@@ -5,8 +5,9 @@ import com.astrixforge.devicemasker.data.generators.MACGenerator
 import com.astrixforge.devicemasker.data.models.SpoofType
 import com.astrixforge.devicemasker.hook.HookDataProvider
 import com.highcapable.yukihookapi.hook.entity.YukiBaseHooker
-import com.highcapable.yukihookapi.hook.factory.method
+import com.highcapable.yukihookapi.hook.factory.*
 import com.highcapable.yukihookapi.hook.log.YLog
+
 
 /**
  * Network Identifier Hooker - Spoofs WiFi and Bluetooth identifiers.
@@ -45,15 +46,14 @@ object NetworkHooker : YukiBaseHooker() {
         context: Context?,
         type: SpoofType,
         generator: () -> String,
-    ): String? {
+    ): String {
         val provider = getProvider(context)
         if (provider == null) {
             YLog.debug("NetworkHooker: No provider for $type, using generated value")
             return generator()
         }
 
-        // getSpoofValue now handles all profile-based checks (profile exists, profile enabled, type
-        // enabled)
+        // getSpoofValue now handles all profile-based checks
         return provider.getSpoofValue(type) ?: generator()
     }
 
@@ -94,10 +94,8 @@ object NetworkHooker : YukiBaseHooker() {
                             getSpoofValueOrGenerate(appContext, SpoofType.WIFI_MAC) {
                                 fallbackWifiMac
                             }
-                        if (value != null) {
-                            YLog.debug("NetworkHooker: Spoofing WifiInfo.getMacAddress() -> $value")
-                            result = value
-                        }
+                        YLog.debug("NetworkHooker: Spoofing WifiInfo.getMacAddress() -> $value")
+                        result = value
                     }
                 }
 
@@ -112,10 +110,8 @@ object NetworkHooker : YukiBaseHooker() {
                             getSpoofValueOrGenerate(appContext, SpoofType.WIFI_SSID) {
                                 fallbackSsid
                             }
-                        if (value != null) {
-                            YLog.debug("NetworkHooker: Spoofing WifiInfo.getSSID() -> $value")
-                            result = value
-                        }
+                        YLog.debug("NetworkHooker: Spoofing WifiInfo.getSSID() -> $value")
+                        result = value
                     }
                 }
 
@@ -130,10 +126,8 @@ object NetworkHooker : YukiBaseHooker() {
                             getSpoofValueOrGenerate(appContext, SpoofType.WIFI_BSSID) {
                                 fallbackBssid
                             }
-                        if (value != null) {
-                            YLog.debug("NetworkHooker: Spoofing WifiInfo.getBSSID() -> $value")
-                            result = value
-                        }
+                        YLog.debug("NetworkHooker: Spoofing WifiInfo.getBSSID() -> $value")
+                        result = value
                     }
                 }
         }
@@ -156,13 +150,11 @@ object NetworkHooker : YukiBaseHooker() {
                                 getSpoofValueOrGenerate(appContext, SpoofType.WIFI_MAC) {
                                     fallbackWifiMac
                                 }
-                            if (value != null) {
-                                val spoofedBytes = macStringToBytes(value)
-                                YLog.debug(
-                                    "NetworkHooker: Spoofing NetworkInterface.getHardwareAddress()"
-                                )
-                                result = spoofedBytes
-                            }
+                            val spoofedBytes = macStringToBytes(value)
+                            YLog.debug(
+                                "NetworkHooker: Spoofing NetworkInterface.getHardwareAddress()"
+                            )
+                            result = spoofedBytes
                         }
                     }
                 }
@@ -184,12 +176,10 @@ object NetworkHooker : YukiBaseHooker() {
                             getSpoofValueOrGenerate(appContext, SpoofType.BLUETOOTH_MAC) {
                                 fallbackBluetoothMac
                             }
-                        if (value != null) {
-                            YLog.debug(
-                                "NetworkHooker: Spoofing BluetoothAdapter.getAddress() -> $value"
-                            )
-                            result = value
-                        }
+                        YLog.debug(
+                            "NetworkHooker: Spoofing BluetoothAdapter.getAddress() -> $value"
+                        )
+                        result = value
                     }
                 }
         }
@@ -210,10 +200,8 @@ object NetworkHooker : YukiBaseHooker() {
                             getSpoofValueOrGenerate(appContext, SpoofType.CARRIER_NAME) {
                                 fallbackCarrierName
                             }
-                        if (value != null) {
-                            YLog.debug("NetworkHooker: Spoofing getNetworkOperatorName() -> $value")
-                            result = value
-                        }
+                        YLog.debug("NetworkHooker: Spoofing getNetworkOperatorName() -> $value")
+                        result = value
                     }
                 }
 
@@ -228,10 +216,8 @@ object NetworkHooker : YukiBaseHooker() {
                             getSpoofValueOrGenerate(appContext, SpoofType.CARRIER_MCC_MNC) {
                                 fallbackMccMnc
                             }
-                        if (value != null) {
-                            YLog.debug("NetworkHooker: Spoofing getNetworkOperator() -> $value")
-                            result = value
-                        }
+                        YLog.debug("NetworkHooker: Spoofing getNetworkOperator() -> $value")
+                        result = value
                     }
                 }
 
@@ -246,10 +232,8 @@ object NetworkHooker : YukiBaseHooker() {
                             getSpoofValueOrGenerate(appContext, SpoofType.CARRIER_NAME) {
                                 fallbackCarrierName
                             }
-                        if (value != null) {
-                            YLog.debug("NetworkHooker: Spoofing getSimOperatorName() -> $value")
-                            result = value
-                        }
+                        YLog.debug("NetworkHooker: Spoofing getSimOperatorName() -> $value")
+                        result = value
                     }
                 }
 
@@ -264,10 +248,8 @@ object NetworkHooker : YukiBaseHooker() {
                             getSpoofValueOrGenerate(appContext, SpoofType.CARRIER_MCC_MNC) {
                                 fallbackMccMnc
                             }
-                        if (value != null) {
-                            YLog.debug("NetworkHooker: Spoofing getSimOperator() -> $value")
-                            result = value
-                        }
+                        YLog.debug("NetworkHooker: Spoofing getSimOperator() -> $value")
+                        result = value
                     }
                 }
         }

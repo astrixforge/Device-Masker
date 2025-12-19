@@ -144,3 +144,8 @@ val AppTypography =
                 letterSpacing = 0.5.sp,
             ),
     )
+
+// ═══════════════════════════════════════════════════════════
+// Material 3 Expressive Typography Extensions
+// ═══════════════════════════════════════════════════════════
+

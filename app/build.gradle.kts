@@ -12,6 +12,7 @@ kotlin {
     compilerOptions {
         freeCompilerArgs.addAll(
             "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
+            "-opt-in=androidx.compose.material3.ExperimentalMaterial3ExpressiveApi",
             "-opt-in=androidx.compose.animation.ExperimentalAnimationApi",
             "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi",
             "-Xwarning-level=DEPRECATION:disabled",
@@ -77,6 +78,7 @@ dependencies {
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
     implementation(libs.compose.material3.window.size)
+    implementation(libs.graphics.shapes)
     debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.compose.ui.test.manifest)
 

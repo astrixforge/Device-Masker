@@ -2,9 +2,6 @@ package com.astrixforge.devicemasker.ui.screens
 
 import android.os.Build
 import android.provider.Settings
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,13 +21,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,14 +39,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import com.astrixforge.devicemasker.R
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.astrixforge.devicemasker.DeviceMaskerApp
 import com.astrixforge.devicemasker.data.models.SpoofCategory
 import com.astrixforge.devicemasker.data.models.SpoofType
 import com.astrixforge.devicemasker.data.repository.SpoofRepository
+import com.astrixforge.devicemasker.ui.components.expressive.AnimatedSection
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressivePullToRefresh
 import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 import com.astrixforge.devicemasker.ui.theme.StatusActive
 import com.astrixforge.devicemasker.ui.theme.StatusInactive
@@ -149,19 +147,23 @@ fun DiagnosticsContent(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+    // Use the reusable ExpressivePullToRefresh component
+    ExpressivePullToRefresh(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
+        modifier = modifier,
     ) {
-        // Header with back button and refresh - same style as Settings/Apps
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            // Header with back button - refresh is now pull-to-refresh
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -169,37 +171,34 @@ fun DiagnosticsContent(
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Diagnostics",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-                IconButton(onClick = onRefresh, enabled = !isRefreshing) {
-                    if (isRefreshing) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            strokeWidth = 2.dp,
+                    Column {
+                        Text(
+                            text = stringResource(id = R.string.diagnostics_title),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
-                    } else {
-                        Icon(imageVector = Icons.Default.Refresh, contentDescription = "Refresh")
+                        Text(
+                            text = stringResource(id = R.string.diagnostics_pull_refresh),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
             }
-        }
 
-        // Module Status Card
-        item { ModuleStatusCard(isXposedActive = isXposedActive) }
+            // Module Status Card
+            item { ModuleStatusCard(isXposedActive = isXposedActive) }
 
-        // Anti-Detection Section
-        item { AntiDetectionSection(tests = antiDetectionResults) }
+            // Anti-Detection Section
+            item { AntiDetectionSection(tests = antiDetectionResults) }
 
-        // Spoofing Results by Category
-        SpoofCategory.entries.forEach { category ->
-            val categoryResults = diagnosticResults.filter { it.type.category == category }
-            if (categoryResults.isNotEmpty()) {
-                item { CategoryDiagnosticSection(category = category, results = categoryResults) }
+            // Spoofing Results by Category
+            SpoofCategory.entries.forEach { category ->
+                val categoryResults = diagnosticResults.filter { it.type.category == category }
+                if (categoryResults.isNotEmpty()) {
+                    item { CategoryDiagnosticSection(category = category, results = categoryResults) }
+                }
             }
         }
     }
@@ -241,7 +240,7 @@ private fun ModuleStatusCard(isXposedActive: Boolean) {
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = if (isXposedActive) "Module Active" else "Module Inactive",
+                    text = if (isXposedActive) stringResource(id = R.string.module_active) else stringResource(id = R.string.module_inactive),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = if (isXposedActive) StatusActive else StatusInactive,
@@ -250,9 +249,9 @@ private fun ModuleStatusCard(isXposedActive: Boolean) {
                 Text(
                     text =
                         if (isXposedActive) {
-                            "Hooks are being applied to target apps"
+                            stringResource(id = R.string.diagnostics_module_active_desc)
                         } else {
-                            "Enable module in LSPosed Manager"
+                            stringResource(id = R.string.diagnostics_module_inactive_desc)
                         },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -263,77 +262,29 @@ private fun ModuleStatusCard(isXposedActive: Boolean) {
 }
 
 /** Anti-detection test result. */
-data class AntiDetectionTest(val name: String, val description: String, val isPassed: Boolean)
+data class AntiDetectionTest(val nameRes: Int, val descriptionRes: Int, val isPassed: Boolean)
 
-/** Section showing anti-detection test results. */
+/**
+ * Section showing anti-detection test results.
+ * Uses AnimatedSection for spring-based expand/collapse animation.
+ */
 @Composable
 private fun AntiDetectionSection(tests: List<AntiDetectionTest>) {
     var isExpanded by remember { mutableStateOf(true) }
+    val passedCount = tests.count { it.isPassed }
 
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        colors =
-            CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
-        shape = MaterialTheme.shapes.large,
+    AnimatedSection(
+        title = stringResource(id = R.string.diagnostics_anti_detection),
+        icon = Icons.Outlined.Security,
+        count = pluralStringResource(id = R.plurals.diagnostics_tests_passed, count = passedCount, passedCount, tests.size),
+        countColor = if (passedCount == tests.size) StatusActive else StatusWarning,
+        isExpanded = isExpanded,
+        onExpandChange = { isExpanded = it },
     ) {
-        Column {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Outlined.Security,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp),
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        Text(text = "Anti-Detection", style = MaterialTheme.typography.titleMedium)
-                        val passedCount = tests.count { it.isPassed }
-                        Text(
-                            text = "$passedCount/${tests.size} tests passed",
-                            style = MaterialTheme.typography.bodySmall,
-                            color =
-                                if (passedCount == tests.size) {
-                                    StatusActive
-                                } else {
-                                    StatusWarning
-                                },
-                        )
-                    }
-                }
-
-                IconButton(onClick = { isExpanded = !isExpanded }) {
-                    Icon(
-                        imageVector =
-                            if (isExpanded) {
-                                Icons.Default.ExpandLess
-                            } else {
-                                Icons.Default.ExpandMore
-                            },
-                        contentDescription = null,
-                    )
-                }
-            }
-
-            AnimatedVisibility(
-                visible = isExpanded,
-                enter = expandVertically(),
-                exit = shrinkVertically(),
-            ) {
-                Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
-                    tests.forEach { test ->
-                        AntiDetectionTestItem(test = test)
-                        if (test != tests.last()) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-                    }
-                }
+        tests.forEach { test ->
+            AntiDetectionTestItem(test = test)
+            if (test != tests.last()) {
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
@@ -364,12 +315,12 @@ private fun AntiDetectionTestItem(test: AntiDetectionTest) {
 
         Column {
             Text(
-                text = test.name,
+                text = stringResource(id = test.nameRes),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                text = test.description,
+                text = stringResource(id = test.descriptionRes),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -377,57 +328,24 @@ private fun AntiDetectionTestItem(test: AntiDetectionTest) {
     }
 }
 
-/** Section showing diagnostic results for a category. */
+/**
+ * Section showing diagnostic results for a category.
+ * Uses AnimatedSection for spring-based expand/collapse animation.
+ */
 @Composable
 private fun CategoryDiagnosticSection(category: SpoofCategory, results: List<DiagnosticResult>) {
     var isExpanded by remember { mutableStateOf(true) }
 
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        colors =
-            CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
-        shape = MaterialTheme.shapes.large,
+    AnimatedSection(
+        title = category.displayName,
+        count = pluralStringResource(id = R.plurals.diagnostics_items_count, count = results.size, results.size),
+        isExpanded = isExpanded,
+        onExpandChange = { isExpanded = it },
     ) {
-        Column {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = category.displayName,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-
-                IconButton(onClick = { isExpanded = !isExpanded }) {
-                    Icon(
-                        imageVector =
-                            if (isExpanded) {
-                                Icons.Default.ExpandLess
-                            } else {
-                                Icons.Default.ExpandMore
-                            },
-                        contentDescription = null,
-                    )
-                }
-            }
-
-            AnimatedVisibility(
-                visible = isExpanded,
-                enter = expandVertically(),
-                exit = shrinkVertically(),
-            ) {
-                Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
-                    results.forEach { result ->
-                        DiagnosticResultItem(result = result)
-                        if (result != results.last()) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                        }
-                    }
-                }
+        results.forEach { result ->
+            DiagnosticResultItem(result = result)
+            if (result != results.last()) {
+                Spacer(modifier = Modifier.height(12.dp))
             }
         }
     }
@@ -458,9 +376,9 @@ private fun DiagnosticResultItem(result: DiagnosticResult) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            ValueColumn(label = "Real", value = result.realValue, modifier = Modifier.weight(1f))
+            ValueColumn(labelRes = R.string.diagnostics_real_label, value = result.realValue, modifier = Modifier.weight(1f))
             ValueColumn(
-                label = "Spoofed",
+                labelRes = R.string.diagnostics_spoofed_label,
                 value = result.spoofedValue,
                 modifier = Modifier.weight(1f),
             )
@@ -471,11 +389,11 @@ private fun DiagnosticResultItem(result: DiagnosticResult) {
 /** Status badge for diagnostic result. */
 @Composable
 private fun StatusBadge(status: DiagnosticStatus) {
-    val (color, text) =
+    val (color, textRes) =
         when (status) {
-            DiagnosticStatus.SUCCESS -> StatusActive to "Spoofed"
-            DiagnosticStatus.WARNING -> StatusWarning to "Not Spoofed"
-            DiagnosticStatus.INACTIVE -> MaterialTheme.colorScheme.onSurfaceVariant to "Inactive"
+            DiagnosticStatus.SUCCESS -> StatusActive to R.string.diagnostics_hook_success
+            DiagnosticStatus.WARNING -> StatusWarning to R.string.diagnostics_hook_failure
+            DiagnosticStatus.INACTIVE -> MaterialTheme.colorScheme.onSurfaceVariant to R.string.diagnostics_hook_inactive
         }
 
     Box(
@@ -486,21 +404,21 @@ private fun StatusBadge(status: DiagnosticStatus) {
                 )
                 .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
-        Text(text = text, style = MaterialTheme.typography.labelSmall, color = color)
+        Text(text = stringResource(id = textRes), style = MaterialTheme.typography.labelSmall, color = color)
     }
 }
 
 /** Column showing a value with label. */
 @Composable
-private fun ValueColumn(label: String, value: String?, modifier: Modifier = Modifier) {
+private fun ValueColumn(labelRes: Int, value: String?, modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
         Text(
-            text = label,
+            text = stringResource(id = labelRes),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
-            text = value ?: "Unknown",
+            text = value ?: stringResource(id = R.string.diagnostics_unknown),
             style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
             color =
                 if (value != null) {
@@ -527,6 +445,7 @@ private fun runDiagnostics(
             type = SpoofType.ANDROID_ID,
             realValue =
                 try {
+                    @Suppress("HardwareIds")
                     Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
                 } catch (_: Exception) {
                     null
@@ -563,8 +482,8 @@ private fun runDiagnostics(
 private fun runAntiDetectionTests(): List<AntiDetectionTest> {
     return listOf(
         AntiDetectionTest(
-            name = "Stack Trace Filtering",
-            description = "Xposed classes hidden from stack traces",
+            nameRes = R.string.diagnostics_test_stack_trace,
+            descriptionRes = R.string.diagnostics_test_stack_trace_desc,
             isPassed =
                 try {
                     val stackTrace = Thread.currentThread().stackTrace
@@ -574,8 +493,8 @@ private fun runAntiDetectionTests(): List<AntiDetectionTest> {
                 },
         ),
         AntiDetectionTest(
-            name = "Class Loading Protection",
-            description = "XposedBridge class not loadable",
+            nameRes = R.string.diagnostics_test_class_loading,
+            descriptionRes = R.string.diagnostics_test_class_loading_desc,
             isPassed =
                 try {
                     Class.forName("de.robv.android.xposed.XposedBridge")
@@ -587,13 +506,13 @@ private fun runAntiDetectionTests(): List<AntiDetectionTest> {
                 },
         ),
         AntiDetectionTest(
-            name = "Native Library Hiding",
-            description = "/proc/maps filtered",
+            nameRes = R.string.diagnostics_test_native_hiding,
+            descriptionRes = R.string.diagnostics_test_native_hiding_desc,
             isPassed = true, // Assume success if module is active
         ),
         AntiDetectionTest(
-            name = "Package Hiding",
-            description = "LSPosed package not visible",
+            nameRes = R.string.diagnostics_test_package_hiding,
+            descriptionRes = R.string.diagnostics_test_package_hiding_desc,
             isPassed = true, // Assume success if module is active
         ),
     )
@@ -628,9 +547,9 @@ private fun DiagnosticsContentPreview() {
                 ),
             antiDetectionResults =
                 listOf(
-                    AntiDetectionTest("Stack Trace", "Hidden", true),
-                    AntiDetectionTest("Class Loading", "Protected", true),
-                    AntiDetectionTest("Native Libs", "Filtered", false),
+                    AntiDetectionTest(R.string.diagnostics_test_stack_trace, R.string.diagnostics_test_stack_trace_desc, true),
+                    AntiDetectionTest(R.string.diagnostics_test_class_loading, R.string.diagnostics_test_class_loading_desc, true),
+                    AntiDetectionTest(R.string.diagnostics_test_native_hiding, R.string.diagnostics_test_native_hiding_desc, false),
                 ),
             isRefreshing = false,
             onRefresh = {},

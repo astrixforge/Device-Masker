@@ -195,46 +195,11 @@ object FingerprintGenerator {
             ),
         )
 
-    /** Android version to SDK level mapping. */
-    private val ANDROID_VERSIONS =
-        mapOf(
-            "10" to 29,
-            "11" to 30,
-            "12" to 31,
-            "12.1" to 32,
-            "13" to 33,
-            "14" to 34,
-            "15" to 35,
-            "16" to 36,
-        )
 
-    /**
-     * Generates a complete, realistic build fingerprint.
-     *
-     * @param androidVersion The target Android version (e.g., "14", "15")
-     * @return A complete build fingerprint string
-     */
-    fun generate(androidVersion: String = "14"): String {
+    /** Generates a random build fingerprint. */
+    fun generate(): String {
         val device = DEVICE_DATABASE.random()
-        return generateForDevice(device, androidVersion)
-    }
-
-    /**
-     * Generates a fingerprint for a specific manufacturer.
-     *
-     * @param manufacturer The manufacturer name (google, samsung, xiaomi, etc.)
-     * @param androidVersion The target Android version
-     * @return A complete build fingerprint string
-     */
-    fun generateForManufacturer(manufacturer: String, androidVersion: String = "14"): String {
-        val device =
-            DEVICE_DATABASE.filter {
-                    it.brand.equals(manufacturer, ignoreCase = true) ||
-                        it.manufacturer.equals(manufacturer, ignoreCase = true)
-                }
-                .randomOrNull() ?: DEVICE_DATABASE.random()
-
-        return generateForDevice(device, androidVersion)
+        return generateForDevice(device, "14")
     }
 
     /** Generates a fingerprint for a specific device configuration. */
@@ -307,41 +272,4 @@ object FingerprintGenerator {
         )
     }
 
-    /**
-     * Validates a build fingerprint format.
-     *
-     * @param fingerprint The fingerprint to validate
-     * @return True if the fingerprint appears to be valid
-     */
-    fun isValid(fingerprint: String): Boolean {
-        // Pattern: brand/product/device:version/build/incremental:type/tags
-        val fingerprintRegex =
-            Regex(
-                "^[a-zA-Z0-9]+/[a-zA-Z0-9_]+/[a-zA-Z0-9_]+:\\d+(\\.\\d+)?/[A-Z0-9.]+/[0-9]+:[a-z]+/[a-z-]+$"
-            )
-        return fingerprintRegex.matches(fingerprint)
-    }
-
-    /**
-     * Gets a list of available device models for a manufacturer.
-     *
-     * @param manufacturer The manufacturer name
-     * @return List of model names
-     */
-    fun getModelsForManufacturer(manufacturer: String): List<String> {
-        return DEVICE_DATABASE.filter {
-                it.brand.equals(manufacturer, ignoreCase = true) ||
-                    it.manufacturer.equals(manufacturer, ignoreCase = true)
-            }
-            .map { it.model }
-    }
-
-    /**
-     * Gets a list of all supported manufacturers.
-     *
-     * @return List of manufacturer/brand names
-     */
-    fun getSupportedManufacturers(): List<String> {
-        return DEVICE_DATABASE.map { it.brand }.distinct()
-    }
 }

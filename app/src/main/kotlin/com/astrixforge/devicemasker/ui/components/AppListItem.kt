@@ -4,215 +4,172 @@ import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Android
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toBitmap
+import com.astrixforge.devicemasker.R
 import com.astrixforge.devicemasker.data.models.InstalledApp
 import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
-import com.astrixforge.devicemasker.ui.theme.StatusActive
-import com.astrixforge.devicemasker.ui.theme.StatusInactive
+import com.astrixforge.devicemasker.utils.ImageUtils
 
 /**
- * List item displaying an installed app with selection checkbox.
+ * Individual app item for app selection lists.
  *
- * Shows app icon, name, package name, and spoofing status. Used in AppSelectionScreen for
- * enabling/disabling per-app spoofing.
+ * Displays app icon, name, package name, and selection state.
+ * Supports disabled state when app is assigned to another profile.
  *
- * @param app The installed app data
- * @param isSelected Whether the app is selected for spoofing
- * @param onSelectionChange Callback when selection changes
- * @param onClick Callback when the item is clicked (for details)
- * @param icon Optional app icon drawable
+ * @param app The installed app info
+ * @param isAssigned Whether the app is assigned to the current profile
+ * @param assignedToOtherProfileName If not null, the app is assigned to another profile
+ * @param onToggle Callback when the assignment state changes
  * @param modifier Optional modifier
  */
 @Composable
 fun AppListItem(
     app: InstalledApp,
-    isSelected: Boolean,
-    onSelectionChange: (Boolean) -> Unit,
-    onClick: () -> Unit,
-    icon: Drawable? = null,
+    isAssigned: Boolean,
+    assignedToOtherProfileName: String?,
+    onToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
-        color = MaterialTheme.colorScheme.surface,
-        shape = MaterialTheme.shapes.medium,
+    val context = LocalContext.current
+    val isDisabled = assignedToOtherProfileName != null
+
+    // Load real app icon from PackageManager
+    val appIcon: Drawable? = remember(app.packageName) {
+        try {
+            context.packageManager.getApplicationIcon(app.packageName)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    Card(
+        modifier = modifier.alpha(if (isDisabled) 0.6f else 1f),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isAssigned) {
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+            } else {
+                MaterialTheme.colorScheme.surface
+            }
+        ),
+        shape = MaterialTheme.shapes.small,
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(enabled = !isDisabled) { onToggle(!isAssigned) }
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Checkbox
-            Checkbox(checked = isSelected, onCheckedChange = onSelectionChange)
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // App Icon
-            AppIconImage(icon = icon, modifier = Modifier.size(48.dp))
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // App Info
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = app.label,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false),
+            // Real app icon or fallback
+            if (appIcon != null) {
+                val bitmap = remember(appIcon) { ImageUtils.drawableToBitmap(appIcon) }
+                if (bitmap != null) {
+                    Image(
+                        painter = BitmapPainter(bitmap.asImageBitmap()),
+                        contentDescription = app.label,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(8.dp)),
                     )
-
-                    if (app.isSystemApp) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        SystemAppBadge()
-                    }
+                } else {
+                    AppIconFallback()
                 }
+            } else {
+                AppIconFallback()
+            }
 
-                Spacer(modifier = Modifier.height(2.dp))
-
+            // App info
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = app.packageName,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text = app.label,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-
-                if (app.isConfigured) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = app.config?.summary() ?: "",
-                        style = MaterialTheme.typography.labelSmall,
-                        color =
-                            if (app.isSpoofEnabled) {
-                                StatusActive
-                            } else {
-                                StatusInactive
-                            },
-                    )
-                }
+                Text(
+                    text = if (isDisabled) {
+                        stringResource(
+                            id = R.string.profile_detail_assigned_to,
+                            assignedToOtherProfileName ?: ""
+                        )
+                    } else {
+                        app.packageName
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isDisabled) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // Status Indicator
-            StatusIndicator(
-                status = if (isSelected) StatusState.ACTIVE else StatusState.INACTIVE,
-                size = 10.dp,
-            )
+            // Checkbox or lock badge
+            if (isDisabled) {
+                Icon(
+                    imageVector = Icons.Filled.Lock,
+                    contentDescription = stringResource(id = R.string.profile_detail_locked),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(24.dp),
+                )
+            } else {
+                Checkbox(checked = isAssigned, onCheckedChange = onToggle)
+            }
         }
     }
 }
 
-/** Compact app list item for dense layouts. */
+/**
+ * Fallback icon when app icon cannot be loaded.
+ */
 @Composable
-fun CompactAppListItem(
-    app: InstalledApp,
-    isSelected: Boolean,
-    onSelectionChange: (Boolean) -> Unit,
-    icon: Drawable? = null,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .clickable { onSelectionChange(!isSelected) }
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Checkbox(checked = isSelected, onCheckedChange = onSelectionChange)
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        AppIconImage(icon = icon, modifier = Modifier.size(36.dp))
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Text(
-            text = app.label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-        )
-
-        if (app.isSystemApp) {
-            SystemAppBadge()
-        }
-    }
-}
-
-/** Displays app icon or fallback. */
-@Composable
-private fun AppIconImage(icon: Drawable?, modifier: Modifier = Modifier) {
+fun AppIconFallback(modifier: Modifier = Modifier) {
     Box(
-        modifier =
-            modifier
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+        modifier = modifier
+            .size(40.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.secondaryContainer),
         contentAlignment = Alignment.Center,
     ) {
-        if (icon != null) {
-            Image(
-                bitmap = icon.toBitmap().asImageBitmap(),
-                contentDescription = null,
-                modifier = Modifier.matchParentSize(),
-            )
-        } else {
-            Icon(
-                imageVector = Icons.Default.Android,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(24.dp),
-            )
-        }
-    }
-}
-
-/** Badge indicating a system app. */
-@Composable
-private fun SystemAppBadge(modifier: Modifier = Modifier) {
-    Box(
-        modifier =
-            modifier
-                .background(
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                    shape = MaterialTheme.shapes.small,
-                )
-                .padding(horizontal = 6.dp, vertical = 2.dp)
-    ) {
-        Text(
-            text = "System",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.primary,
+        Icon(
+            imageVector = Icons.Filled.Android,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.size(24.dp),
         )
     }
 }
@@ -223,50 +180,51 @@ private fun SystemAppBadge(modifier: Modifier = Modifier) {
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
-private fun AppListItemSelectedPreview() {
+private fun AppListItemPreview() {
     DeviceMaskerTheme {
         AppListItem(
-            app =
-                InstalledApp(
-                    packageName = "com.example.app",
-                    label = "Example App",
-                    isSystemApp = false,
-                    versionName = "1.0.0",
-                ),
-            isSelected = true,
-            onSelectionChange = {},
-            onClick = {},
+            app = InstalledApp(
+                packageName = "com.example.app",
+                label = "Example App",
+                isSystemApp = false,
+            ),
+            isAssigned = false,
+            assignedToOtherProfileName = null,
+            onToggle = {},
         )
     }
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
-private fun AppListItemSystemPreview() {
+private fun AppListItemAssignedPreview() {
     DeviceMaskerTheme {
         AppListItem(
-            app =
-                InstalledApp(
-                    packageName = "com.android.settings",
-                    label = "Settings",
-                    isSystemApp = true,
-                    versionName = "14.0",
-                ),
-            isSelected = false,
-            onSelectionChange = {},
-            onClick = {},
+            app = InstalledApp(
+                packageName = "com.example.app",
+                label = "Example App",
+                isSystemApp = false,
+            ),
+            isAssigned = true,
+            assignedToOtherProfileName = null,
+            onToggle = {},
         )
     }
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
-private fun CompactAppListItemPreview() {
+private fun AppListItemLockedPreview() {
     DeviceMaskerTheme {
-        CompactAppListItem(
-            app = InstalledApp(packageName = "com.example.app", label = "Example App"),
-            isSelected = true,
-            onSelectionChange = {},
+        AppListItem(
+            app = InstalledApp(
+                packageName = "com.example.app",
+                label = "Example App",
+                isSystemApp = false,
+            ),
+            isAssigned = false,
+            assignedToOtherProfileName = "Work Profile",
+            onToggle = {},
         )
     }
 }

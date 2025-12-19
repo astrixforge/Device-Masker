@@ -2,7 +2,6 @@ package com.astrixforge.devicemasker.ui.navigation
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -55,11 +54,11 @@ fun BottomNavBar(
 private fun RowScope.BottomNavItem(item: NavItem, isSelected: Boolean, onClick: () -> Unit) {
     // Animate icon scale for selection
     val scale by
-        animateFloatAsState(
-            targetValue = if (isSelected) 1.1f else 1.0f,
-            animationSpec = AppMotion.FastSpring,
-            label = "iconScale_${item.route}",
-        )
+    animateFloatAsState(
+        targetValue = if (isSelected) 1.1f else 1.0f,
+        animationSpec = AppMotion.Spatial.Standard,
+        label = "iconScale_${item.route}",
+    )
 
     NavigationBarItem(
         selected = isSelected,
@@ -71,7 +70,7 @@ private fun RowScope.BottomNavItem(item: NavItem, isSelected: Boolean, onClick: 
         colors =
             NavigationBarItemDefaults.colors(
                 selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                selectedTextColor = MaterialTheme.colorScheme.secondary, // M3 1.4.0+ expressive nav
                 indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
                 unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -83,16 +82,16 @@ private fun RowScope.BottomNavItem(item: NavItem, isSelected: Boolean, onClick: 
 @Composable
 private fun AnimatedNavIcon(item: NavItem, isSelected: Boolean, modifier: Modifier = Modifier) {
     val iconColor by
-        animateColorAsState(
-            targetValue =
-                if (isSelected) {
-                    MaterialTheme.colorScheme.onSecondaryContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-            animationSpec = spring(),
-            label = "iconColor",
-        )
+    animateColorAsState(
+        targetValue =
+            if (isSelected) {
+                MaterialTheme.colorScheme.onSecondaryContainer
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
+        animationSpec = AppMotion.Effect.Color,
+        label = "iconColor",
+    )
 
     Icon(
         imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,

@@ -5,7 +5,7 @@ import com.astrixforge.devicemasker.data.generators.FingerprintGenerator
 import com.astrixforge.devicemasker.data.models.SpoofType
 import com.astrixforge.devicemasker.hook.HookDataProvider
 import com.highcapable.yukihookapi.hook.entity.YukiBaseHooker
-import com.highcapable.yukihookapi.hook.factory.method
+import com.highcapable.yukihookapi.hook.factory.*
 import com.highcapable.yukihookapi.hook.log.YLog
 import com.highcapable.yukihookapi.hook.type.java.StringClass
 
@@ -43,15 +43,14 @@ object SystemHooker : YukiBaseHooker() {
         context: Context?,
         type: SpoofType,
         generator: () -> String,
-    ): String? {
+    ): String {
         val provider = getProvider(context)
         if (provider == null) {
             YLog.debug("SystemHooker: No provider for $type, using generated value")
             return generator()
         }
 
-        // getSpoofValue now handles all profile-based checks (profile exists, profile enabled, type
-        // enabled)
+        // getSpoofValue now handles all profile-based checks
         return provider.getSpoofValue(type) ?: generator()
     }
 
@@ -84,14 +83,10 @@ object SystemHooker : YukiBaseHooker() {
     private val fallbackBoard: String
         get() = fallbackBuildProperties["BOARD"] ?: "shiba"
 
-    // Context for hook callbacks
-    private var hookContext: Context? = null
-
     override fun onHook() {
         YLog.debug("SystemHooker: Starting hooks for package: $packageName")
 
         hookBuildFields()
-        hookBuildVersion()
         hookSystemProperties()
 
         YLog.debug("SystemHooker: Hooks registered for package: $packageName")
@@ -138,11 +133,6 @@ object SystemHooker : YukiBaseHooker() {
         }
     }
 
-    /** Hooks Build.VERSION fields. */
-    private fun hookBuildVersion() {
-        // VERSION fields are also populated from SystemProperties
-        // We hook via SystemProperties for reliability
-    }
 
     /** Hooks SystemProperties.get() for property-based spoofing. */
     private fun hookSystemProperties() {
@@ -154,7 +144,6 @@ object SystemHooker : YukiBaseHooker() {
                 .hook {
                     after {
                         val key = args(0).string()
-                        hookContext = appContext
                         val spoofed = getSpoofedProperty(appContext, key)
                         if (spoofed != null) {
                             YLog.debug(
@@ -172,7 +161,6 @@ object SystemHooker : YukiBaseHooker() {
                 .hook {
                     after {
                         val key = args(0).string()
-                        hookContext = appContext
                         val spoofed = getSpoofedProperty(appContext, key)
                         if (spoofed != null) {
                             YLog.debug(
@@ -188,7 +176,6 @@ object SystemHooker : YukiBaseHooker() {
     /** Returns the spoofed value for a system property, or null if not spoofed. */
     private fun getSpoofedProperty(context: Context?, key: String): String? {
         return when (key) {
-            // Build fingerprint
             "ro.build.fingerprint",
             "ro.bootimage.build.fingerprint",
             "ro.vendor.build.fingerprint" -> {

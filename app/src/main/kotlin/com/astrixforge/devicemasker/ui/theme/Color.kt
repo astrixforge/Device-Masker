@@ -52,7 +52,6 @@ val TertiaryContainerLight = Color(0xFFEDE7F6)
 val StatusActive = Color(0xFF4CAF50) // Green - Active/Success
 val StatusInactive = Color(0xFFFF5722) // Orange-Red - Inactive/Error
 val StatusWarning = Color(0xFFFF9800) // Orange - Warning
-val StatusInfo = Color(0xFF2196F3) // Blue - Info
 
 // ═══════════════════════════════════════════════════════════
 // Error Colors

@@ -18,6 +18,7 @@ import kotlinx.serialization.Serializable
  * @property createdAt Timestamp when profile was created (epoch millis)
  * @property updatedAt Timestamp of last modification (epoch millis)
  * @property identifiers Map of SpoofType to DeviceIdentifier values
+ * @property assignedApps Set of assigned app package names
  */
 @Serializable
 data class SpoofProfile(
@@ -71,11 +72,6 @@ data class SpoofProfile(
         return identifiers.count { it.value.isEnabled }
     }
 
-    /** Returns all identifiers for a specific category. */
-    fun getIdentifiersByCategory(category: SpoofCategory): List<DeviceIdentifier> {
-        return identifiers.values.filter { it.type.category == category }
-    }
-
     /** Creates a copy with an updated identifier. */
     fun withIdentifier(identifier: DeviceIdentifier): SpoofProfile {
         val newIdentifiers = identifiers.toMutableMap()
@@ -89,30 +85,9 @@ data class SpoofProfile(
         return withIdentifier(existing.withValue(value))
     }
 
-    /** Creates a copy with toggled enabled state for a specific type. */
-    fun withTypeToggled(type: SpoofType): SpoofProfile {
-        val existing = identifiers[type] ?: DeviceIdentifier.createDefault(type)
-        return withIdentifier(existing.toggleEnabled())
-    }
-
-    /** Creates a copy with updated name. */
-    fun withName(newName: String): SpoofProfile {
-        return copy(name = newName, updatedAt = System.currentTimeMillis())
-    }
-
-    /** Creates a copy marked as default (or not). */
-    fun withDefault(isDefault: Boolean): SpoofProfile {
-        return copy(isDefault = isDefault, updatedAt = System.currentTimeMillis())
-    }
-
     /** Creates a copy with updated enabled state. */
     fun withEnabled(enabled: Boolean): SpoofProfile {
         return copy(isEnabled = enabled, updatedAt = System.currentTimeMillis())
-    }
-
-    /** Creates a copy with toggled enabled state. */
-    fun toggleEnabled(): SpoofProfile {
-        return copy(isEnabled = !isEnabled, updatedAt = System.currentTimeMillis())
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -151,16 +126,6 @@ data class SpoofProfile(
         return copy(assignedApps = newAssignedApps, updatedAt = System.currentTimeMillis())
     }
 
-    /**
-     * Creates a copy with a new set of assigned apps.
-     *
-     * @param apps The new set of assigned app package names
-     * @return Updated SpoofProfile with the new assigned apps
-     */
-    fun withAssignedApps(apps: Set<String>): SpoofProfile {
-        return copy(assignedApps = apps, updatedAt = System.currentTimeMillis())
-    }
-
     /** Returns the count of assigned apps. */
     fun assignedAppCount(): Int = assignedApps.size
 
@@ -193,36 +158,6 @@ data class SpoofProfile(
         /** Creates a "Default" profile that is automatically applied. */
         fun createDefaultProfile(): SpoofProfile {
             return createNew(name = "Default", isDefault = true)
-        }
-
-        /**
-         * Creates a profile pre-configured for a specific manufacturer.
-         *
-         * @param name Profile name
-         * @param manufacturer Target manufacturer (google, samsung, etc.)
-         */
-        fun createForManufacturer(name: String, manufacturer: String): SpoofProfile {
-            val profile = createNew(name)
-
-            // Import build properties for the manufacturer
-            val buildProps =
-                com.astrixforge.devicemasker.data.generators.FingerprintGenerator
-                    .generateBuildProperties(manufacturer)
-
-            var result = profile
-
-            buildProps["FINGERPRINT"]?.let {
-                result = result.withValue(SpoofType.BUILD_FINGERPRINT, it)
-            }
-            buildProps["MODEL"]?.let { result = result.withValue(SpoofType.BUILD_MODEL, it) }
-            buildProps["MANUFACTURER"]?.let {
-                result = result.withValue(SpoofType.BUILD_MANUFACTURER, it)
-            }
-            buildProps["BRAND"]?.let { result = result.withValue(SpoofType.BUILD_BRAND, it) }
-            buildProps["DEVICE"]?.let { result = result.withValue(SpoofType.BUILD_DEVICE, it) }
-            buildProps["PRODUCT"]?.let { result = result.withValue(SpoofType.BUILD_PRODUCT, it) }
-
-            return result
         }
     }
 }

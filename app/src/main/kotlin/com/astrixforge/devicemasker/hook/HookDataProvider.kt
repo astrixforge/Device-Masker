@@ -96,15 +96,7 @@ private constructor(private val dataStore: SpoofDataStore, private val packageNa
         return value
     }
 
-    /** Gets the profile name being used for this app (for logging). */
-    fun getProfileName(): String {
-        return profileForApp?.name ?: "No Profile"
-    }
 
-    /** Checks if the profile for this app is enabled. */
-    fun isProfileEnabled(): Boolean {
-        return profileForApp?.isEnabled == true
-    }
 
     /** Clears cached data, forcing reload on next access. */
     fun invalidateCache() {

@@ -14,9 +14,4 @@ object Constants {
     /** DataStore preferences file name. */
     const val DATASTORE_NAME = "DeviceMasker_preferences"
 
-    /** Timber logging tag. */
-    const val LOG_TAG = "DeviceMasker"
-
-    /** Module version for display. */
-    const val MODULE_VERSION = "1.0.0"
 }

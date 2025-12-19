@@ -2,12 +2,11 @@ package com.astrixforge.devicemasker.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import com.astrixforge.devicemasker.data.models.SpoofProfile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
@@ -49,28 +48,12 @@ object MigrationManager {
             return false
         }
 
-        // Run migrations in order
-        var version = currentVersion
-
-        if (version < 1) {
-            // Fresh install or pre-migration app - initialize to V1
-            version = 1
-        }
-
-        if (version < 2) {
-            migrateV1ToV2(context)
-            version = 2
-        }
+        migrateV1ToV2(context)
 
         // Save new version
-        prefs.edit().putInt(KEY_MIGRATION_VERSION, version).apply()
+        prefs.edit { putInt(KEY_MIGRATION_VERSION, CURRENT_MIGRATION_VERSION) }
 
         return true
-    }
-
-    /** Blocking version for hook context. */
-    fun runMigrationsIfNeededBlocking(context: Context): Boolean {
-        return runBlocking { runMigrationsIfNeeded(context) }
     }
 
     /**

@@ -4,7 +4,7 @@ import android.content.Context
 import com.astrixforge.devicemasker.data.models.SpoofType
 import com.astrixforge.devicemasker.hook.HookDataProvider
 import com.highcapable.yukihookapi.hook.entity.YukiBaseHooker
-import com.highcapable.yukihookapi.hook.factory.method
+import com.highcapable.yukihookapi.hook.factory.*
 import com.highcapable.yukihookapi.hook.log.YLog
 import com.highcapable.yukihookapi.hook.type.java.StringClass
 import java.util.Locale
@@ -46,15 +46,14 @@ object LocationHooker : YukiBaseHooker() {
         context: Context?,
         type: SpoofType,
         generator: () -> String,
-    ): String? {
+    ): String {
         val provider = getProvider(context)
         if (provider == null) {
             YLog.debug("LocationHooker: No provider for $type, using generated value")
             return generator()
         }
 
-        // getSpoofValue now handles all profile-based checks (profile exists, profile enabled, type
-        // enabled)
+        // getSpoofValue now handles all profile-based checks
         return provider.getSpoofValue(type) ?: generator()
     }
 
@@ -96,11 +95,9 @@ object LocationHooker : YukiBaseHooker() {
                             getSpoofValueOrGenerate(appContext, SpoofType.LOCATION_LATITUDE) {
                                 FALLBACK_LATITUDE
                             }
-                        if (value != null) {
-                            val latitude = value.toDoubleOrNull() ?: FALLBACK_LATITUDE.toDouble()
-                            YLog.debug("LocationHooker: Spoofing getLatitude() -> $latitude")
-                            result = latitude
-                        }
+                        val latitude = value.toDoubleOrNull() ?: FALLBACK_LATITUDE.toDouble()
+                        YLog.debug("LocationHooker: Spoofing getLatitude() -> $latitude")
+                        result = latitude
                     }
                 }
 
@@ -115,11 +112,9 @@ object LocationHooker : YukiBaseHooker() {
                             getSpoofValueOrGenerate(appContext, SpoofType.LOCATION_LONGITUDE) {
                                 FALLBACK_LONGITUDE
                             }
-                        if (value != null) {
-                            val longitude = value.toDoubleOrNull() ?: FALLBACK_LONGITUDE.toDouble()
-                            YLog.debug("LocationHooker: Spoofing getLongitude() -> $longitude")
-                            result = longitude
-                        }
+                        val longitude = value.toDoubleOrNull() ?: FALLBACK_LONGITUDE.toDouble()
+                        YLog.debug("LocationHooker: Spoofing getLongitude() -> $longitude")
+                        result = longitude
                     }
                 }
 
@@ -177,11 +172,9 @@ object LocationHooker : YukiBaseHooker() {
                             getSpoofValueOrGenerate(appContext, SpoofType.TIMEZONE) {
                                 FALLBACK_TIMEZONE
                             }
-                        if (value != null) {
-                            val spoofedTimezone = TimeZone.getTimeZone(value)
-                            YLog.debug("LocationHooker: Spoofing TimeZone.getDefault() -> $value")
-                            result = spoofedTimezone
-                        }
+                        val spoofedTimezone = TimeZone.getTimeZone(value)
+                        YLog.debug("LocationHooker: Spoofing TimeZone.getDefault() -> $value")
+                        result = spoofedTimezone
                     }
                 }
         }
@@ -200,19 +193,17 @@ object LocationHooker : YukiBaseHooker() {
                             getSpoofValueOrGenerate(appContext, SpoofType.LOCALE) {
                                 FALLBACK_LOCALE
                             }
-                        if (value != null) {
-                            val parts = value.split("_")
-                            val spoofedLocale =
-                                if (parts.size >= 2) {
-                                    Locale(parts[0], parts[1])
-                                } else {
-                                    Locale(parts[0])
-                                }
-                            YLog.debug(
-                                "LocationHooker: Spoofing Locale.getDefault() -> $spoofedLocale"
-                            )
-                            result = spoofedLocale
-                        }
+                        val parts = value.split("_")
+                        val spoofedLocale =
+                            if (parts.size >= 2) {
+                                Locale(parts[0], parts[1])
+                            } else {
+                                Locale(parts[0])
+                            }
+                        YLog.debug(
+                            "LocationHooker: Spoofing Locale.getDefault() -> $spoofedLocale"
+                        )
+                        result = spoofedLocale
                     }
                 }
 
@@ -226,19 +217,17 @@ object LocationHooker : YukiBaseHooker() {
                             getSpoofValueOrGenerate(appContext, SpoofType.LOCALE) {
                                 FALLBACK_LOCALE
                             }
-                        if (value != null) {
-                            val parts = value.split("_")
-                            val spoofedLocale =
-                                if (parts.size >= 2) {
-                                    Locale(parts[0], parts[1])
-                                } else {
-                                    Locale(parts[0])
-                                }
-                            YLog.debug(
-                                "LocationHooker: Spoofing Locale.getDefault(category) -> $spoofedLocale"
-                            )
-                            result = spoofedLocale
-                        }
+                        val parts = value.split("_")
+                        val spoofedLocale =
+                            if (parts.size >= 2) {
+                                Locale(parts[0], parts[1])
+                            } else {
+                                Locale(parts[0])
+                            }
+                        YLog.debug(
+                            "LocationHooker: Spoofing Locale.getDefault(category) -> $spoofedLocale"
+                        )
+                        result = spoofedLocale
                     }
                 }
         }
@@ -261,22 +250,20 @@ object LocationHooker : YukiBaseHooker() {
                                     getSpoofValueOrGenerate(appContext, SpoofType.LOCALE) {
                                         FALLBACK_LOCALE
                                     }
-                                if (value != null) {
-                                    runCatching {
-                                        val parts = value.split("_")
-                                        val spoofedLocale =
-                                            if (parts.size >= 2) {
-                                                Locale(parts[0], parts[1])
-                                            } else {
-                                                Locale(parts[0])
-                                            }
-                                        val localeListClass = "android.os.LocaleList".toClass()
-                                        val constructor =
-                                            localeListClass.getConstructor(
-                                                Array<Locale>::class.java
-                                            )
-                                        result = constructor.newInstance(arrayOf(spoofedLocale))
-                                    }
+                                runCatching {
+                                    val parts = value.split("_")
+                                    val spoofedLocale =
+                                        if (parts.size >= 2) {
+                                            Locale(parts[0], parts[1])
+                                        } else {
+                                            Locale(parts[0])
+                                        }
+                                    val localeListClass = "android.os.LocaleList".toClass()
+                                    val constructor =
+                                        localeListClass.getConstructor(
+                                            Array<Locale>::class.java
+                                        )
+                                    result = constructor.newInstance(arrayOf(spoofedLocale))
                                 }
                             }
                         }

@@ -22,21 +22,24 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveSwitch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.astrixforge.devicemasker.data.models.SpoofProfile
+import com.astrixforge.devicemasker.ui.components.expressive.CompactExpressiveIconButton
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
+import com.astrixforge.devicemasker.ui.components.expressive.animatedRoundedCornerShape
 import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 import com.astrixforge.devicemasker.ui.theme.StatusActive
+import com.astrixforge.devicemasker.R
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -60,16 +63,21 @@ import java.util.Locale
 @Composable
 fun ProfileCard(
         profile: SpoofProfile,
-        isEnabled: Boolean = profile.isEnabled,
-        appCount: Int = profile.assignedAppCount(),
         onClick: () -> Unit,
         onEdit: () -> Unit,
         onDelete: () -> Unit,
         onSetDefault: () -> Unit,
-        onEnableChange: (Boolean) -> Unit = {},
         modifier: Modifier = Modifier,
+        isEnabled: Boolean = profile.isEnabled,
+        appCount: Int = profile.assignedAppCount(),
+        onEnableChange: (Boolean) -> Unit = {},
 ) {
     val contentAlpha = if (isEnabled) 1f else 0.5f
+
+    val cardShape = animatedRoundedCornerShape(
+        targetRadius = if (isEnabled) 24.dp else 16.dp,
+        label = "profileCardMorph"
+    )
 
     ElevatedCard(
             modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
@@ -77,7 +85,7 @@ fun ProfileCard(
                     CardDefaults.elevatedCardColors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                     ),
-            shape = MaterialTheme.shapes.large,
+            shape = cardShape,
     ) {
         Column(modifier = Modifier.padding(16.dp).alpha(contentAlpha)) {
             // Profile Info Row with Switch
@@ -142,18 +150,9 @@ fun ProfileCard(
                 }
 
                 // Enable/Disable Switch
-                Switch(
+                ExpressiveSwitch(
                         checked = isEnabled,
                         onCheckedChange = onEnableChange,
-                        colors =
-                                SwitchDefaults.colors(
-                                        checkedThumbColor = MaterialTheme.colorScheme.primary,
-                                        checkedTrackColor =
-                                                MaterialTheme.colorScheme.primaryContainer,
-                                        uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                                        uncheckedTrackColor =
-                                                MaterialTheme.colorScheme.surfaceVariant,
-                                ),
                 )
             }
 
@@ -166,10 +165,11 @@ fun ProfileCard(
             ) {
                 Column {
                     Text(
-                            text =
-                                    if (appCount > 0)
-                                            "$appCount app${if (appCount != 1) "s" else ""}"
-                                    else "No apps",
+                            text = pluralStringResource(
+                                id = R.plurals.profile_card_apps_count,
+                                count = appCount,
+                                appCount
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                             color =
                                     if (appCount > 0) MaterialTheme.colorScheme.primary
@@ -182,37 +182,31 @@ fun ProfileCard(
                     )
                 }
 
-                // Action Buttons
+                // Action Buttons with Expressive feedback
                 Row {
                     if (!profile.isDefault) {
-                        IconButton(onClick = onSetDefault, modifier = Modifier.size(36.dp)) {
-                            Icon(
-                                    imageVector = Icons.Default.Star,
-                                    contentDescription = "Set as Default",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp),
-                            )
-                        }
-                    }
-
-                    IconButton(onClick = onEdit, modifier = Modifier.size(36.dp)) {
-                        Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = "Edit",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp),
+                        CompactExpressiveIconButton(
+                            onClick = onSetDefault,
+                            icon = Icons.Default.Star,
+                            contentDescription = "Set as Default",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
+                    CompactExpressiveIconButton(
+                        onClick = onEdit,
+                        icon = Icons.Default.Edit,
+                        contentDescription = "Edit",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
                     if (!profile.isDefault) {
-                        IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
-                            Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "Delete",
-                                    tint = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier.size(20.dp),
-                            )
-                        }
+                        CompactExpressiveIconButton(
+                            onClick = onDelete,
+                            icon = Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.error
+                        )
                     }
                 }
             }
@@ -239,7 +233,10 @@ private fun DefaultBadge(modifier: Modifier = Modifier) {
     }
 }
 
-/** Compact profile card for selection lists. */
+/**
+ * Compact profile card for selection lists.
+ * Uses ExpressiveCard for spring-animated selection feedback.
+ */
 @Composable
 fun CompactProfileCard(
         profile: SpoofProfile,
@@ -247,20 +244,16 @@ fun CompactProfileCard(
         onClick: () -> Unit,
         modifier: Modifier = Modifier,
 ) {
-    ElevatedCard(
-            modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
-            colors =
-                    CardDefaults.elevatedCardColors(
-                            containerColor =
-                                    if (isSelected) {
-                                        MaterialTheme.colorScheme.primaryContainer.copy(
-                                                alpha = 0.3f
-                                        )
-                                    } else {
-                                        MaterialTheme.colorScheme.surfaceContainerHigh
-                                    }
-                    ),
-            shape = MaterialTheme.shapes.medium,
+    val compactShape = animatedRoundedCornerShape(
+        targetRadius = if (isSelected) 16.dp else 12.dp,
+        label = "compactProfileCardMorph"
+    )
+
+    ExpressiveCard(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        isSelected = isSelected,
+        shape = compactShape,
     ) {
         Row(
                 modifier = Modifier.fillMaxWidth().padding(12.dp),

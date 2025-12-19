@@ -1,7 +1,6 @@
 package com.astrixforge.devicemasker.data.generators
 
 import java.util.UUID
-import kotlin.random.Random
 
 /**
  * UUID and ID Generator for various Android identifiers.
@@ -62,109 +61,13 @@ object UUIDGenerator {
     }
 
     /**
-     * Generates a standard UUID v4.
+     * Generates a random Instance ID (used by Firebase/Google Play Services).
+     * Typically a 22-character random string.
      *
-     * @return A UUID string in standard format
-     */
-    fun generateUUID(): String {
-        return UUID.randomUUID().toString()
-    }
-
-    /**
-     * Generates a random instance ID (used by Firebase and other services). Instance IDs are
-     * typically 22-character base64-like strings.
-     *
-     * @return A 22-character instance ID
+     * @return A random alphanumeric string
      */
     fun generateInstanceId(): String {
-        val base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
-        return buildString { repeat(22) { append(base64Chars.random()) } }
-    }
-
-    /**
-     * Generates a random SSAID (Settings.Secure.ANDROID_ID value). This is functionally identical
-     * to Android ID.
-     *
-     * @return A 16-character lowercase hex string
-     */
-    fun generateSSAID(): String {
-        return generateAndroidId()
-    }
-
-    /**
-     * Validates an Android ID format.
-     *
-     * @param androidId The Android ID to validate
-     * @return True if the format is valid (16 hex characters)
-     */
-    fun isValidAndroidId(androidId: String): Boolean {
-        return androidId.length == 16 && androidId.all { it in HEX_CHARS }
-    }
-
-    /**
-     * Validates an Advertising ID format.
-     *
-     * @param advertisingId The Advertising ID to validate
-     * @return True if the format is a valid UUID
-     */
-    fun isValidAdvertisingId(advertisingId: String): Boolean {
-        return try {
-            UUID.fromString(advertisingId)
-            true
-        } catch (e: IllegalArgumentException) {
-            false
-        }
-    }
-
-    /**
-     * Validates a GSF ID format.
-     *
-     * @param gsfId The GSF ID to validate
-     * @return True if the format is valid (16 hex characters)
-     */
-    fun isValidGSFId(gsfId: String): Boolean {
-        return gsfId.length == 16 && gsfId.all { it in HEX_CHARS }
-    }
-
-    /**
-     * Validates a Media DRM ID format.
-     *
-     * @param drmId The DRM ID to validate
-     * @return True if the format is valid (64 hex characters)
-     */
-    fun isValidMediaDrmId(drmId: String): Boolean {
-        return drmId.length == 64 && drmId.all { it in HEX_CHARS }
-    }
-
-    /**
-     * Generates multiple unique Android IDs.
-     *
-     * @param count Number of IDs to generate
-     * @return List of unique Android ID strings
-     */
-    fun generateMultipleAndroidIds(count: Int): List<String> {
-        return List(count) { generateAndroidId() }.distinct()
-    }
-
-    /**
-     * Generates a consistent Android ID based on a seed. Useful for generating reproducible IDs for
-     * the same profile.
-     *
-     * @param seed The seed string (e.g., profile name)
-     * @return A deterministic Android ID based on the seed
-     */
-    fun generateDeterministicAndroidId(seed: String): String {
-        val random = Random(seed.hashCode().toLong())
-        return buildString { repeat(16) { append(HEX_CHARS[random.nextInt(16)]) } }
-    }
-
-    /**
-     * Generates a zero/null advertising ID (for opt-out scenarios). This represents a user who has
-     * opted out of ad personalization.
-     *
-     * @return "00000000-0000-0000-0000-000000000000"
-     */
-    fun generateOptOutAdvertisingId(): String {
-        return "00000000-0000-0000-0000-000000000000"
+        val chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-"
+        return buildString { repeat(22) { append(chars.random()) } }
     }
 }

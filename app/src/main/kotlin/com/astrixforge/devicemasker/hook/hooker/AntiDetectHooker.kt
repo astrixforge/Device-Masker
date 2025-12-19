@@ -92,6 +92,9 @@ object AntiDetectHooker : YukiBaseHooker() {
             "org.meowcat.edxposed.manager",
         )
 
+    /** Guard to prevent infinite recursion during stack trace filtering. */
+    private val isFiltering = ThreadLocal<Boolean>()
+
     override fun onHook() {
         // ═══════════════════════════════════════════════════════════════
         // CRITICAL SAFETY CHECK: Never run in our own module or system
@@ -109,13 +112,7 @@ object AntiDetectHooker : YukiBaseHooker() {
         // Prevents detection via Thread.getStackTrace() analysis
         // ═══════════════════════════════════════════════════════════
 
-        // ═══════════════════════════════════════════════════════════
-        // STACK TRACE HIDING
-        // Prevents detection via Thread.getStackTrace() analysis
-        // ⚠️ DISABLED: Causing infinite recursion/bootloops on some devices
-        // ═══════════════════════════════════════════════════════════
-
-        // hookStackTraces()
+        hookStackTraces()
 
         // ═══════════════════════════════════════════════════════════
         // CLASS LOADING HIDING
@@ -153,20 +150,18 @@ object AntiDetectHooker : YukiBaseHooker() {
                     }
                     .hook {
                         after {
+                            @Suppress("UNCHECKED_CAST")
                             val originalStack = result as? Array<StackTraceElement>
                             if (originalStack.isNullOrEmpty()) return@after
 
                             runCatching {
-                                    @Suppress("UNCHECKED_CAST")
-                                    result = filterStackTrace(originalStack)
-                                }
-                                .onFailure { result = originalStack }
+                                result = filterStackTrace(originalStack)
+                            }.onFailure { result = originalStack }
                         }
                     }
             }
         }
 
-        // Hook Throwable.getStackTrace()
         // Hook Throwable.getStackTrace()
         runCatching {
             "java.lang.Throwable".toClass().apply {
@@ -176,14 +171,13 @@ object AntiDetectHooker : YukiBaseHooker() {
                     }
                     .hook {
                         after {
+                            @Suppress("UNCHECKED_CAST")
                             val originalStack = result as? Array<StackTraceElement>
                             if (originalStack.isNullOrEmpty()) return@after
 
                             runCatching {
-                                    @Suppress("UNCHECKED_CAST")
-                                    result = filterStackTrace(originalStack)
-                                }
-                                .onFailure { result = originalStack }
+                                result = filterStackTrace(originalStack)
+                            }.onFailure { result = originalStack }
                         }
                     }
             }
@@ -194,21 +188,29 @@ object AntiDetectHooker : YukiBaseHooker() {
 
     /** Filters a stack trace array, removing frames that match hidden patterns. */
     private fun filterStackTrace(stack: Array<StackTraceElement>): Array<StackTraceElement> {
-        return stack
-            .filterNot { element ->
-                val className = element.className
-                // Safety: Never filter our own classes or standard Android/Java classes
-                if (className.startsWith("com.astrixforge.devicemasker")) return@filterNot false
-                if (className.startsWith("android.")) return@filterNot false
-                if (className.startsWith("java.")) return@filterNot false
-                if (className.startsWith("kotlin.")) return@filterNot false
-                if (className.startsWith("androidx.")) return@filterNot false
+        // Prevent infinite recursion
+        if (isFiltering.get() == true) return stack
+        isFiltering.set(true)
 
-                HIDDEN_CLASS_PATTERNS.any { pattern ->
-                    className.contains(pattern, ignoreCase = true)
+        return try {
+            stack
+                .filterNot { element ->
+                    val className = element.className
+                    // Safety: Never filter our own classes or standard Android/Java classes
+                    if (className.startsWith("com.astrixforge.devicemasker")) return@filterNot false
+                    if (className.startsWith("android.")) return@filterNot false
+                    if (className.startsWith("java.")) return@filterNot false
+                    if (className.startsWith("kotlin.")) return@filterNot false
+                    if (className.startsWith("androidx.")) return@filterNot false
+
+                    HIDDEN_CLASS_PATTERNS.any { pattern ->
+                        className.contains(pattern, ignoreCase = true)
+                    }
                 }
-            }
-            .toTypedArray()
+                .toTypedArray()
+        } finally {
+            isFiltering.set(false)
+        }
     }
 
     /** Hooks class loading methods to block loading of Xposed classes. */

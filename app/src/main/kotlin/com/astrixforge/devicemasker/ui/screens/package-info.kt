@@ -3,8 +3,6 @@
  *
  * This package will contain:
  * - HomeScreen.kt (Phase 5)
- * - AppSelectionScreen.kt (Phase 5)
- * - SpoofSettingsScreen.kt (Phase 5)
  * - ProfileScreen.kt (Phase 5)
  * - DiagnosticsScreen.kt (Phase 5)
  * - SettingsScreen.kt (Phase 5)

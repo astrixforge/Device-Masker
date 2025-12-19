@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
@@ -17,22 +16,20 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveSwitch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.astrixforge.devicemasker.data.models.DeviceIdentifier
 import com.astrixforge.devicemasker.data.models.SpoofType
+import com.astrixforge.devicemasker.ui.components.expressive.CompactExpressiveIconButton
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveIconButton
 import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 
 /**
@@ -89,7 +86,7 @@ fun SpoofValueCard(
                     )
                 }
 
-                Switch(checked = identifier.isEnabled, onCheckedChange = onToggle)
+                ExpressiveSwitch(checked = identifier.isEnabled, onCheckedChange = onToggle)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -129,26 +126,27 @@ fun SpoofValueCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    ActionIconButton(
+                    CompactExpressiveIconButton(
+                        onClick = onRegenerate,
                         icon = Icons.Default.Refresh,
                         contentDescription = "Regenerate",
-                        onClick = onRegenerate,
+                        tint = MaterialTheme.colorScheme.primary
                     )
 
                     Spacer(modifier = Modifier.width(4.dp))
 
-                    ActionIconButton(
+                    CompactExpressiveIconButton(
+                        onClick = { onEdit(identifier.value ?: "") },
                         icon = Icons.Default.Edit,
                         contentDescription = "Edit",
-                        onClick = { onEdit(identifier.value ?: "") },
                     )
 
                     Spacer(modifier = Modifier.width(4.dp))
 
-                    ActionIconButton(
+                    CompactExpressiveIconButton(
+                        onClick = onCopy,
                         icon = Icons.Default.ContentCopy,
                         contentDescription = "Copy",
-                        onClick = onCopy,
                     )
                 }
             }
@@ -189,34 +187,17 @@ fun CompactSpoofValueCard(
             )
         }
 
-        IconButton(onClick = onRegenerate, enabled = enabled) {
-            Icon(
-                imageVector = Icons.Default.Refresh,
-                contentDescription = "Regenerate",
-                tint = MaterialTheme.colorScheme.primary,
-            )
-        }
-    }
-}
-
-/** Small action icon button. */
-@Composable
-private fun ActionIconButton(
-    icon: ImageVector,
-    contentDescription: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    tint: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-) {
-    IconButton(onClick = onClick, modifier = modifier.size(36.dp)) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            tint = tint,
-            modifier = Modifier.size(20.dp),
+        ExpressiveIconButton(
+            onClick = onRegenerate,
+            icon = Icons.Default.Refresh,
+            contentDescription = "Regenerate",
+            enabled = enabled,
+            tint = MaterialTheme.colorScheme.primary,
         )
     }
 }
+
+
 
 /** Masks a value for display based on type. */
 private fun maskValueString(type: SpoofType, value: String?): String {
