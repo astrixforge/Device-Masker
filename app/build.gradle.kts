@@ -54,6 +54,7 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+        aidl = true  // Enable AIDL for IPC with xposed module
     }
 
     // CRITICAL: Prevent synthetic lambda classes that cause ClassNotFoundException in Xposed
@@ -65,6 +66,12 @@ android {
 }
 
 dependencies {
+    // ═══════════════════════════════════════════════════════════
+    // HMA-OSS ARCHITECTURE MODULES
+    // ═══════════════════════════════════════════════════════════
+    implementation(project(":common"))  // Shared models and AIDL
+    implementation(project(":xposed"))  // Hook logic - bundled in APK
+
     // ═══════════════════════════════════════════════════════════
     // CORE ANDROID
     // ═══════════════════════════════════════════════════════════

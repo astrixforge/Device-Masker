@@ -205,8 +205,7 @@ private fun maskValueString(type: SpoofType, value: String?): String {
 
     return when (type) {
         SpoofType.IMEI,
-        SpoofType.IMSI,
-        SpoofType.MEID -> {
+        SpoofType.IMSI -> {
             if (value.length > 6) {
                 value.take(3) + "***" + value.takeLast(3)
             } else {

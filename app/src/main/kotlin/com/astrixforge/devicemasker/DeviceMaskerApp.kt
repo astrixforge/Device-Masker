@@ -1,11 +1,7 @@
 package com.astrixforge.devicemasker
 
-import com.astrixforge.devicemasker.data.MigrationManager
+import com.astrixforge.devicemasker.service.ConfigManager
 import com.highcapable.yukihookapi.hook.xposed.application.ModuleApplication
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
@@ -14,15 +10,16 @@ import timber.log.Timber
  * Extends [ModuleApplication] from YukiHookAPI to properly initialize the module in both the module
  * app process and hooked app processes.
  *
+ * HMA-OSS Architecture:
+ * - Initializes ConfigManager for JSON-based configuration
+ * - ConfigManager handles local storage and AIDL sync with DeviceMaskerService
+ *
  * Responsibilities:
  * - Initialize Timber logging in debug builds
- * - Initialize DataStore for preferences storage
- * - Run data migrations on startup
+ * - Initialize ConfigManager for configuration management
  * - Provide module status information via YukiHookAPI
  */
 class DeviceMaskerApp : ModuleApplication() {
-
-    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun onCreate() {
         super.onCreate()
@@ -33,17 +30,10 @@ class DeviceMaskerApp : ModuleApplication() {
             Timber.d("Device Masker Application initialized")
         }
 
-        // Run data migrations if needed
-        applicationScope.launch {
-            try {
-                val migrated = MigrationManager.runMigrationsIfNeeded(this@DeviceMaskerApp)
-                if (migrated) {
-                    Timber.i("Data migration completed successfully")
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Data migration failed")
-            }
-        }
+        // Initialize ConfigManager (HMA-OSS architecture)
+        // This loads config from local file and sets up service sync
+        ConfigManager.init(this)
+        Timber.d("ConfigManager initialized")
 
         // Log module activation status
         Timber.i(

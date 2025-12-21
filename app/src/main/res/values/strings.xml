@@ -129,6 +129,7 @@
 
     <!-- Actions -->
     <string name="action_regenerate">Regenerate</string>
+    <string name="action_regenerate_all">Regenerate All</string>
     <string name="action_copy">Copy</string>
     <string name="action_save">Save</string>
     <string name="action_cancel">Cancel</string>
@@ -137,6 +138,18 @@
     <string name="action_confirm">Confirm</string>
     <string name="action_expand">Expand</string>
     <string name="action_collapse">Collapse</string>
+
+    <!-- UI Display Categories (organized by correlation) -->
+    <string name="category_sim_card">SIM Card</string>
+    <string name="category_sim_card_desc">Synced: IMSI, ICCID, Carrier match together</string>
+    <string name="category_device_hardware">Device Hardware</string>
+    <string name="category_device_hardware_desc">Synced: IMEI, Serial match device profile</string>
+    <string name="category_network">Network</string>
+    <string name="category_network_desc">Independent: WiFi and Bluetooth identifiers</string>
+    <string name="category_advertising">Advertising</string>
+    <string name="category_advertising_desc">Independent: Tracking and ad identifiers</string>
+    <string name="category_location">Location</string>
+    <string name="category_location_desc">Synced: Timezone and locale match country</string>
 
     <!-- Dialogs -->
     <string name="dialog_delete_title">Delete Item</string>

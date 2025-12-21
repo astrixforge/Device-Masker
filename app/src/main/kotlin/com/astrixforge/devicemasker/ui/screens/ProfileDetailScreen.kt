@@ -8,7 +8,9 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -28,23 +31,28 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material.icons.outlined.Devices
+import androidx.compose.material.icons.outlined.DevicesOther
 import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.SimCard
 import androidx.compose.material.icons.outlined.TrackChanges
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
@@ -63,6 +71,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -73,15 +82,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.astrixforge.devicemasker.BuildConfig
 import com.astrixforge.devicemasker.R
+import com.astrixforge.devicemasker.common.CorrelationGroup
+import com.astrixforge.devicemasker.common.DeviceProfilePreset
+import com.astrixforge.devicemasker.common.SpoofProfile
+import com.astrixforge.devicemasker.common.SpoofType
+import com.astrixforge.devicemasker.common.models.Carrier
+import com.astrixforge.devicemasker.common.models.Country
 import com.astrixforge.devicemasker.data.models.DeviceIdentifier
 import com.astrixforge.devicemasker.data.models.InstalledApp
-import com.astrixforge.devicemasker.data.models.SpoofCategory
-import com.astrixforge.devicemasker.data.models.SpoofProfile
-import com.astrixforge.devicemasker.data.models.SpoofType
 import com.astrixforge.devicemasker.data.repository.SpoofRepository
 import com.astrixforge.devicemasker.ui.components.AppListItem
 import com.astrixforge.devicemasker.ui.components.EmptyState
 import com.astrixforge.devicemasker.ui.components.IconCircle
+import com.astrixforge.devicemasker.ui.components.dialog.CountryPickerDialog
 import com.astrixforge.devicemasker.ui.components.expressive.AnimatedLoadingOverlay
 import com.astrixforge.devicemasker.ui.components.expressive.CompactExpressiveIconButton
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveLoadingIndicatorWithLabel
@@ -106,6 +119,99 @@ private object CategoryExpansionState {
             expandedCategories.add(categoryName)
         }
     }
+}
+
+/**
+ * UI Display Categories - Groups spoof types by correlation for better organization.
+ * 
+ * This is different from SpoofCategory because it groups correlated values together:
+ * - SIM Card: All SIM_CARD correlation group values (IMSI, ICCID, PHONE, CARRIER) - CORRELATED
+ * - Device Hardware: DEVICE_HARDWARE group + DEVICE_PROFILE - CORRELATED
+ * - Network: WiFi/Bluetooth (non-correlated network values) - INDEPENDENT
+ * - Advertising: All advertising identifiers - INDEPENDENT
+ * - Location: GPS + timezone/locale (location correlation group) - CORRELATED
+ * 
+ * Correlated categories: Single switch + single regenerate button (all values sync)
+ * Independent categories: Individual switches + regenerate buttons per item
+ */
+private enum class UIDisplayCategory(
+    val titleRes: Int,
+    val descriptionRes: Int,
+    val icon: ImageVector,
+    val color: Color,
+    val types: List<SpoofType>,
+    val isCorrelated: Boolean,  // If true, values sync together
+) {
+    SIM_CARD(
+        titleRes = R.string.category_sim_card,
+        descriptionRes = R.string.category_sim_card_desc,
+        icon = Icons.Outlined.SimCard,
+        color = Color(0xFF00BCD4), // Cyan
+        types = listOf(
+            SpoofType.PHONE_NUMBER,       // Combined with Carrier Name
+            SpoofType.CARRIER_NAME,       // Shows below Phone Number
+            SpoofType.SIM_COUNTRY_ISO,    // NEW: SIM country code
+            SpoofType.NETWORK_COUNTRY_ISO,// NEW: Network country code
+            SpoofType.IMSI,               // Independent
+            SpoofType.ICCID,              // Independent
+            SpoofType.CARRIER_MCC_MNC,    // Independent
+            SpoofType.SIM_OPERATOR_NAME,  // NEW: SIM operator name
+            SpoofType.NETWORK_OPERATOR,   // NEW: Network operator (MCC+MNC)
+        ),
+        isCorrelated = false,  // Custom handling: Phone+Carrier combined, others independent
+    ),
+    DEVICE_HARDWARE(
+        titleRes = R.string.category_device_hardware,
+        descriptionRes = R.string.category_device_hardware_desc,
+        icon = Icons.Outlined.DevicesOther,
+        color = Color(0xFF9C27B0), // Purple
+        types = listOf(
+            SpoofType.DEVICE_PROFILE,
+            SpoofType.IMEI,
+            SpoofType.SERIAL,
+        ),
+        isCorrelated = false,  // Custom handling: Device Profile controls all, IMEI/Serial independent
+    ),
+    NETWORK(
+        titleRes = R.string.category_network,
+        descriptionRes = R.string.category_network_desc,
+        icon = Icons.Outlined.Wifi,
+        color = Color(0xFF4CAF50), // Green
+        types = listOf(
+            SpoofType.WIFI_MAC,
+            SpoofType.BLUETOOTH_MAC,
+            SpoofType.WIFI_SSID,
+            SpoofType.WIFI_BSSID,
+        ),
+        isCorrelated = false,  // Each can be regenerated independently
+    ),
+    ADVERTISING(
+        titleRes = R.string.category_advertising,
+        descriptionRes = R.string.category_advertising_desc,
+        icon = Icons.Outlined.TrackChanges,
+        color = Color(0xFFFF9800), // Orange
+        types = listOf(
+            SpoofType.ANDROID_ID,
+            SpoofType.GSF_ID,
+            SpoofType.ADVERTISING_ID,
+            SpoofType.MEDIA_DRM_ID,
+        ),
+        isCorrelated = false,  // Each can be regenerated independently
+    ),
+    LOCATION(
+        titleRes = R.string.category_location,
+        descriptionRes = R.string.category_location_desc,
+        icon = Icons.Outlined.LocationOn,
+        color = Color(0xFFE91E63), // Pink
+        types = listOf(
+            // Order: Timezone first (controls locale), then Lat/Long (independent GPS)
+            SpoofType.TIMEZONE,
+            SpoofType.LOCALE,
+            SpoofType.LOCATION_LATITUDE,
+            SpoofType.LOCATION_LONGITUDE,
+        ),
+        isCorrelated = false,  // Custom handling: Timezone+Locale sync, Lat/Long independent
+    );
 }
 
 /**
@@ -205,20 +311,45 @@ fun ProfileDetailScreen(
                                                         onRegenerate = { type ->
                                                                 profile?.let { p ->
                                                                         scope.launch {
-                                                                                val newValue =
-                                                                                        repository
-                                                                                                .generateValue(
-                                                                                                        type
-                                                                                                )
-                                                                                val updated =
-                                                                                        p.withValue(
-                                                                                                type,
-                                                                                                newValue
-                                                                                        )
-                                                                                repository
-                                                                                        .updateProfile(
-                                                                                                updated
-                                                                                        )
+                                                                                val correlationGroup = type.correlationGroup
+                                                                                
+                                                                                // For SIM values: use regenerateSIMValueOnly to keep same carrier
+                                                                                // This fixes the bug where phone number showed wrong country code
+                                                                                val newValue = when (correlationGroup) {
+                                                                                        CorrelationGroup.SIM_CARD -> 
+                                                                                                repository.regenerateSIMValueOnly(type)
+                                                                                        else -> {
+                                                                                                // For non-SIM correlated values, reset cache first
+                                                                                                if (correlationGroup != CorrelationGroup.NONE) {
+                                                                                                        repository.resetCorrelationGroup(correlationGroup)
+                                                                                                }
+                                                                                                repository.generateValue(type)
+                                                                                        }
+                                                                                }
+                                                                                
+                                                                                val updated = p.withValue(type, newValue)
+                                                                                repository.updateProfile(updated)
+                                                                        }
+                                                                }
+                                                        },
+                                                        onRegenerateCategory = { category ->
+                                                                profile?.let { p ->
+                                                                        scope.launch {
+                                                                                // Reset the cache for this correlation group first
+                                                                                if (category.isCorrelated) {
+                                                                                        val correlationGroup = category.types.firstOrNull()?.correlationGroup
+                                                                                        if (correlationGroup != null) {
+                                                                                                repository.resetCorrelationGroup(correlationGroup)
+                                                                                        }
+                                                                                }
+                                                                                
+                                                                                // Now regenerate all types in this category
+                                                                                var updatedProfile = p
+                                                                                category.types.forEach { type ->
+                                                                                        val newValue = repository.generateValue(type)
+                                                                                        updatedProfile = updatedProfile.withValue(type, newValue)
+                                                                                }
+                                                                                repository.updateProfile(updatedProfile)
                                                                         }
                                                                 }
                                                         },
@@ -244,6 +375,20 @@ fun ProfileDetailScreen(
                                                                         }
                                                                 }
                                                         },
+                                                        onRegenerateLocation = {
+                                                                profile?.let { p ->
+                                                                        scope.launch {
+                                                                                repository.regenerateLocationValues(p.id)
+                                                                        }
+                                                                }
+                                                        },
+                                                        onCarrierChange = { carrier ->
+                                                                profile?.let { p ->
+                                                                        scope.launch {
+                                                                                repository.updateProfileWithCarrier(p.id, carrier)
+                                                                        }
+                                                                }
+                                                        },
                                                 )
                                         1 ->
                                                 ProfileAppsContent(
@@ -255,14 +400,12 @@ fun ProfileDetailScreen(
                                                                         scope.launch {
                                                                                 if (checked) {
                                                                                         repository
-                                                                                                .profileRepository
                                                                                                 .addAppToProfile(
                                                                                                         p.id,
                                                                                                         app.packageName,
                                                                                                 )
                                                                                 } else {
                                                                                         repository
-                                                                                                .profileRepository
                                                                                                 .removeAppFromProfile(
                                                                                                         p.id,
                                                                                                         app.packageName,
@@ -289,13 +432,16 @@ fun ProfileDetailScreen(
 private fun ProfileSpoofContent(
         profile: SpoofProfile?,
         onRegenerate: (SpoofType) -> Unit,
+        onRegenerateCategory: (UIDisplayCategory) -> Unit,
+        onRegenerateLocation: () -> Unit,
         onToggle: (SpoofType, Boolean) -> Unit,
+        onCarrierChange: (Carrier) -> Unit,
         modifier: Modifier = Modifier,
 ) {
         val clipboardManager = LocalClipboardManager.current
         
         // Use session-scoped state holder - triggers recomposition on change
-        var refreshTrigger by remember { mutableStateOf(0) }
+        var refreshTrigger by remember { mutableIntStateOf(0) }
 
         LazyColumn(
                 modifier = modifier.fillMaxSize(),
@@ -333,8 +479,8 @@ private fun ProfileSpoofContent(
                         }
                 }
 
-                // Categories
-                SpoofCategory.entries.forEach { category ->
+                // Categories - organized by correlation groups
+                UIDisplayCategory.entries.forEach { category ->
                         item(key = "spoof_${category.name}") {
                                 // Read from session state (refreshTrigger forces recomposition)
                                 val isExpanded = CategoryExpansionState.isExpanded(category.name)
@@ -350,7 +496,10 @@ private fun ProfileSpoofContent(
                                                 refreshTrigger++ // Trigger recomposition
                                         },
                                         onRegenerate = onRegenerate,
+                                        onRegenerateCategory = { onRegenerateCategory(category) },
+                                        onRegenerateLocation = onRegenerateLocation,
                                         onToggle = onToggle,
+                                        onCarrierChange = onCarrierChange,
                                         onCopy = { value ->
                                                 clipboardManager.setText(AnnotatedString(value))
                                         },
@@ -363,15 +512,18 @@ private fun ProfileSpoofContent(
         }
 }
 
-/** Category section for profile spoof values. */
+/** Category section for profile spoof values - organized by correlation groups. */
 @Composable
 private fun ProfileCategorySection(
-        category: SpoofCategory,
+        category: UIDisplayCategory,
         profile: SpoofProfile?,
         isExpanded: Boolean,
         onToggleExpand: () -> Unit,
         onRegenerate: (SpoofType) -> Unit,
+        onRegenerateCategory: () -> Unit,
+        onRegenerateLocation: () -> Unit,
         onToggle: (SpoofType, Boolean) -> Unit,
+        onCarrierChange: (Carrier) -> Unit,
         onCopy: (String) -> Unit,
         modifier: Modifier = Modifier,
 ) {
@@ -382,29 +534,16 @@ private fun ProfileCategorySection(
                         label = "expandRotation",
                 )
 
-        val categoryIcon =
-                when (category) {
-                        SpoofCategory.DEVICE -> Icons.Outlined.Devices
-                        SpoofCategory.NETWORK -> Icons.Outlined.Wifi
-                        SpoofCategory.ADVERTISING -> Icons.Outlined.TrackChanges
-                        SpoofCategory.SYSTEM -> Icons.Outlined.Settings
-                        SpoofCategory.LOCATION -> Icons.Outlined.LocationOn
-                }
-
-        val categoryColor =
-                when (category) {
-                        SpoofCategory.DEVICE -> Color(0xFF00BCD4)
-                        SpoofCategory.NETWORK -> Color(0xFF4CAF50)
-                        SpoofCategory.ADVERTISING -> Color(0xFFFF9800)
-                        SpoofCategory.SYSTEM -> Color(0xFF9C27B0)
-                        SpoofCategory.LOCATION -> Color(0xFFE91E63)
-                }
-
-        val typesInCategory = SpoofType.byCategory(category)
-
         val categoryShape = animatedRoundedCornerShape(
                 targetRadius = if (isExpanded) 24.dp else 16.dp
         )
+        
+        // For correlated categories, check if ANY type is enabled
+        val isCategoryEnabled = if (category.isCorrelated) {
+                category.types.any { profile?.isTypeEnabled(it) ?: false }
+        } else {
+                false // Not used for independent categories
+        }
 
         ElevatedCard(
                 modifier = modifier.animateContentSize(animationSpec = spring()),
@@ -415,7 +554,7 @@ private fun ProfileCategorySection(
                 shape = categoryShape,
         ) {
                 Column {
-                        // Header
+                        // Header - simplified, only icon + title + expand arrow
                         Row(
                                 modifier =
                                         Modifier.fillMaxWidth()
@@ -427,15 +566,16 @@ private fun ProfileCategorySection(
                                 Row(
                                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                                         verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.weight(1f)
                                 ) {
                                         IconCircle(
-                                                icon = categoryIcon,
-                                                containerColor = categoryColor.copy(alpha = 0.15f),
-                                                iconColor = categoryColor,
+                                                icon = category.icon,
+                                                containerColor = category.color.copy(alpha = 0.15f),
+                                                iconColor = category.color,
                                                 iconSize = 22.dp,
                                         )
                                         Text(
-                                                text = category.displayName,
+                                                text = stringResource(id = category.titleRes),
                                                 style = MaterialTheme.typography.titleMedium,
                                                 fontWeight = FontWeight.SemiBold,
                                         )
@@ -465,22 +605,104 @@ private fun ProfileCategorySection(
                                                 ),
                                         verticalArrangement = Arrangement.spacedBy(8.dp),
                                 ) {
-                                        typesInCategory.forEach { type ->
-                                                val isProfileEnabled =
-                                                        profile?.isTypeEnabled(type) ?: false
-                                                val value = profile?.getValue(type) ?: ""
+                                        // For correlated categories: show switch + regenerate at top of expanded area
+                                        if (category.isCorrelated) {
+                                                Row(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                ) {
+                                                        ExpressiveSwitch(
+                                                                checked = isCategoryEnabled,
+                                                                onCheckedChange = { enabled ->
+                                                                        // Toggle ALL types in this category together
+                                                                        category.types.forEach { type ->
+                                                                                onToggle(type, enabled)
+                                                                        }
+                                                                }
+                                                        )
+                                                        
+                                                        if (isCategoryEnabled) {
+                                                                CompactExpressiveIconButton(
+                                                                        onClick = onRegenerateCategory,
+                                                                        icon = Icons.Filled.Refresh,
+                                                                        contentDescription = stringResource(id = R.string.action_regenerate_all),
+                                                                        tint = category.color,
+                                                                )
+                                                        }
+                                                }
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                        }
 
-                                                ProfileSpoofItem(
-                                                        type = type,
-                                                        value = value,
-                                                        isEnabled = isProfileEnabled,
-                                                        onToggle = { enabled ->
-                                                                onToggle(type, enabled)
-                                                        },
-                                                        onRegenerate = { onRegenerate(type) },
-                                                        onCopy = { onCopy(value) },
-                                                        modifier = Modifier.fillMaxWidth()
-                                                )
+                                        // Handle special categories
+                                        when (category) {
+                                                UIDisplayCategory.SIM_CARD -> {
+                                                        // Special handling for SIM Card category
+                                                        SIMCardCategoryContent(
+                                                                profile = profile,
+                                                                onToggle = onToggle,
+                                                                onRegenerate = onRegenerate,
+                                                                onCarrierChange = onCarrierChange,
+                                                                onCopy = onCopy,
+                                                        )
+                                                }
+                                                UIDisplayCategory.LOCATION -> {
+                                                        // Special handling for Location category
+                                                        LocationCategoryContent(
+                                                                profile = profile,
+                                                                onToggle = onToggle,
+                                                                onRegenerate = onRegenerate,
+                                                                onRegenerateLocation = onRegenerateLocation,
+                                                                onCopy = onCopy,
+                                                        )
+                                                }
+                                                UIDisplayCategory.DEVICE_HARDWARE -> {
+                                                        // Special handling for Device Hardware category
+                                                        DeviceHardwareCategoryContent(
+                                                                profile = profile,
+                                                                onToggle = onToggle,
+                                                                onRegenerate = onRegenerate,
+                                                                onRegenerateCategory = onRegenerateCategory,
+                                                                onCopy = onCopy,
+                                                        )
+                                                }
+                                                else -> {
+                                                        // Standard handling for other categories
+                                                        category.types.forEach { type ->
+                                                                val isProfileEnabled =
+                                                                        profile?.isTypeEnabled(type) ?: false
+                                                                val rawValue = profile?.getValue(type) ?: ""
+                                                                
+                                                                // For DEVICE_PROFILE, show the preset name instead of ID
+                                                                val displayValue = if (type == SpoofType.DEVICE_PROFILE) {
+                                                                        DeviceProfilePreset.findById(rawValue)?.name ?: rawValue
+                                                                } else {
+                                                                        rawValue
+                                                                }
+
+                                                                if (category.isCorrelated) {
+                                                                        // Correlated: display-only items (no individual controls)
+                                                                        CorrelatedSpoofItem(
+                                                                                type = type,
+                                                                                value = displayValue,
+                                                                                isEnabled = isCategoryEnabled,
+                                                                                onCopy = { onCopy(displayValue) },
+                                                                                modifier = Modifier.fillMaxWidth()
+                                                                        )
+                                                                } else {
+                                                                        // Independent: items with individual controls
+                                                                        IndependentSpoofItem(
+                                                                                type = type,
+                                                                                value = displayValue,
+                                                                                isEnabled = isProfileEnabled,
+                                                                                onToggle = { enabled -> onToggle(type, enabled) },
+                                                                                onRegenerate = { onRegenerate(type) },
+                                                                                onCopy = { onCopy(displayValue) },
+                                                                                modifier = Modifier.fillMaxWidth()
+                                                                        )
+                                                                }
+                                                        }
+                                                }
                                         }
                                 }
                         }
@@ -488,9 +710,78 @@ private fun ProfileCategorySection(
         }
 }
 
-/** Individual spoof value item in profile. */
+/**
+ * Display-only spoof item for correlated categories.
+ * 
+ * No individual switch or regenerate - those are at the category level.
+ * Long-press on value to copy.
+ */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ProfileSpoofItem(
+private fun CorrelatedSpoofItem(
+        type: SpoofType,
+        value: String,
+        isEnabled: Boolean,
+        onCopy: () -> Unit,
+        modifier: Modifier = Modifier,
+) {
+        Card(
+                modifier = modifier,
+                colors = CardDefaults.cardColors(
+                        containerColor = if (isEnabled) {
+                                MaterialTheme.colorScheme.surface
+                        } else {
+                                MaterialTheme.colorScheme.surfaceContainerLow
+                        }
+                ),
+                shape = MaterialTheme.shapes.medium,
+        ) {
+                Row(
+                        modifier = Modifier.fillMaxWidth().padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                        text = type.displayName,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        color = if (isEnabled) {
+                                                MaterialTheme.colorScheme.onSurface
+                                        } else {
+                                                MaterialTheme.colorScheme.onSurfaceVariant
+                                        },
+                                )
+                                if (isEnabled && value.isNotEmpty()) {
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        // Value text - long press to copy
+                                        Text(
+                                                text = value,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                fontFamily = FontFamily.Monospace,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                modifier = Modifier.combinedClickable(
+                                                        onClick = { },
+                                                        onLongClick = { onCopy() }
+                                                ),
+                                        )
+                                }
+                        }
+                }
+        }
+}
+
+/**
+ * Independent spoof item with individual controls.
+ * 
+ * Has its own switch and regenerate button since values don't need to sync.
+ * Long-press on value to copy.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun IndependentSpoofItem(
         type: SpoofType,
         value: String,
         isEnabled: Boolean,
@@ -509,29 +800,29 @@ private fun ProfileSpoofItem(
                         modifier = Modifier.fillMaxWidth().padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                        // Header row
+                        // Header row with switch
                         Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically,
                         ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                                text = type.displayName,
-                                                style = MaterialTheme.typography.titleSmall,
-                                                fontWeight = FontWeight.Medium,
-                                        )
-                                }
+                                Text(
+                                        text = type.displayName,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Medium,
+                                        modifier = Modifier.weight(1f),
+                                )
                                 ExpressiveSwitch(checked = isEnabled, onCheckedChange = { onToggle(it) })
                         }
 
-                        // Value and actions
+                        // Value and regenerate (only when enabled)
                         if (isEnabled) {
                                 Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically,
                                 ) {
+                                        // Value text - long press to copy
                                         Text(
                                                 text = value.ifEmpty { stringResource(id = R.string.profile_detail_not_set) },
                                                 style = MaterialTheme.typography.bodySmall,
@@ -539,19 +830,18 @@ private fun ProfileSpoofItem(
                                                 color = MaterialTheme.colorScheme.primary,
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis,
-                                                modifier = Modifier.weight(1f),
+                                                modifier = Modifier
+                                                        .weight(1f)
+                                                        .combinedClickable(
+                                                                onClick = { },
+                                                                onLongClick = { if (value.isNotEmpty()) onCopy() }
+                                                        ),
                                         )
 
-                                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                                CompactExpressiveIconButton(
-                                                        onClick = onCopy,
-                                                        icon = Icons.Filled.ContentCopy,
-                                                        contentDescription = stringResource(id = R.string.action_copy),
-                                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                                )
-                                                CompactExpressiveIconButton(
-                                                        onClick = onRegenerate,
-                                                        icon = Icons.Filled.Refresh,
+                                        // Regenerate button (standard size)
+                                        IconButton(onClick = onRegenerate) {
+                                                Icon(
+                                                        imageVector = Icons.Filled.Refresh,
                                                         contentDescription = stringResource(id = R.string.action_regenerate),
                                                         tint = MaterialTheme.colorScheme.primary,
                                                 )
@@ -560,6 +850,532 @@ private fun ProfileSpoofItem(
                         }
                 }
         }
+}
+
+/**
+ * Content layout for SIM Card category with carrier-driven flow.
+ * 
+ * UI Structure:
+ * 1. Carrier Selection Card - Country picker + Carrier dropdown
+ * 2. Locked Values Section - Read-only derived values (no switch/regenerate)
+ * 3. Regeneratable Values Section - Phone, IMSI, ICCID with regenerate buttons
+ * 
+ * Long-press on any value to copy.
+ */
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@Composable
+private fun SIMCardCategoryContent(
+        profile: SpoofProfile?,
+        onToggle: (SpoofType, Boolean) -> Unit,
+        onRegenerate: (SpoofType) -> Unit,
+        onCarrierChange: (Carrier) -> Unit,
+        onCopy: (String) -> Unit,
+) {
+        // State for country picker dialog
+        var showCountryPicker by remember { mutableStateOf(false) }
+        
+        // Get current carrier from profile
+        val currentCarrierMccMnc = profile?.selectedCarrierMccMnc
+        val currentCarrier = remember(currentCarrierMccMnc) {
+                currentCarrierMccMnc?.let { Carrier.getByMccMnc(it) }
+        }
+        
+        // Selected country (from current carrier or default)
+        var selectedCountryIso by remember(currentCarrier) { 
+                mutableStateOf(currentCarrier?.countryIso ?: "IN") 
+        }
+        
+        // Get carriers filtered by selected country
+        val carriersForCountry = remember(selectedCountryIso) {
+                Carrier.getByCountry(selectedCountryIso)
+        }
+        
+        // Values from profile
+        val phoneEnabled = profile?.isTypeEnabled(SpoofType.PHONE_NUMBER) ?: false
+        val phoneValue = profile?.getValue(SpoofType.PHONE_NUMBER) ?: ""
+        val imsiEnabled = profile?.isTypeEnabled(SpoofType.IMSI) ?: false
+        val imsiValue = profile?.getValue(SpoofType.IMSI) ?: ""
+        val iccidEnabled = profile?.isTypeEnabled(SpoofType.ICCID) ?: false
+        val iccidValue = profile?.getValue(SpoofType.ICCID) ?: ""
+        
+        // Locked/derived values
+        val simCountryValue = profile?.getValue(SpoofType.SIM_COUNTRY_ISO) ?: ""
+        val networkCountryValue = profile?.getValue(SpoofType.NETWORK_COUNTRY_ISO) ?: ""
+        val mccMncValue = profile?.getValue(SpoofType.CARRIER_MCC_MNC) ?: ""
+        val carrierNameValue = profile?.getValue(SpoofType.CARRIER_NAME) ?: ""
+        val simOperatorValue = profile?.getValue(SpoofType.SIM_OPERATOR_NAME) ?: ""
+        val networkOperatorValue = profile?.getValue(SpoofType.NETWORK_OPERATOR) ?: ""
+        
+        // Country picker dialog
+        if (showCountryPicker) {
+                CountryPickerDialog(
+                        selectedCountryIso = selectedCountryIso,
+                        onCountrySelected = { country ->
+                                selectedCountryIso = country.iso
+                                showCountryPicker = false
+                                // Auto-select first carrier from new country
+                                val newCarriers = Carrier.getByCountry(country.iso)
+                                if (newCarriers.isNotEmpty()) {
+                                        onCarrierChange(newCarriers.first())
+                                }
+                        },
+                        onDismiss = { showCountryPicker = false }
+                )
+        }
+        
+        // ═══════════════════════════════════════════════════════════
+        // 1. CARRIER SELECTION CARD
+        // ═══════════════════════════════════════════════════════════
+        Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                shape = MaterialTheme.shapes.medium,
+        ) {
+                Column(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                        // Country picker row
+                        Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                                Text(
+                                        text = "Country",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                )
+                                
+                                // Country button - opens dialog (centered flag+name, right arrow)
+                                val selectedCountry = Country.getByIso(selectedCountryIso)
+                                OutlinedCard(
+                                        onClick = { showCountryPicker = true },
+                                        modifier = Modifier.width(200.dp),
+                                        shape = RoundedCornerShape(12.dp),
+                                ) {
+                                        Row(
+                                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                                // Centered: Flag + Country name
+                                                Row(
+                                                        modifier = Modifier.weight(1f),
+                                                        horizontalArrangement = Arrangement.Center,
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                ) {
+                                                        Text(
+                                                                text = "${selectedCountry?.emoji ?: "🌍"} ${selectedCountry?.name ?: selectedCountryIso}",
+                                                                style = MaterialTheme.typography.bodyMedium,
+                                                        )
+                                                }
+                                                // Right arrow indicator
+                                                Icon(
+                                                        imageVector = Icons.Filled.ChevronRight,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(20.dp),
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                )
+                                        }
+                                }
+                        }
+                        
+                        // Carrier dropdown
+                        Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                                Text(
+                                        text = "Carrier",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                )
+                                
+                                var carrierDropdownExpanded by remember { mutableStateOf(false) }
+                                
+                                ExposedDropdownMenuBox(
+                                        expanded = carrierDropdownExpanded,
+                                        onExpandedChange = { carrierDropdownExpanded = it },
+                                        modifier = Modifier.width(200.dp),
+                                ) {
+                                        // Rounded container matching Country picker style
+                                        OutlinedCard(
+                                                onClick = { carrierDropdownExpanded = true },
+                                                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                                                shape = RoundedCornerShape(12.dp),
+                                        ) {
+                                                Row(
+                                                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                ) {
+                                                        Text(
+                                                                text = currentCarrier?.displayName ?: "Select carrier",
+                                                                style = MaterialTheme.typography.bodyMedium,
+                                                                modifier = Modifier.weight(1f),
+                                                        )
+                                                        // Keep dropdown indicator as is
+                                                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = carrierDropdownExpanded)
+                                                }
+                                        }
+                                        
+                                        ExposedDropdownMenu(
+                                                expanded = carrierDropdownExpanded,
+                                                onDismissRequest = { carrierDropdownExpanded = false },
+                                        ) {
+                                                carriersForCountry.forEach { carrier ->
+                                                        DropdownMenuItem(
+                                                                text = { Text(carrier.displayName) },
+                                                                onClick = {
+                                                                        onCarrierChange(carrier)
+                                                                        carrierDropdownExpanded = false
+                                                                },
+                                                                leadingIcon = if (carrier.mccMnc == currentCarrierMccMnc) {
+                                                                        { Icon(Icons.Filled.Check, null) }
+                                                                } else null,
+                                                        )
+                                                }
+                                        }
+                                }
+                        }
+                }
+        }
+        
+        // ═══════════════════════════════════════════════════════════
+        // 2. LOCKED VALUES (derived from carrier, no switch/regenerate)
+        // ═══════════════════════════════════════════════════════════
+        Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                shape = MaterialTheme.shapes.medium,
+        ) {
+                Column(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                        Text(
+                                text = "Carrier Info",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        
+                        // SIM Country
+                        ReadOnlyValueRow(
+                                label = "SIM Country",
+                                value = simCountryValue,
+                                onCopy = { onCopy(simCountryValue) },
+                        )
+                        
+                        // Network Country
+                        ReadOnlyValueRow(
+                                label = "Network Country",
+                                value = networkCountryValue,
+                                onCopy = { onCopy(networkCountryValue) },
+                        )
+                        
+                        // MCC/MNC
+                        ReadOnlyValueRow(
+                                label = "MCC/MNC",
+                                value = mccMncValue,
+                                onCopy = { onCopy(mccMncValue) },
+                        )
+                        
+                        // Carrier Name
+                        ReadOnlyValueRow(
+                                label = "Carrier Name",
+                                value = carrierNameValue,
+                                onCopy = { onCopy(carrierNameValue) },
+                        )
+                        
+                        // SIM Operator
+                        ReadOnlyValueRow(
+                                label = "SIM Operator",
+                                value = simOperatorValue,
+                                onCopy = { onCopy(simOperatorValue) },
+                        )
+                        
+                        // Network Operator
+                        ReadOnlyValueRow(
+                                label = "Network Operator",
+                                value = networkOperatorValue,
+                                onCopy = { onCopy(networkOperatorValue) },
+                        )
+                }
+        }
+        
+        // ═══════════════════════════════════════════════════════════
+        // 3. REGENERATABLE VALUES (Phone, IMSI, ICCID)
+        // ═══════════════════════════════════════════════════════════
+        
+        // Phone Number
+        IndependentSpoofItem(
+                type = SpoofType.PHONE_NUMBER,
+                value = phoneValue,
+                isEnabled = phoneEnabled,
+                onToggle = { enabled -> onToggle(SpoofType.PHONE_NUMBER, enabled) },
+                onRegenerate = { onRegenerate(SpoofType.PHONE_NUMBER) },
+                onCopy = { onCopy(phoneValue) },
+                modifier = Modifier.fillMaxWidth()
+        )
+        
+        // IMSI
+        IndependentSpoofItem(
+                type = SpoofType.IMSI,
+                value = imsiValue,
+                isEnabled = imsiEnabled,
+                onToggle = { enabled -> onToggle(SpoofType.IMSI, enabled) },
+                onRegenerate = { onRegenerate(SpoofType.IMSI) },
+                onCopy = { onCopy(imsiValue) },
+                modifier = Modifier.fillMaxWidth()
+        )
+        
+        // ICCID
+        IndependentSpoofItem(
+                type = SpoofType.ICCID,
+                value = iccidValue,
+                isEnabled = iccidEnabled,
+                onToggle = { enabled -> onToggle(SpoofType.ICCID, enabled) },
+                onRegenerate = { onRegenerate(SpoofType.ICCID) },
+                onCopy = { onCopy(iccidValue) },
+                modifier = Modifier.fillMaxWidth()
+        )
+}
+
+/**
+ * Read-only value row for locked/derived values.
+ * No switch, no regenerate - just label, value, and long-press to copy.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ReadOnlyValueRow(
+        label: String,
+        value: String,
+        onCopy: () -> Unit,
+) {
+        Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+        ) {
+                Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                        text = value.ifEmpty { "—" },
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.combinedClickable(
+                                onClick = { },
+                                onLongClick = { if (value.isNotEmpty()) onCopy() }
+                        ),
+                )
+        }
+}
+
+
+
+/**
+ * Special content layout for Location category.
+ * 
+ * - Timezone + Locale: Single card, single switch. Regenerate button updates both.
+ * - Latitude/Longitude: Each has its own Switch + Regenerate (fully independent)
+ * 
+ * Long-press on values to copy.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun LocationCategoryContent(
+        profile: SpoofProfile?,
+        onToggle: (SpoofType, Boolean) -> Unit,
+        onRegenerate: (SpoofType) -> Unit,
+        onRegenerateLocation: () -> Unit,
+        onCopy: (String) -> Unit,
+) {
+        val timezoneEnabled = profile?.isTypeEnabled(SpoofType.TIMEZONE) ?: false
+        val timezoneValue = profile?.getValue(SpoofType.TIMEZONE) ?: ""
+        val localeValue = profile?.getValue(SpoofType.LOCALE) ?: ""
+        val latEnabled = profile?.isTypeEnabled(SpoofType.LOCATION_LATITUDE) ?: false
+        val latValue = profile?.getValue(SpoofType.LOCATION_LATITUDE) ?: ""
+        val longEnabled = profile?.isTypeEnabled(SpoofType.LOCATION_LONGITUDE) ?: false
+        val longValue = profile?.getValue(SpoofType.LOCATION_LONGITUDE) ?: ""
+
+        // 1. Timezone + Locale combined card - one switch controls both
+        Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                shape = MaterialTheme.shapes.medium,
+        ) {
+                Column(
+                        modifier = Modifier.fillMaxWidth().padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                        // Header with switch - controls both Timezone AND Locale
+                        Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                                Column {
+                                        Text(
+                                                text = SpoofType.TIMEZONE.displayName,
+                                                style = MaterialTheme.typography.titleSmall,
+                                                fontWeight = FontWeight.Medium,
+                                        )
+                                }
+                                Spacer(modifier = Modifier.weight(1f))
+                                ExpressiveSwitch(
+                                        checked = timezoneEnabled,
+                                        onCheckedChange = { enabled ->
+                                                // Toggle timezone AND locale together
+                                                onToggle(SpoofType.TIMEZONE, enabled)
+                                                onToggle(SpoofType.LOCALE, enabled)
+                                        }
+                                )
+                        }
+
+                        if (timezoneEnabled) {
+                                // Timezone value row - long press to copy
+                                Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                        Text(
+                                                text = timezoneValue.ifEmpty { stringResource(id = R.string.profile_detail_not_set) },
+                                                style = MaterialTheme.typography.bodySmall,
+                                                fontFamily = FontFamily.Monospace,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                modifier = Modifier
+                                                        .weight(1f)
+                                                        .combinedClickable(
+                                                                onClick = { },
+                                                                onLongClick = { if (timezoneValue.isNotEmpty()) onCopy(timezoneValue) }
+                                                        ),
+                                        )
+
+                                        // Regenerate Timezone + Locale together from same country
+                                        IconButton(onClick = onRegenerateLocation) {
+                                                Icon(
+                                                        imageVector = Icons.Filled.Refresh,
+                                                        contentDescription = stringResource(id = R.string.action_regenerate),
+                                                        tint = MaterialTheme.colorScheme.primary,
+                                                )
+                                        }
+                                }
+                                
+                                // Locale section with its own header
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                        text = SpoofType.LOCALE.displayName,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                        text = localeValue.ifEmpty { stringResource(id = R.string.profile_detail_not_set) },
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontFamily = FontFamily.Monospace,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.combinedClickable(
+                                                onClick = { },
+                                                onLongClick = { if (localeValue.isNotEmpty()) onCopy(localeValue) }
+                                        ),
+                                )
+                        }
+                }
+        }
+
+        // 2. Latitude - independent with own switch and regenerate
+        IndependentSpoofItem(
+                type = SpoofType.LOCATION_LATITUDE,
+                value = latValue,
+                isEnabled = latEnabled,
+                onToggle = { enabled -> onToggle(SpoofType.LOCATION_LATITUDE, enabled) },
+                onRegenerate = { onRegenerate(SpoofType.LOCATION_LATITUDE) },
+                onCopy = { onCopy(latValue) },
+                modifier = Modifier.fillMaxWidth()
+        )
+
+        // 3. Longitude - independent with own switch and regenerate
+        IndependentSpoofItem(
+                type = SpoofType.LOCATION_LONGITUDE,
+                value = longValue,
+                isEnabled = longEnabled,
+                onToggle = { enabled -> onToggle(SpoofType.LOCATION_LONGITUDE, enabled) },
+                onRegenerate = { onRegenerate(SpoofType.LOCATION_LONGITUDE) },
+                onCopy = { onCopy(longValue) },
+                modifier = Modifier.fillMaxWidth()
+        )
+}
+
+/**
+ * Content layout for Device Hardware category.
+ * 
+ * All 3 items are fully independent with their own Switch + Regenerate:
+ * - Device Profile (shows preset name)
+ * - IMEI
+ * - Serial
+ * 
+ * Long-press on values to copy.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun DeviceHardwareCategoryContent(
+        profile: SpoofProfile?,
+        onToggle: (SpoofType, Boolean) -> Unit,
+        onRegenerate: (SpoofType) -> Unit,
+        onRegenerateCategory: () -> Unit, // Not used - kept for interface compatibility
+        onCopy: (String) -> Unit,
+) {
+        val deviceProfileEnabled = profile?.isTypeEnabled(SpoofType.DEVICE_PROFILE) ?: false
+        val deviceProfileRawValue = profile?.getValue(SpoofType.DEVICE_PROFILE) ?: ""
+        val deviceProfileDisplayValue = DeviceProfilePreset.findById(deviceProfileRawValue)?.name ?: deviceProfileRawValue
+        val imeiEnabled = profile?.isTypeEnabled(SpoofType.IMEI) ?: false
+        val imeiValue = profile?.getValue(SpoofType.IMEI) ?: ""
+        val serialEnabled = profile?.isTypeEnabled(SpoofType.SERIAL) ?: false
+        val serialValue = profile?.getValue(SpoofType.SERIAL) ?: ""
+
+        // 1. Device Profile - independent (shows preset name instead of ID)
+        IndependentSpoofItem(
+                type = SpoofType.DEVICE_PROFILE,
+                value = deviceProfileDisplayValue,
+                isEnabled = deviceProfileEnabled,
+                onToggle = { enabled -> onToggle(SpoofType.DEVICE_PROFILE, enabled) },
+                onRegenerate = { onRegenerate(SpoofType.DEVICE_PROFILE) },
+                onCopy = { onCopy(deviceProfileDisplayValue) },
+                modifier = Modifier.fillMaxWidth()
+        )
+
+        // 2. IMEI - independent
+        IndependentSpoofItem(
+                type = SpoofType.IMEI,
+                value = imeiValue,
+                isEnabled = imeiEnabled,
+                onToggle = { enabled -> onToggle(SpoofType.IMEI, enabled) },
+                onRegenerate = { onRegenerate(SpoofType.IMEI) },
+                onCopy = { onCopy(imeiValue) },
+                modifier = Modifier.fillMaxWidth()
+        )
+
+        // 3. Serial - independent
+        IndependentSpoofItem(
+                type = SpoofType.SERIAL,
+                value = serialValue,
+                isEnabled = serialEnabled,
+                onToggle = { enabled -> onToggle(SpoofType.SERIAL, enabled) },
+                onRegenerate = { onRegenerate(SpoofType.SERIAL) },
+                onCopy = { onCopy(serialValue) },
+                modifier = Modifier.fillMaxWidth()
+        )
 }
 
 /** Apps tab content. */

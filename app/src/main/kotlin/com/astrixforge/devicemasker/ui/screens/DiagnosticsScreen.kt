@@ -438,6 +438,12 @@ private fun runDiagnostics(
 ): List<DiagnosticResult> {
     // Get current spoofed profile
     val profile = repository.getActiveProfileBlocking()
+    
+    // Get device profile preset info if set
+    val presetId = profile?.getValue(SpoofType.DEVICE_PROFILE)
+    val presetInfo = presetId?.let { 
+        com.astrixforge.devicemasker.common.DeviceProfilePreset.findById(it)
+    }
 
     return listOf(
         // Device Identifiers
@@ -454,26 +460,13 @@ private fun runDiagnostics(
             isActive = profile?.isTypeEnabled(SpoofType.ANDROID_ID) == true,
             isSpoofed = profile?.getValue(SpoofType.ANDROID_ID) != null,
         ),
+        // Device Profile (unified Build.* spoofing)
         DiagnosticResult(
-            type = SpoofType.BUILD_MODEL,
-            realValue = Build.MODEL,
-            spoofedValue = profile?.getValue(SpoofType.BUILD_MODEL),
-            isActive = profile?.isTypeEnabled(SpoofType.BUILD_MODEL) == true,
-            isSpoofed = profile?.getValue(SpoofType.BUILD_MODEL) != null,
-        ),
-        DiagnosticResult(
-            type = SpoofType.BUILD_MANUFACTURER,
-            realValue = Build.MANUFACTURER,
-            spoofedValue = profile?.getValue(SpoofType.BUILD_MANUFACTURER),
-            isActive = profile?.isTypeEnabled(SpoofType.BUILD_MANUFACTURER) == true,
-            isSpoofed = profile?.getValue(SpoofType.BUILD_MANUFACTURER) != null,
-        ),
-        DiagnosticResult(
-            type = SpoofType.BUILD_FINGERPRINT,
-            realValue = Build.FINGERPRINT.take(40) + "...",
-            spoofedValue = profile?.getValue(SpoofType.BUILD_FINGERPRINT)?.take(40)?.plus("..."),
-            isActive = profile?.isTypeEnabled(SpoofType.BUILD_FINGERPRINT) == true,
-            isSpoofed = profile?.getValue(SpoofType.BUILD_FINGERPRINT) != null,
+            type = SpoofType.DEVICE_PROFILE,
+            realValue = "${Build.MANUFACTURER} ${Build.MODEL}",
+            spoofedValue = presetInfo?.let { "${it.manufacturer} ${it.model}" },
+            isActive = profile?.isTypeEnabled(SpoofType.DEVICE_PROFILE) == true,
+            isSpoofed = presetInfo != null,
         ),
     )
 }
@@ -538,9 +531,9 @@ private fun DiagnosticsContentPreview() {
                         isSpoofed = true,
                     ),
                     DiagnosticResult(
-                        type = SpoofType.BUILD_MODEL,
-                        realValue = "Pixel 9",
-                        spoofedValue = "Galaxy S24",
+                        type = SpoofType.DEVICE_PROFILE,
+                        realValue = "Google Pixel 9",
+                        spoofedValue = "Samsung Galaxy S24",
                         isActive = true,
                         isSpoofed = true,
                     ),

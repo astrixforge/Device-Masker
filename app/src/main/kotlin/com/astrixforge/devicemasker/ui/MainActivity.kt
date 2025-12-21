@@ -29,7 +29,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.astrixforge.devicemasker.DeviceMaskerApp
-import com.astrixforge.devicemasker.data.SpoofDataStore
+import com.astrixforge.devicemasker.data.SettingsDataStore
 import com.astrixforge.devicemasker.data.repository.SpoofRepository
 import com.astrixforge.devicemasker.ui.navigation.BottomNavBar
 import com.astrixforge.devicemasker.ui.navigation.NavRoutes
@@ -63,14 +63,14 @@ class MainActivity : ComponentActivity() {
         Timber.d("MainActivity created, module active: ${DeviceMaskerApp.isXposedModuleActive}")
 
         setContent {
-            val dataStore = remember { SpoofDataStore(applicationContext) }
+            val settingsStore = remember { SettingsDataStore(applicationContext) }
             val repository = remember { SpoofRepository.getInstance(applicationContext) }
 
-            // Collect theme settings from DataStore
-            val themeMode by dataStore.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
-            val amoledMode by dataStore.amoledMode.collectAsState(initial = true)
-            val dynamicColors by dataStore.dynamicColors.collectAsState(initial = true)
-            val debugLogging by dataStore.debugLogging.collectAsState(initial = false)
+            // Collect theme settings from SettingsDataStore
+            val themeMode by settingsStore.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
+            val amoledMode by settingsStore.amoledMode.collectAsState(initial = true)
+            val dynamicColors by settingsStore.dynamicColors.collectAsState(initial = true)
+            val debugLogging by settingsStore.debugLogging.collectAsState(initial = false)
 
             // Determine actual dark state for edge-to-edge styling
             // isSystemInDarkTheme() is evaluated here in composition context
@@ -108,7 +108,6 @@ class MainActivity : ComponentActivity() {
                 onDispose {}
             }
 
-            // Pass ThemeMode directly - theme handles system detection internally
             DeviceMaskerTheme(
                     themeMode = themeMode,
                     amoledBlack = amoledMode,
@@ -116,7 +115,7 @@ class MainActivity : ComponentActivity() {
             ) {
                 DeviceMaskerMainApp(
                         repository = repository,
-                        dataStore = dataStore,
+                        settingsStore = settingsStore,
                         themeMode = themeMode,
                         amoledMode = amoledMode,
                         dynamicColors = dynamicColors,
@@ -131,7 +130,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun DeviceMaskerMainApp(
         repository: SpoofRepository,
-        dataStore: SpoofDataStore,
+        settingsStore: SettingsDataStore,
         themeMode: ThemeMode,
         amoledMode: Boolean,
         dynamicColors: Boolean,
@@ -219,19 +218,19 @@ fun DeviceMaskerMainApp(
                         debugLogging = debugLogging,
                         onThemeModeChange = { mode ->
                             Timber.d("Theme mode changed: $mode")
-                            scope.launch { dataStore.setThemeMode(mode) }
+                            scope.launch { settingsStore.setThemeMode(mode) }
                         },
                         onAmoledDarkModeChange = { enabled ->
                             Timber.d("AMOLED mode changed: $enabled")
-                            scope.launch { dataStore.setAmoledMode(enabled) }
+                            scope.launch { settingsStore.setAmoledMode(enabled) }
                         },
                         onDynamicColorChange = { enabled ->
                             Timber.d("Dynamic colors changed: $enabled")
-                            scope.launch { dataStore.setDynamicColors(enabled) }
+                            scope.launch { settingsStore.setDynamicColors(enabled) }
                         },
                         onDebugLogChange = { enabled ->
                             Timber.d("Debug logging changed: $enabled")
-                            scope.launch { dataStore.setDebugLogging(enabled) }
+                            scope.launch { settingsStore.setDebugLogging(enabled) }
                         },
                         onNavigateToDiagnostics = { navController.navigate(NavRoutes.DIAGNOSTICS) },
                 )

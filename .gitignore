@@ -40,7 +40,6 @@ out/
 .idea/deploymentTargetSelector.xml
 *.iws
 *.ipr
-*.iml
 
 # ═══════════════════════════════════════════════════════════
 # SENSITIVE FILES - NEVER COMMIT THESE!
@@ -111,18 +110,8 @@ Thumbs.db
 # ═══════════════════════════════════════════════════════════
 # Keep memory-bank/ and openspec/ - these are safe
 # Keep .agent/ - workflow definitions
-.agent
-.gemini
-.cursorrule
-.cursor 
-.claude
-GEMINI.md 
-AGENTS.md
-CLAUD.md
-openspec/ 
-memory-bank/
-docs/
 
+docs/report
 # ═══════════════════════════════════════════════════════════
 # VERSION CONTROL
 # ═══════════════════════════════════════════════════════════
@@ -139,4 +128,4 @@ docs/
 *.orig
 *.rej
 *.tmp
-
+LOGS/
