@@ -20,6 +20,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -72,21 +73,19 @@ fun AppListItem(
         }
     }
 
-    Card(
+    ExpressiveCard(
+        onClick = { onToggle(!isAssigned) },
         modifier = modifier.alpha(if (isDisabled) 0.6f else 1f),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isAssigned) {
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-            } else {
-                MaterialTheme.colorScheme.surface
-            }
-        ),
+        isSelected = isAssigned,
+        enabled = !isDisabled,
         shape = MaterialTheme.shapes.small,
+        containerColor = MaterialTheme.colorScheme.surface,
+        selectionColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(enabled = !isDisabled) { onToggle(!isAssigned) }
                 .padding(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,

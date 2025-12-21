@@ -12,8 +12,6 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Shield
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveSwitch
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
 import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 
 /**
@@ -51,11 +50,9 @@ fun SettingsSection(
             modifier = Modifier.padding(bottom = 8.dp),
         )
 
-        ElevatedCard(
+        ExpressiveCard(
+            onClick = { /* Section touch feedback */ },
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
             shape = MaterialTheme.shapes.large,
         ) {
             Column(

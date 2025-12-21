@@ -51,6 +51,7 @@ import com.astrixforge.devicemasker.data.models.SpoofCategory
 import com.astrixforge.devicemasker.data.models.SpoofType
 import com.astrixforge.devicemasker.data.repository.SpoofRepository
 import com.astrixforge.devicemasker.ui.components.expressive.AnimatedSection
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressivePullToRefresh
 import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 import com.astrixforge.devicemasker.ui.theme.StatusActive
@@ -207,13 +208,12 @@ fun DiagnosticsContent(
 /** Card showing module activation status. */
 @Composable
 private fun ModuleStatusCard(isXposedActive: Boolean) {
-    ElevatedCard(
+    ExpressiveCard(
+        onClick = { /* Status card click */ },
         modifier = Modifier.fillMaxWidth(),
-        colors =
-            CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
         shape = MaterialTheme.shapes.large,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(16.dp),

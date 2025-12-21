@@ -68,6 +68,8 @@ import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveLoadingIn
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveSwitch
 import com.astrixforge.devicemasker.ui.components.expressive.QuickAction
 import com.astrixforge.devicemasker.ui.components.expressive.QuickActionGroup
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
+import com.astrixforge.devicemasker.ui.components.expressive.CompactExpressiveIconButton
 import com.astrixforge.devicemasker.ui.components.expressive.animatedRoundedCornerShape
 import com.astrixforge.devicemasker.ui.theme.AppMotion
 import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
@@ -393,18 +395,16 @@ private fun ProfileSelectorCard(
             label = "dropdownRotation",
         )
 
-    ElevatedCard(
+    ExpressiveCard(
+        onClick = { dropdownExpanded = true },
         modifier = modifier,
-        colors =
-            CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
         shape = MaterialTheme.shapes.large,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
     ) {
         Column {
             Row(
-                modifier =
-                    Modifier.fillMaxWidth().clickable { dropdownExpanded = true }.padding(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 IconCircle(
@@ -450,11 +450,10 @@ private fun ProfileSelectorCard(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.rotate(rotationAngle),
                     )
-                    Icon(
-                        imageVector = Icons.Outlined.Visibility,
+                    CompactExpressiveIconButton(
+                        onClick = onClick,
+                        icon = Icons.Outlined.Visibility,
                         contentDescription = "View Profile",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.clickable { onClick() },
                     )
                 }
             }

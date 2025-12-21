@@ -79,13 +79,11 @@ fun ProfileCard(
         label = "profileCardMorph"
     )
 
-    ElevatedCard(
-            modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
-            colors =
-                    CardDefaults.elevatedCardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ),
-            shape = cardShape,
+    ExpressiveCard(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = cardShape,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
         Column(modifier = Modifier.padding(16.dp).alpha(contentAlpha)) {
             // Profile Info Row with Switch

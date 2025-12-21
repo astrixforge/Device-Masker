@@ -13,9 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -72,12 +70,12 @@ fun AnimatedSection(
         label = "expandIconRotation"
     )
 
-    ElevatedCard(
+    ExpressiveCard(
+        onClick = { onExpandChange(!isExpanded) },
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
         shape = MaterialTheme.shapes.large,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
     ) {
         Column {
             // Header row
@@ -119,15 +117,13 @@ fun AnimatedSection(
                     }
                 }
 
-                // Expand/collapse button with animated icon
-                IconButton(onClick = { onExpandChange(!isExpanded) }) {
-                    Icon(
-                        imageVector = Icons.Default.ExpandMore,
-                        contentDescription = if (isExpanded) "Collapse" else "Expand",
-                        modifier = Modifier.rotate(iconRotation),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                // Expand/collapse indicator with animated icon
+                Icon(
+                    imageVector = Icons.Default.ExpandMore,
+                    contentDescription = if (isExpanded) "Collapse" else "Expand",
+                    modifier = Modifier.padding(12.dp).rotate(iconRotation),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
             // Animated content with spring physics

@@ -14,14 +14,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
-import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveSwitch
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,6 +29,8 @@ import com.astrixforge.devicemasker.data.models.DeviceIdentifier
 import com.astrixforge.devicemasker.data.models.SpoofType
 import com.astrixforge.devicemasker.ui.components.expressive.CompactExpressiveIconButton
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveIconButton
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveSwitch
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
 import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 
 /**
@@ -58,12 +59,9 @@ fun SpoofValueCard(
     showActions: Boolean = true,
     maskValue: Boolean = false,
 ) {
-    ElevatedCard(
+    ExpressiveCard(
+        onClick = { /* Primary card action if any */ },
         modifier = modifier.fillMaxWidth(),
-        colors =
-            CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
         shape = MaterialTheme.shapes.medium,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -163,37 +161,44 @@ fun CompactSpoofValueCard(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    ExpressiveCard(
+        onClick = { /* Compact item click */ },
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        containerColor = Color.Transparent, // Let the parent container's color show through or use a subtle surface
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = value ?: "Not set",
-                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                color =
-                    if (value != null) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = value ?: "Not set",
+                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                    color =
+                        if (value != null) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+
+            ExpressiveIconButton(
+                onClick = onRegenerate,
+                icon = Icons.Default.Refresh,
+                contentDescription = "Regenerate",
+                enabled = enabled,
+                tint = MaterialTheme.colorScheme.primary,
             )
         }
-
-        ExpressiveIconButton(
-            onClick = onRegenerate,
-            icon = Icons.Default.Refresh,
-            contentDescription = "Regenerate",
-            enabled = enabled,
-            tint = MaterialTheme.colorScheme.primary,
-        )
     }
 }
 

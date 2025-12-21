@@ -204,7 +204,7 @@ object ConfigManager {
                 assignedApps = emptySet() // Don't copy app assignments
             )
         } else {
-            SpoofProfile.createDefaultProfile().copy(name = name)
+            SpoofProfile.createNew(name = name, isDefault = false)
         }
 
         updateConfig { it.addOrUpdateProfile(newProfile) }

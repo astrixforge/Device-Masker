@@ -9,10 +9,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.Fingerprint
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,13 +38,13 @@ fun StatCard(
     value: String,
     label: String,
     modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
 ) {
-    ElevatedCard(
+    ExpressiveCard(
+        onClick = onClick,
         modifier = modifier,
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
         shape = MaterialTheme.shapes.large,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
         Column(
             modifier = Modifier
