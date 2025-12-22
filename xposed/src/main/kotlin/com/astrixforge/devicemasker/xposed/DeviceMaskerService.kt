@@ -11,7 +11,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 /**
  * Device Masker Service - AIDL implementation running in system_server.
  *
- * This service is the core of the HMA-OSS architecture:
+ * This service is the core of the Multi-Module AIDL architecture:
  * - Holds configuration in memory for instant access by hooks
  * - Persists configuration to /data/system/devicemasker/config.json
  * - Provides AIDL interface for UI app communication
@@ -215,20 +215,20 @@ class DeviceMaskerService private constructor() : IDeviceMaskerService.Stub() {
     override fun getHookCount(): Int = hookCount
 
     override fun getSpoofValue(packageName: String, spoofType: String): String? {
-        // Get the profile for this app
-        val profile = config.getProfileForApp(packageName) ?: return null
+        // Get the group for this app
+        val group = config.getGroupForApp(packageName) ?: return null
 
-        // Check if profile is enabled
-        if (!profile.isEnabled) return null
+        // Check if group is enabled
+        if (!group.isEnabled) return null
 
         // Find the SpoofType
         val type = SpoofType.fromName(spoofType) ?: return null
 
         // Check if this type is enabled
-        if (!profile.isTypeEnabled(type)) return null
+        if (!group.isTypeEnabled(type)) return null
 
         // Return the value
-        return profile.getValue(type)
+        return group.getValue(type)
     }
 
     // ═══════════════════════════════════════════════════════════

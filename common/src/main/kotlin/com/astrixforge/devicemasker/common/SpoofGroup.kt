@@ -6,23 +6,23 @@ import kotlinx.serialization.Serializable
 /**
  * A named collection of spoofed device identifiers.
  *
- * Profiles allow users to save and switch between different device identities.
- * Each profile contains values for all supported spoof types and can be assigned
+ * Groups allow users to save and switch between different device identities.
+ * Each group contains values for all supported spoof types and can be assigned
  * to specific apps or set as the default.
  *
- * @property id Unique identifier for this profile
- * @property name User-defined profile name
+ * @property id Unique identifier for this group
+ * @property name User-defined group name
  * @property description Optional description
- * @property isEnabled Whether spoofing is active for this profile (master switch)
- * @property isDefault Whether this is the default profile for new apps
- * @property createdAt Timestamp when profile was created (epoch millis)
+ * @property isEnabled Whether spoofing is active for this group (master switch)
+ * @property isDefault Whether this is the default group for new apps
+ * @property createdAt Timestamp when group was created (epoch millis)
  * @property updatedAt Timestamp of last modification (epoch millis)
  * @property identifiers Map of SpoofType to DeviceIdentifier values
  * @property assignedApps Set of assigned app package names
  * @property selectedCarrierMccMnc MCC/MNC of selected carrier for SIM spoofing (e.g., "40410")
  */
 @Serializable
-data class SpoofProfile(
+data class SpoofGroup(
     val id: String = UUID.randomUUID().toString(),
     val name: String,
     val description: String = "",
@@ -35,7 +35,7 @@ data class SpoofProfile(
     val selectedCarrierMccMnc: String? = null,  // Selected carrier for SIM spoofing
 ) {
     /**
-     * Gets a specific identifier value from this profile.
+     * Gets a specific identifier value from this group.
      *
      * @param type The spoof type to look up
      * @return The DeviceIdentifier or null if not set
@@ -55,7 +55,7 @@ data class SpoofProfile(
     }
 
     /**
-     * Checks if a specific spoof type is enabled in this profile.
+     * Checks if a specific spoof type is enabled in this group.
      *
      * @param type The spoof type to check
      * @return True if the type is enabled
@@ -75,28 +75,28 @@ data class SpoofProfile(
     }
 
     /** Creates a copy with an updated identifier. */
-    fun withIdentifier(identifier: DeviceIdentifier): SpoofProfile {
+    fun withIdentifier(identifier: DeviceIdentifier): SpoofGroup {
         val newIdentifiers = identifiers.toMutableMap()
         newIdentifiers[identifier.type] = identifier
         return copy(identifiers = newIdentifiers, updatedAt = System.currentTimeMillis())
     }
 
     /** Alias for withIdentifier - sets an identifier. */
-    fun setIdentifier(identifier: DeviceIdentifier): SpoofProfile = withIdentifier(identifier)
+    fun setIdentifier(identifier: DeviceIdentifier): SpoofGroup = withIdentifier(identifier)
 
     /** Creates a copy with an updated value for a specific type. */
-    fun withValue(type: SpoofType, value: String?): SpoofProfile {
+    fun withValue(type: SpoofType, value: String?): SpoofGroup {
         val existing = identifiers[type] ?: DeviceIdentifier.createDefault(type)
         return withIdentifier(existing.withValue(value))
     }
 
     /** Creates a copy with updated enabled state. */
-    fun withEnabled(enabled: Boolean): SpoofProfile {
+    fun withEnabled(enabled: Boolean): SpoofGroup {
         return copy(isEnabled = enabled, updatedAt = System.currentTimeMillis())
     }
 
     /** Regenerates all identifier values. */
-    fun regenerateAll(): SpoofProfile {
+    fun regenerateAll(): SpoofGroup {
         val regeneratedIdentifiers = identifiers.mapValues { (_, identifier) ->
             identifier.withValue(null) // Trigger regeneration
         }
@@ -114,10 +114,10 @@ data class SpoofProfile(
     // ═══════════════════════════════════════════════════════════
 
     /**
-     * Checks if an app is assigned to this profile.
+     * Checks if an app is assigned to this group.
      *
      * @param packageName The app's package name to check
-     * @return True if the app is assigned to this profile
+     * @return True if the app is assigned to this group
      */
     fun isAppAssigned(packageName: String): Boolean {
         return packageName in assignedApps
@@ -127,9 +127,9 @@ data class SpoofProfile(
      * Creates a copy with an app added to assignedApps.
      *
      * @param packageName The app's package name to add
-     * @return Updated SpoofProfile with the app assigned
+     * @return Updated SpoofGroup with the app assigned
      */
-    fun addApp(packageName: String): SpoofProfile {
+    fun addApp(packageName: String): SpoofGroup {
         val newAssignedApps = assignedApps + packageName
         return copy(assignedApps = newAssignedApps, updatedAt = System.currentTimeMillis())
     }
@@ -138,9 +138,9 @@ data class SpoofProfile(
      * Creates a copy with an app removed from assignedApps.
      *
      * @param packageName The app's package name to remove
-     * @return Updated SpoofProfile with the app removed
+     * @return Updated SpoofGroup with the app removed
      */
-    fun removeApp(packageName: String): SpoofProfile {
+    fun removeApp(packageName: String): SpoofGroup {
         val newAssignedApps = assignedApps - packageName
         return copy(assignedApps = newAssignedApps, updatedAt = System.currentTimeMillis())
     }
@@ -157,25 +157,25 @@ data class SpoofProfile(
 
     companion object {
         /**
-         * Creates a new profile with default values.
+         * Creates a new group with default values.
          *
-         * @param name The profile name
-         * @param isDefault Whether this should be the default profile
-         * @return A new SpoofProfile with all identifier types initialized
+         * @param name The group name
+         * @param isDefault Whether this should be the default group
+         * @return A new SpoofGroup with all identifier types initialized
          */
-        fun createNew(name: String, isDefault: Boolean = false): SpoofProfile {
+        fun createNew(name: String, isDefault: Boolean = false): SpoofGroup {
             val defaultIdentifiers =
                 SpoofType.entries.associateWith { type -> DeviceIdentifier.createDefault(type) }
 
-            return SpoofProfile(
+            return SpoofGroup(
                 name = name,
                 isDefault = isDefault,
                 identifiers = defaultIdentifiers,
             )
         }
 
-        /** Creates a "Default" profile that is automatically applied. */
-        fun createDefaultProfile(): SpoofProfile {
+        /** Creates a "Default" group that is automatically applied. */
+        fun createDefaultGroup(): SpoofGroup {
             return createNew(name = "Default", isDefault = true)
         }
     }

@@ -10,7 +10,7 @@ import java.security.SecureRandom
  * This ensures consistency and prevents detection from location mismatches.
  */
 @Serializable
-data class LocationProfile(
+data class LocationConfig(
     val country: String,      // ISO 3166-1 alpha-2 code (e.g., "US", "JP")
     val timezone: String,     // TZ database name (e.g., "America/New_York")
     val locale: String,       // Language_Country (e.g., "en_US")
@@ -206,12 +206,12 @@ data class LocationProfile(
         )
         
         /**
-         * Generate a location profile with correlated GPS coordinates.
+         * Generate a location config with correlated GPS coordinates.
          * 
          * @param country Optional country code. If null, selects randomly.
-         * @return LocationProfile with matching timezone, locale, and GPS within country bounds
+         * @return LocationConfig with matching timezone, locale, and GPS within country bounds
          */
-        fun generate(country: String? = null): LocationProfile {
+        fun generate(country: String? = null): LocationConfig {
             val selectedCountry = country ?: COUNTRY_TIMEZONES.keys.random()
             val timezones = COUNTRY_TIMEZONES[selectedCountry] ?: listOf("UTC")
             val locales = COUNTRY_LOCALES[selectedCountry] ?: listOf("en_US")
@@ -227,7 +227,7 @@ data class LocationProfile(
                 (-90.0 + 180.0 * secureRandom.nextDouble()) to (-180.0 + 360.0 * secureRandom.nextDouble())
             }
             
-            return LocationProfile(
+            return LocationConfig(
                 country = selectedCountry,
                 timezone = timezones.random(),
                 locale = locales.random(),
@@ -240,9 +240,9 @@ data class LocationProfile(
          * Generate matching the SIM card's country.
          * 
          * @param carrier The SIM card's carrier
-         * @return LocationProfile from same country as carrier
+         * @return LocationConfig from same country as carrier
          */
-        fun generateForCarrier(carrier: Carrier): LocationProfile {
+        fun generateForCarrier(carrier: Carrier): LocationConfig {
             return generate(carrier.countryIso)
         }
     }

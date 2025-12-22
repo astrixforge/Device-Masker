@@ -1,10 +1,10 @@
 package com.astrixforge.devicemasker.common.generators
 
 import com.astrixforge.devicemasker.common.DeviceProfilePreset
-import com.astrixforge.devicemasker.common.models.DeviceHardwareProfile
+import com.astrixforge.devicemasker.common.models.DeviceHardwareConfig
 
 /**
- * Generates complete, correlated device hardware profiles.
+ * Generates complete, correlated device hardware values.
  * 
  * This ensures device hardware values are consistent:
  * - IMEI is always generated (all modern devices have IMEI)
@@ -14,16 +14,16 @@ import com.astrixforge.devicemasker.common.models.DeviceHardwareProfile
  * 
  * Note: MEID has been removed as CDMA networks were deprecated in 2022.
  */
-object DeviceHardwareProfileGenerator {
+object DeviceHardwareGenerator {
     
     /**
-     * Generates a complete device hardware profile.
+     * Generates a complete device hardware config.
      * 
      * @param deviceProfile The device profile to base hardware on
-     * @return DeviceHardwareProfile with all correlated values
+     * @return DeviceHardwareConfig with all correlated values
      */
-    fun generate(deviceProfile: DeviceProfilePreset): DeviceHardwareProfile {
-        return DeviceHardwareProfile(
+    fun generate(deviceProfile: DeviceProfilePreset): DeviceHardwareConfig {
+        return DeviceHardwareConfig(
             deviceProfile = deviceProfile,
             imei = IMEIGenerator.generate(),
             serial = SerialGenerator.generate(deviceProfile.manufacturer),
@@ -33,22 +33,22 @@ object DeviceHardwareProfileGenerator {
     }
     
     /**
-     * Generates a device hardware profile from a random preset.
+     * Generates a device hardware config from a random preset.
      * 
-     * @return DeviceHardwareProfile with random device
+     * @return DeviceHardwareConfig with random device
      */
-    fun generate(): DeviceHardwareProfile {
+    fun generate(): DeviceHardwareConfig {
         val randomPreset = DeviceProfilePreset.PRESETS.random()
         return generate(randomPreset)
     }
     
     /**
-     * Generates a device hardware profile from a preset ID.
+     * Generates a device hardware config from a preset ID.
      * 
      * @param presetId Device profile preset ID (e.g., "pixel_8_pro")
-     * @return DeviceHardwareProfile or null if preset not found
+     * @return DeviceHardwareConfig or null if preset not found
      */
-    fun generateFromPresetId(presetId: String): DeviceHardwareProfile? {
+    fun generateFromPresetId(presetId: String): DeviceHardwareConfig? {
         val preset = DeviceProfilePreset.findById(presetId) ?: return null
         return generate(preset)
     }

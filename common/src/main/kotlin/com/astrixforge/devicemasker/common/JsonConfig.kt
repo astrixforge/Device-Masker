@@ -1,5 +1,6 @@
 package com.astrixforge.devicemasker.common
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -9,7 +10,7 @@ import kotlinx.serialization.json.Json
  *
  * This is the root object that holds all module configuration, including:
  * - Module enabled state
- * - All spoof profiles
+ * - All spoof groups
  * - Per-app configurations
  *
  * The configuration is serialized to JSON and stored both:
@@ -18,67 +19,68 @@ import kotlinx.serialization.json.Json
  *
  * @property version Configuration format version for migrations
  * @property isModuleEnabled Global module enable/disable switch
- * @property profiles Map of profile ID to SpoofProfile
+ * @property groups Map of group ID to SpoofGroup
  * @property appConfigs Map of package name to AppConfig
  */
 @Serializable
 data class JsonConfig(
     val version: Int = Constants.CONFIG_VERSION,
     val isModuleEnabled: Boolean = true,
-    val profiles: Map<String, SpoofProfile> = emptyMap(),
+    @SerialName("profiles")
+    val groups: Map<String, SpoofGroup> = emptyMap(),
     val appConfigs: Map<String, AppConfig> = emptyMap(),
 ) {
     // ═══════════════════════════════════════════════════════════
-    // PROFILE MANAGEMENT
+    // GROUP MANAGEMENT
     // ═══════════════════════════════════════════════════════════
 
     /**
-     * Gets a profile by ID.
-     * @return The profile or null if not found
+     * Gets a group by ID.
+     * @return The group or null if not found
      */
-    fun getProfile(profileId: String): SpoofProfile? {
-        return profiles[profileId]
+    fun getGroup(groupId: String): SpoofGroup? {
+        return groups[groupId]
     }
 
     /**
-     * Gets the default profile (the one with isDefault = true).
-     * @return The default profile or null if none is set
+     * Gets the default group (the one with isDefault = true).
+     * @return The default group or null if none is set
      */
-    fun getDefaultProfile(): SpoofProfile? {
-        return profiles.values.find { it.isDefault }
+    fun getDefaultGroup(): SpoofGroup? {
+        return groups.values.find { it.isDefault }
     }
 
     /**
-     * Gets all profiles as a list.
+     * Gets all groups as a list.
      */
-    fun getAllProfiles(): List<SpoofProfile> {
-        return profiles.values.toList()
+    fun getAllGroups(): List<SpoofGroup> {
+        return groups.values.toList()
     }
 
     /**
-     * Adds or updates a profile.
+     * Adds or updates a group.
      * @return Updated JsonConfig
      */
-    fun withProfile(profile: SpoofProfile): JsonConfig {
-        val newProfiles = profiles.toMutableMap()
-        newProfiles[profile.id] = profile
-        return copy(profiles = newProfiles)
+    fun withGroup(group: SpoofGroup): JsonConfig {
+        val newGroups = groups.toMutableMap()
+        newGroups[group.id] = group
+        return copy(groups = newGroups)
     }
 
     /**
-     * Alias for withProfile - adds or updates a profile.
+     * Alias for withGroup - adds or updates a group.
      * @return Updated JsonConfig
      */
-    fun addOrUpdateProfile(profile: SpoofProfile): JsonConfig = withProfile(profile)
+    fun addOrUpdateGroup(group: SpoofGroup): JsonConfig = withGroup(group)
 
     /**
-     * Removes a profile by ID.
+     * Removes a group by ID.
      * @return Updated JsonConfig
      */
-    fun removeProfile(profileId: String): JsonConfig {
-        val newProfiles = profiles.toMutableMap()
-        newProfiles.remove(profileId)
-        return copy(profiles = newProfiles)
+    fun removeGroup(groupId: String): JsonConfig {
+        val newGroups = groups.toMutableMap()
+        newGroups.remove(groupId)
+        return copy(groups = newGroups)
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -94,23 +96,23 @@ data class JsonConfig(
     }
 
     /**
-     * Gets the profile assigned to an app.
-     * Falls back to default profile if no specific assignment.
-     * @return The assigned profile, default profile, or null
+     * Gets the group assigned to an app.
+     * Falls back to default group if no specific assignment.
+     * @return The assigned group, default group, or null
      */
-    fun getProfileForApp(packageName: String): SpoofProfile? {
+    fun getGroupForApp(packageName: String): SpoofGroup? {
         val appConfig = appConfigs[packageName]
 
         // If app is explicitly disabled, return null
         if (appConfig?.isEnabled == false) return null
 
-        // If app has a specific profile assignment, use it
-        appConfig?.profileId?.let { profileId ->
-            profiles[profileId]?.let { return it }
+        // If app has a specific group assignment, use it
+        appConfig?.groupId?.let { groupId ->
+            groups[groupId]?.let { return it }
         }
 
-        // Fall back to default profile
-        return getDefaultProfile()
+        // Fall back to default group
+        return getDefaultGroup()
     }
 
     /**
@@ -196,12 +198,12 @@ data class JsonConfig(
         }
 
         /**
-         * Creates a default configuration with an initial profile.
+         * Creates a default configuration with an initial group.
          */
         fun createDefault(): JsonConfig {
-            val defaultProfile = SpoofProfile.createDefaultProfile()
+            val defaultGroup = SpoofGroup.createDefaultGroup()
             return JsonConfig(
-                profiles = mapOf(defaultProfile.id to defaultProfile),
+                groups = mapOf(defaultGroup.id to defaultGroup),
             )
         }
     }

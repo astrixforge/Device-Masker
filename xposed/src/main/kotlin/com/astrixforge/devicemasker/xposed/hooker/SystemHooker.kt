@@ -27,12 +27,12 @@ object SystemHooker : YukiBaseHooker() {
     private fun getActivePreset(): DeviceProfilePreset? {
         val service = DeviceMaskerService.instance ?: return null
         val config = service.config
-        val profile = config.getProfileForApp(packageName) ?: return null
+        val group = config.getGroupForApp(packageName) ?: return null
 
-        if (!profile.isEnabled) return null
-        if (!profile.isTypeEnabled(SpoofType.DEVICE_PROFILE)) return null
+        if (!group.isEnabled) return null
+        if (!group.isTypeEnabled(SpoofType.DEVICE_PROFILE)) return null
 
-        val presetId = profile.getValue(SpoofType.DEVICE_PROFILE) ?: return null
+        val presetId = group.getValue(SpoofType.DEVICE_PROFILE) ?: return null
         return DeviceProfilePreset.findById(presetId)
     }
 

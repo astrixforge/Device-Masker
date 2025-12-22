@@ -1,4 +1,4 @@
-package com.astrixforge.devicemasker.ui.screens
+package com.astrixforge.devicemasker.ui.screens.diagnostics
 
 import android.os.Build
 import android.provider.Settings
@@ -24,13 +24,11 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,7 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -46,10 +43,8 @@ import androidx.compose.ui.text.font.FontWeight
 import com.astrixforge.devicemasker.R
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.astrixforge.devicemasker.DeviceMaskerApp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.astrixforge.devicemasker.data.models.SpoofCategory
-import com.astrixforge.devicemasker.data.models.SpoofType
-import com.astrixforge.devicemasker.data.repository.SpoofRepository
 import com.astrixforge.devicemasker.ui.components.expressive.AnimatedSection
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressivePullToRefresh
@@ -57,30 +52,7 @@ import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 import com.astrixforge.devicemasker.ui.theme.StatusActive
 import com.astrixforge.devicemasker.ui.theme.StatusInactive
 import com.astrixforge.devicemasker.ui.theme.StatusWarning
-import kotlinx.coroutines.delay
-
-/** Data class representing a diagnostic result. */
-data class DiagnosticResult(
-    val type: SpoofType,
-    val realValue: String?,
-    val spoofedValue: String?,
-    val isActive: Boolean,
-    val isSpoofed: Boolean,
-) {
-    val status: DiagnosticStatus
-        get() =
-            when {
-                !isActive -> DiagnosticStatus.INACTIVE
-                isSpoofed -> DiagnosticStatus.SUCCESS
-                else -> DiagnosticStatus.WARNING
-            }
-}
-
-enum class DiagnosticStatus {
-    SUCCESS,
-    WARNING,
-    INACTIVE,
-}
+import com.astrixforge.devicemasker.data.models.SpoofType
 
 /**
  * Screen for diagnosing spoofing effectiveness.
@@ -91,47 +63,26 @@ enum class DiagnosticStatus {
  * - Anti-detection test results
  * - Refresh functionality
  *
- * @param repository The SpoofRepository for data access
+ * Uses MVVM architecture with ViewModel for state management.
+ *
+ * @param viewModel The DiagnosticsViewModel for state management
+ * @param onNavigateBack Callback to navigate back
  * @param modifier Optional modifier
  */
 @Composable
 fun DiagnosticsScreen(
-    repository: SpoofRepository,
+    viewModel: DiagnosticsViewModel,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-    var isRefreshing by remember { mutableStateOf(false) }
-    var diagnosticResults by remember { mutableStateOf<List<DiagnosticResult>>(emptyList()) }
-    var antiDetectionResults by remember { mutableStateOf<List<AntiDetectionTest>>(emptyList()) }
-
-    // Run diagnostics on first load
-    LaunchedEffect(Unit) {
-        diagnosticResults = runDiagnostics(context, repository)
-        antiDetectionResults = runAntiDetectionTests()
-    }
-
-    // Refresh function
-    fun refresh() {
-        isRefreshing = true
-        // Results will be updated when coroutine completes
-    }
-
-    LaunchedEffect(isRefreshing) {
-        if (isRefreshing) {
-            delay(500) // Minimum visible refresh time
-            diagnosticResults = runDiagnostics(context, repository)
-            antiDetectionResults = runAntiDetectionTests()
-            isRefreshing = false
-        }
-    }
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     DiagnosticsContent(
-        isXposedActive = DeviceMaskerApp.isXposedModuleActive,
-        diagnosticResults = diagnosticResults,
-        antiDetectionResults = antiDetectionResults,
-        isRefreshing = isRefreshing,
-        onRefresh = { refresh() },
+        isXposedActive = state.isXposedActive,
+        diagnosticResults = state.diagnosticResults,
+        antiDetectionResults = state.antiDetectionResults,
+        isRefreshing = state.isRefreshing,
+        onRefresh = { viewModel.refresh() },
         onNavigateBack = onNavigateBack,
         modifier = modifier,
     )
@@ -260,9 +211,6 @@ private fun ModuleStatusCard(isXposedActive: Boolean) {
         }
     }
 }
-
-/** Anti-detection test result. */
-data class AntiDetectionTest(val nameRes: Int, val descriptionRes: Int, val isPassed: Boolean)
 
 /**
  * Section showing anti-detection test results.
@@ -429,86 +377,6 @@ private fun ValueColumn(labelRes: Int, value: String?, modifier: Modifier = Modi
             maxLines = 1,
         )
     }
-}
-
-/** Runs diagnostics to compare real and spoofed values. */
-private fun runDiagnostics(
-    context: android.content.Context,
-    repository: SpoofRepository,
-): List<DiagnosticResult> {
-    // Get current spoofed profile
-    val profile = repository.getActiveProfileBlocking()
-    
-    // Get device profile preset info if set
-    val presetId = profile?.getValue(SpoofType.DEVICE_PROFILE)
-    val presetInfo = presetId?.let { 
-        com.astrixforge.devicemasker.common.DeviceProfilePreset.findById(it)
-    }
-
-    return listOf(
-        // Device Identifiers
-        DiagnosticResult(
-            type = SpoofType.ANDROID_ID,
-            realValue =
-                try {
-                    @Suppress("HardwareIds")
-                    Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
-                } catch (_: Exception) {
-                    null
-                },
-            spoofedValue = profile?.getValue(SpoofType.ANDROID_ID),
-            isActive = profile?.isTypeEnabled(SpoofType.ANDROID_ID) == true,
-            isSpoofed = profile?.getValue(SpoofType.ANDROID_ID) != null,
-        ),
-        // Device Profile (unified Build.* spoofing)
-        DiagnosticResult(
-            type = SpoofType.DEVICE_PROFILE,
-            realValue = "${Build.MANUFACTURER} ${Build.MODEL}",
-            spoofedValue = presetInfo?.let { "${it.manufacturer} ${it.model}" },
-            isActive = profile?.isTypeEnabled(SpoofType.DEVICE_PROFILE) == true,
-            isSpoofed = presetInfo != null,
-        ),
-    )
-}
-
-/** Runs anti-detection tests. */
-private fun runAntiDetectionTests(): List<AntiDetectionTest> {
-    return listOf(
-        AntiDetectionTest(
-            nameRes = R.string.diagnostics_test_stack_trace,
-            descriptionRes = R.string.diagnostics_test_stack_trace_desc,
-            isPassed =
-                try {
-                    val stackTrace = Thread.currentThread().stackTrace
-                    stackTrace.none { it.className.contains("xposed", ignoreCase = true) }
-                } catch (_: Exception) {
-                    false
-                },
-        ),
-        AntiDetectionTest(
-            nameRes = R.string.diagnostics_test_class_loading,
-            descriptionRes = R.string.diagnostics_test_class_loading_desc,
-            isPassed =
-                try {
-                    Class.forName("de.robv.android.xposed.XposedBridge")
-                    false
-                } catch (_: ClassNotFoundException) {
-                    true
-                } catch (_: Exception) {
-                    false
-                },
-        ),
-        AntiDetectionTest(
-            nameRes = R.string.diagnostics_test_native_hiding,
-            descriptionRes = R.string.diagnostics_test_native_hiding_desc,
-            isPassed = true, // Assume success if module is active
-        ),
-        AntiDetectionTest(
-            nameRes = R.string.diagnostics_test_package_hiding,
-            descriptionRes = R.string.diagnostics_test_package_hiding_desc,
-            isPassed = true, // Assume success if module is active
-        ),
-    )
 }
 
 // ═══════════════════════════════════════════════════════════

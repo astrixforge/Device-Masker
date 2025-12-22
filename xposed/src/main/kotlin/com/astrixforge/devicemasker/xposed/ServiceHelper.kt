@@ -8,7 +8,7 @@ import com.highcapable.yukihookapi.hook.log.YLog
 /**
  * Service Helper - Manages binder access for UI app.
  *
- * In HMA-OSS architecture, the service runs in system_server and the
+ * In the AIDL-based architecture, the service runs in system_server and the
  * UI app needs to get the binder to communicate with it.
  *
  * This simplified implementation provides direct binder access.

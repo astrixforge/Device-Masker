@@ -68,7 +68,7 @@ private fun ScreenHeaderPreview() {
 private fun ScreenHeaderWithActionsPreview() {
     DeviceMaskerTheme {
         ScreenHeader(
-            title = "Profiles",
+            title = "Groups",
             actions = {
                 Text("Action", color = MaterialTheme.colorScheme.primary)
             }

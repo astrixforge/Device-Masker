@@ -42,7 +42,7 @@ import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
  * Use this component for collapsible sections:
  * - Diagnostic categories
  * - Settings groups
- * - Profile detail sections
+ * - Group detail sections
  *
  * @param title Section title
  * @param modifier Modifier for the card

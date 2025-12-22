@@ -80,8 +80,8 @@ private fun EmptyStatePreview() {
     DeviceMaskerTheme {
         EmptyState(
             icon = Icons.Default.Person,
-            title = "No profiles yet",
-            subtitle = "Create your first profile",
+            title = "No groups yet",
+            subtitle = "Create your first group",
         )
     }
 }

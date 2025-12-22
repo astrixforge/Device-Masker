@@ -3,7 +3,7 @@
  *
  * This package will contain:
  * - SpoofValueCard.kt (Phase 5)
- * - ProfileCard.kt (Phase 5)
+ * - GroupCard.kt (Phase 5)
  * - StatusIndicator.kt (Phase 5)
  * - ToggleButton.kt (Phase 5)
  */

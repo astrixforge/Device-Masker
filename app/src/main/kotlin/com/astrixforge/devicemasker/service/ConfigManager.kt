@@ -5,7 +5,7 @@ import com.astrixforge.devicemasker.common.AppConfig
 import com.astrixforge.devicemasker.common.Constants
 import com.astrixforge.devicemasker.common.DeviceIdentifier
 import com.astrixforge.devicemasker.common.JsonConfig
-import com.astrixforge.devicemasker.common.SpoofProfile
+import com.astrixforge.devicemasker.common.SpoofGroup
 import com.astrixforge.devicemasker.common.SpoofType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,18 +19,19 @@ import timber.log.Timber
 import java.io.File
 
 /**
- * Config Manager - Manages application configuration in HMA-OSS architecture.
+ * Config Manager - Manages application configuration in Multi-Module AIDL architecture.
  *
  * Responsibilities:
  * 1. Load/save configuration from/to local JSON file
  * 2. Sync configuration to DeviceMaskerService via AIDL
  * 3. Provide StateFlow for UI reactivity
- * 4. CRUD operations for profiles and app configs
+ * 4. CRUD operations for groups and app configs
  *
  * Data Flow:
  * - Read: Local file → ConfigManager → UI StateFlow
  * - Write: UI → ConfigManager → Local file + ServiceClient (if connected)
  */
+@Suppress("PropertyName") // We use _config for backing property
 object ConfigManager {
 
     private const val TAG = "ConfigManager"
@@ -177,26 +178,26 @@ object ConfigManager {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // Profile Management
+    // Group Management
     // ═══════════════════════════════════════════════════════════
 
     /**
-     * Gets all profiles.
+     * Gets all groups.
      */
-    fun getAllProfiles(): List<SpoofProfile> = _config.value.profiles.values.toList()
+    fun getAllGroups(): List<SpoofGroup> = _config.value.groups.values.toList()
 
     /**
-     * Gets a profile by ID.
+     * Gets a group by ID.
      */
-    fun getProfile(profileId: String): SpoofProfile? = _config.value.getProfile(profileId)
+    fun getGroup(groupId: String): SpoofGroup? = _config.value.getGroup(groupId)
 
     /**
-     * Creates a new profile.
+     * Creates a new group.
      */
-    fun createProfile(name: String, copyFromProfileId: String? = null): SpoofProfile {
-        val baseProfile = copyFromProfileId?.let { getProfile(it) }
-        val newProfile = if (baseProfile != null) {
-            baseProfile.copy(
+    fun createGroup(name: String, copyFromGroupId: String? = null): SpoofGroup {
+        val baseGroup = copyFromGroupId?.let { getGroup(it) }
+        val newGroup = if (baseGroup != null) {
+            baseGroup.copy(
                 id = java.util.UUID.randomUUID().toString(),
                 name = name,
                 createdAt = System.currentTimeMillis(),
@@ -204,68 +205,68 @@ object ConfigManager {
                 assignedApps = emptySet() // Don't copy app assignments
             )
         } else {
-            SpoofProfile.createNew(name = name, isDefault = false)
+            SpoofGroup.createNew(name = name, isDefault = false)
         }
 
-        updateConfig { it.addOrUpdateProfile(newProfile) }
-        return newProfile
+        updateConfig { it.addOrUpdateGroup(newGroup) }
+        return newGroup
     }
 
     /**
-     * Updates an existing profile.
+     * Updates an existing group.
      */
-    fun updateProfile(profile: SpoofProfile) {
-        val updatedProfile = profile.copy(updatedAt = System.currentTimeMillis())
-        updateConfig { it.addOrUpdateProfile(updatedProfile) }
+    fun updateGroup(group: SpoofGroup) {
+        val updatedGroup = group.copy(updatedAt = System.currentTimeMillis())
+        updateConfig { it.addOrUpdateGroup(updatedGroup) }
     }
 
     /**
-     * Deletes a profile.
+     * Deletes a group.
      */
-    fun deleteProfile(profileId: String) {
-        updateConfig { it.removeProfile(profileId) }
+    fun deleteGroup(groupId: String) {
+        updateConfig { it.removeGroup(groupId) }
     }
 
     /**
-     * Gets the profile for a specific app.
+     * Gets the group for a specific app.
      */
-    fun getProfileForApp(packageName: String): SpoofProfile? {
-        return _config.value.getProfileForApp(packageName)
+    fun getGroupForApp(packageName: String): SpoofGroup? {
+        return _config.value.getGroupForApp(packageName)
     }
 
     // ═══════════════════════════════════════════════════════════
-    // Profile Identifier Management
+    // Group Identifier Management
     // ═══════════════════════════════════════════════════════════
 
     /**
-     * Sets an identifier value in a profile.
+     * Sets an identifier value in a group.
      */
-    fun setIdentifierValue(profileId: String, type: SpoofType, value: String?) {
-        val profile = getProfile(profileId) ?: return
-        val identifier = profile.getIdentifier(type)?.copy(value = value)
+    fun setIdentifierValue(groupId: String, type: SpoofType, value: String?) {
+        val group = getGroup(groupId) ?: return
+        val identifier = group.getIdentifier(type)?.copy(value = value)
             ?: DeviceIdentifier.createDefault(type).copy(value = value)
-        val updatedProfile = profile.setIdentifier(identifier)
-        updateProfile(updatedProfile)
+        val updatedGroup = group.setIdentifier(identifier)
+        updateGroup(updatedGroup)
     }
 
     /**
-     * Sets whether a spoof type is enabled in a profile.
+     * Sets whether a spoof type is enabled in a group.
      */
-    fun setTypeEnabled(profileId: String, type: SpoofType, enabled: Boolean) {
-        val profile = getProfile(profileId) ?: return
-        val identifier = profile.getIdentifier(type)?.copy(isEnabled = enabled)
+    fun setTypeEnabled(groupId: String, type: SpoofType, enabled: Boolean) {
+        val group = getGroup(groupId) ?: return
+        val identifier = group.getIdentifier(type)?.copy(isEnabled = enabled)
             ?: DeviceIdentifier.createDefault(type).copy(isEnabled = enabled)
-        val updatedProfile = profile.setIdentifier(identifier)
-        updateProfile(updatedProfile)
+        val updatedGroup = group.setIdentifier(identifier)
+        updateGroup(updatedGroup)
     }
 
     /**
-     * Regenerates all values in a profile.
+     * Regenerates all values in a group.
      */
-    fun regenerateAllValues(profileId: String) {
-        val profile = getProfile(profileId) ?: return
-        val regenerated = profile.regenerateAll()
-        updateProfile(regenerated)
+    fun regenerateAllValues(groupId: String) {
+        val group = getGroup(groupId) ?: return
+        val regenerated = group.regenerateAll()
+        updateGroup(regenerated)
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -278,37 +279,37 @@ object ConfigManager {
     fun getAppConfig(packageName: String): AppConfig? = _config.value.getAppConfig(packageName)
 
     /**
-     * Assigns an app to a profile.
+     * Assigns an app to a group.
      */
-    fun assignAppToProfile(packageName: String, profileId: String) {
-        // Remove from old profile if any
-        val oldProfile = getProfileForApp(packageName)
-        if (oldProfile != null && oldProfile.id != profileId) {
-            val updatedOld = oldProfile.copy(assignedApps = oldProfile.assignedApps - packageName)
-            updateConfig { it.addOrUpdateProfile(updatedOld) }
+    fun assignAppToGroup(packageName: String, groupId: String) {
+        // Remove from old group if any
+        val oldGroup = getGroupForApp(packageName)
+        if (oldGroup != null && oldGroup.id != groupId) {
+            val updatedOld = oldGroup.copy(assignedApps = oldGroup.assignedApps - packageName)
+            updateConfig { it.addOrUpdateGroup(updatedOld) }
         }
 
-        // Add to new profile
-        val newProfile = getProfile(profileId)
-        if (newProfile != null) {
-            val updatedNew = newProfile.copy(assignedApps = newProfile.assignedApps + packageName)
-            updateConfig { it.addOrUpdateProfile(updatedNew) }
+        // Add to new group
+        val newGroup = getGroup(groupId)
+        if (newGroup != null) {
+            val updatedNew = newGroup.copy(assignedApps = newGroup.assignedApps + packageName)
+            updateConfig { it.addOrUpdateGroup(updatedNew) }
         }
 
         // Update app config
-        val appConfig = getAppConfig(packageName)?.copy(profileId = profileId)
-            ?: AppConfig(packageName = packageName, profileId = profileId)
+        val appConfig = getAppConfig(packageName)?.copy(groupId = groupId)
+            ?: AppConfig(packageName = packageName, groupId = groupId)
         updateConfig { it.setAppConfig(appConfig) }
     }
 
     /**
-     * Unassigns an app from its profile.
+     * Unassigns an app from its group.
      */
     fun unassignApp(packageName: String) {
-        val profile = getProfileForApp(packageName)
-        if (profile != null) {
-            val updated = profile.copy(assignedApps = profile.assignedApps - packageName)
-            updateConfig { it.addOrUpdateProfile(updated) }
+        val group = getGroupForApp(packageName)
+        if (group != null) {
+            val updated = group.copy(assignedApps = group.assignedApps - packageName)
+            updateConfig { it.addOrUpdateGroup(updated) }
         }
 
         updateConfig { it.removeAppConfig(packageName) }

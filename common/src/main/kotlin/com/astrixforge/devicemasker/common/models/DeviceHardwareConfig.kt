@@ -16,7 +16,7 @@ import kotlinx.serialization.Serializable
  * All modern devices use IMEI only.
  */
 @Serializable
-data class DeviceHardwareProfile(
+data class DeviceHardwareConfig(
     val deviceProfile: DeviceProfilePreset,
     val imei: String,         // Primary IMEI (required for all modern devices)
     val serial: String,       // Matches manufacturer's pattern

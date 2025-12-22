@@ -5,7 +5,7 @@ package com.astrixforge.devicemasker.common
  *
  * This module contains:
  * - AIDL interface for IPC
- * - Shared models (SpoofProfile, SpoofType, etc.)
+ * - Shared models (SpoofGroup, SpoofType, etc.)
  * - JSON configuration management
  */
 object Constants {

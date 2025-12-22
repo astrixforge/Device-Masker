@@ -10,7 +10,7 @@ import com.highcapable.yukihookapi.hook.entity.YukiBaseHooker
 import com.highcapable.yukihookapi.hook.log.YLog
 
 /**
- * Xposed Module Hook Loader for HMA-OSS architecture.
+ * Xposed Module Hook Loader for Multi-Module AIDL architecture.
  *
  * This class is NOT the entry point - the entry point is in the :app module
  * where YukiHookAPI KSP can generate the init class.

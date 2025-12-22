@@ -1,9 +1,8 @@
-package com.astrixforge.devicemasker.ui.screens
+package com.astrixforge.devicemasker.ui.screens.home
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,17 +30,14 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,16 +47,14 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.astrixforge.devicemasker.DeviceMaskerApp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.astrixforge.devicemasker.R
-import com.astrixforge.devicemasker.data.models.SpoofProfile
-import com.astrixforge.devicemasker.data.repository.SpoofRepository
+import com.astrixforge.devicemasker.data.models.SpoofGroup
 import com.astrixforge.devicemasker.ui.components.IconCircle
 import com.astrixforge.devicemasker.ui.components.StatCard
 import com.astrixforge.devicemasker.ui.components.expressive.AnimatedLoadingOverlay
@@ -75,86 +69,63 @@ import com.astrixforge.devicemasker.ui.theme.AppMotion
 import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 import com.astrixforge.devicemasker.ui.theme.StatusActive
 import com.astrixforge.devicemasker.ui.theme.StatusInactive
-import kotlinx.coroutines.launch
 
 /**
  * Home screen displaying module status and quick stats.
  *
+ * Uses MVVM pattern with HomeViewModel for state management.
+ *
  * Shows:
  * - Module active/inactive status with animated indicator
- * - Profile dropdown selector
- * - Current profile summary with protected apps count
+ * - Group dropdown selector
+ * - Current group summary with protected apps count
  * - Quick stats (protected apps, masked identifiers)
  * - Quick actions
  *
- * @param repository The SpoofRepository for data access
- * @param onNavigateToProfile Callback to navigate to profile detail screen with selected profile ID
+ * @param viewModel The HomeViewModel for state and actions
+ * @param onNavigateToSpoof Callback to navigate to spoof screen
+ * @param onRegenerateAll Callback to regenerate all values
+ * @param onNavigateToGroup Callback to navigate to group spoofing screen with selected group ID
  * @param modifier Optional modifier
  */
 @Composable
 fun HomeScreen(
-    repository: SpoofRepository,
+    viewModel: HomeViewModel,
     onNavigateToSpoof: () -> Unit,
     onRegenerateAll: () -> Unit,
     modifier: Modifier = Modifier,
-    onNavigateToProfile: ((String) -> Unit)? = null,
+    onNavigateToGroup: ((String) -> Unit)? = null,
 ) {
-    val profiles by repository.profiles.collectAsState(initial = emptyList())
-    val dashboardState by
-        repository.dashboardState.collectAsState(
-            initial =
-                SpoofRepository.DashboardState(
-                    isModuleEnabled = false,
-                    activeProfile = null,
-                    enabledAppCount = 0,
-                    profileCount = 0,
-                )
-        )
-    val scope = rememberCoroutineScope()
-
-    // Track selected profile for the dropdown
-    var selectedProfileId by
-        remember(dashboardState.activeProfile) { mutableStateOf(dashboardState.activeProfile?.id) }
-    val selectedProfile =
-        profiles.find { it.id == selectedProfileId } ?: dashboardState.activeProfile
-
-    // Calculate protected apps count based on selected profile
-    val protectedAppsCount =
-        if (selectedProfile?.isEnabled == true) {
-            selectedProfile.assignedAppCount()
-        } else {
-            0
-        }
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     HomeScreenContent(
-        isXposedActive = DeviceMaskerApp.isXposedModuleActive,
-        isModuleEnabled = dashboardState.isModuleEnabled,
-        profiles = profiles,
-        selectedProfile = selectedProfile,
-        onProfileSelected = { profile ->
-            scope.launch { repository.setActiveProfile(profile.id) }
+        isXposedActive = state.isXposedActive,
+        isModuleEnabled = state.isModuleEnabled,
+        groups = state.groups,
+        selectedGroup = state.selectedGroup,
+        onGroupSelected = { group ->
+            viewModel.selectGroup(group.id)
         },
-        enabledAppsCount = protectedAppsCount,
-        maskedIdentifiersCount = selectedProfile?.enabledCount() ?: 0,
+        enabledAppsCount = state.enabledAppsCount,
+        maskedIdentifiersCount = state.maskedIdentifiersCount,
         onModuleEnabledChange = { enabled ->
-            scope.launch { repository.setModuleEnabled(enabled) }
+            viewModel.setModuleEnabled(enabled)
         },
         onNavigateToSpoof = {
-            // Navigate to the selected profile's detail screen
-            if (onNavigateToProfile != null && selectedProfile != null) {
-                onNavigateToProfile(selectedProfile.id)
+            // Navigate to the selected group's spoofing screen
+            val selectedGroup = state.selectedGroup
+            if (onNavigateToGroup != null && selectedGroup != null) {
+                onNavigateToGroup(selectedGroup.id)
             } else {
                 onNavigateToSpoof()
             }
         },
         onRegenerateAll = {
-            // Regenerate values for selected profile only
-            scope.launch {
-                selectedProfile?.let { profile -> repository.setActiveProfile(profile.id) }
-                // Then regenerate using existing method
+            viewModel.regenerateAll {
                 onRegenerateAll()
             }
         },
+        isLoading = state.isLoading,
         modifier = modifier,
     )
 }
@@ -164,14 +135,15 @@ fun HomeScreen(
 fun HomeScreenContent(
     isXposedActive: Boolean,
     isModuleEnabled: Boolean,
-    profiles: List<SpoofProfile>,
-    selectedProfile: SpoofProfile?,
-    onProfileSelected: (SpoofProfile) -> Unit,
+    groups: List<SpoofGroup>,
+    selectedGroup: SpoofGroup?,
+    onGroupSelected: (SpoofGroup) -> Unit,
     enabledAppsCount: Int,
     maskedIdentifiersCount: Int,
     onModuleEnabledChange: (Boolean) -> Unit,
     onNavigateToSpoof: () -> Unit,
     onRegenerateAll: () -> Unit,
+    isLoading: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -181,7 +153,7 @@ fun HomeScreenContent(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp)
-                .alpha(if (profiles.isEmpty() && selectedProfile == null) 0f else 1f),
+                .alpha(if (isLoading) 0f else 1f),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
         // Status Card - Hero Section
@@ -215,11 +187,11 @@ fun HomeScreenContent(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Profile Selector Card with Dropdown
-        ProfileSelectorCard(
-            profiles = profiles,
-            selectedProfile = selectedProfile,
-            onProfileSelected = onProfileSelected,
+        // Group Selector Card with Dropdown
+        GroupSelectorCard(
+            groups = groups,
+            selectedGroup = selectedGroup,
+            onGroupSelected = onGroupSelected,
             onClick = onNavigateToSpoof,
             modifier = Modifier.fillMaxWidth()
         )
@@ -236,7 +208,7 @@ fun HomeScreenContent(
         Spacer(modifier = Modifier.height(24.dp))
     }
 
-    AnimatedLoadingOverlay(isLoading = profiles.isEmpty() && selectedProfile == null) {
+    AnimatedLoadingOverlay(isLoading = isLoading) {
         ExpressiveLoadingIndicatorWithLabel(label = "Loading Dashboard...")
     }
 }
@@ -376,14 +348,12 @@ private fun StatusCard(
     }
 }
 
-// StatCard moved to ui/components/StatCard.kt
-
-/** Profile selector card with dropdown menu. */
+/** Group selector card with dropdown menu. */
 @Composable
-private fun ProfileSelectorCard(
-    profiles: List<SpoofProfile>,
-    selectedProfile: SpoofProfile?,
-    onProfileSelected: (SpoofProfile) -> Unit,
+private fun GroupSelectorCard(
+    groups: List<SpoofGroup>,
+    selectedGroup: SpoofGroup?,
+    onGroupSelected: (SpoofGroup) -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -415,29 +385,29 @@ private fun ProfileSelectorCard(
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = stringResource(id = R.string.home_active_profile_label),
+                        text = stringResource(id = R.string.home_active_group_label),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = selectedProfile?.name ?: stringResource(id = R.string.home_no_profile),
+                            text = selectedGroup?.name ?: stringResource(id = R.string.home_no_group),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
-                        if (selectedProfile?.isEnabled == false) {
+                        if (selectedGroup?.isEnabled == false) {
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = stringResource(id = R.string.home_profile_disabled_tag),
+                                text = stringResource(id = R.string.home_group_disabled_tag),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.error,
                             )
                         }
                     }
-                    if (selectedProfile != null) {
+                    if (selectedGroup != null) {
                         Text(
-                            text = pluralStringResource(id = R.plurals.home_apps_assigned_count, count = selectedProfile.assignedAppCount(), selectedProfile.assignedAppCount()),
+                            text = pluralStringResource(id = R.plurals.home_apps_assigned_count, count = selectedGroup.assignedAppCount(), selectedGroup.assignedAppCount()),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -446,32 +416,32 @@ private fun ProfileSelectorCard(
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowDown,
-                        contentDescription = "Select Profile",
+                        contentDescription = "Select Group",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.rotate(rotationAngle),
                     )
                     CompactExpressiveIconButton(
                         onClick = onClick,
                         icon = Icons.Outlined.Visibility,
-                        contentDescription = "View Profile",
+                        contentDescription = "View Group",
                     )
                 }
             }
 
-            // Dropdown menu for profile selection
+            // Dropdown menu for group selection
             DropdownMenu(
                 expanded = dropdownExpanded,
                 onDismissRequest = { dropdownExpanded = false },
                 modifier = Modifier.fillMaxWidth(0.9f),
             ) {
-                if (profiles.isEmpty()) {
+                if (groups.isEmpty()) {
                     DropdownMenuItem(
-                        text = { Text(stringResource(id = R.string.home_no_profiles_available)) },
+                        text = { Text(stringResource(id = R.string.home_no_groups_available)) },
                         onClick = { dropdownExpanded = false },
                         enabled = false,
                     )
                 } else {
-                    profiles.forEach { profile ->
+                    groups.forEach { group ->
                         DropdownMenuItem(
                             text = {
                                 Row(
@@ -481,27 +451,27 @@ private fun ProfileSelectorCard(
                                 ) {
                                     Column {
                                         Text(
-                                            text = profile.name,
+                                            text = group.name,
                                             fontWeight =
-                                                if (profile.id == selectedProfile?.id)
+                                                if (group.id == selectedGroup?.id)
                                                     FontWeight.Bold
                                                 else FontWeight.Normal,
                                         )
                                         Text(
-                                            text = pluralStringResource(id = R.plurals.home_apps_count, count = profile.assignedAppCount(), profile.assignedAppCount()),
+                                            text = pluralStringResource(id = R.plurals.home_apps_count, count = group.assignedAppCount(), group.assignedAppCount()),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
                                     }
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        if (!profile.isEnabled) {
+                                        if (!group.isEnabled) {
                                             Text(
-                                                text = stringResource(id = R.string.home_profile_disabled_tag).trim('(', ')'),
+                                                text = stringResource(id = R.string.home_group_disabled_tag).trim('(', ')'),
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.error,
                                             )
                                         }
-                                        if (profile.id == selectedProfile?.id) {
+                                        if (group.id == selectedGroup?.id) {
                                             Icon(
                                                 imageVector = Icons.Filled.Check,
                                                 contentDescription = "Selected",
@@ -513,7 +483,7 @@ private fun ProfileSelectorCard(
                                 }
                             },
                             onClick = {
-                                onProfileSelected(profile)
+                                onGroupSelected(group)
                                 dropdownExpanded = false
                             },
                         )
@@ -564,14 +534,14 @@ fun HomeScreenContentPreview() {
         HomeScreenContent(
             isXposedActive = true,
             isModuleEnabled = true,
-            profiles =
+            groups =
                 listOf(
-                    SpoofProfile.createDefaultProfile(),
-                    SpoofProfile.createNew("Work Profile"),
-                    SpoofProfile.createNew("Gaming"),
+                    SpoofGroup.createDefaultGroup(),
+                    SpoofGroup.createNew("Work Group"),
+                    SpoofGroup.createNew("Gaming"),
                 ),
-            selectedProfile = SpoofProfile.createDefaultProfile(),
-            onProfileSelected = {},
+            selectedGroup = SpoofGroup.createDefaultGroup(),
+            onGroupSelected = {},
             enabledAppsCount = 12,
             maskedIdentifiersCount = 24,
             onModuleEnabledChange = {},
@@ -588,9 +558,9 @@ fun HomeScreenInactivePreview() {
         HomeScreenContent(
             isXposedActive = false,
             isModuleEnabled = false,
-            profiles = emptyList(),
-            selectedProfile = null,
-            onProfileSelected = {},
+            groups = emptyList(),
+            selectedGroup = null,
+            onGroupSelected = {},
             enabledAppsCount = 0,
             maskedIdentifiersCount = 0,
             onModuleEnabledChange = {},

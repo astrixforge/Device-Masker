@@ -114,7 +114,7 @@ private fun ConfirmationDialogPreview() {
 private fun DeleteDialogPreview() {
     DeviceMaskerTheme {
         DeleteConfirmationDialog(
-            itemName = "Work Profile",
+            itemName = "Work Group",
             onConfirm = {},
             onDismiss = {},
         )

@@ -16,7 +16,7 @@ import kotlinx.serialization.Serializable
  * Detection systems can easily spot mismatches between these values.
  */
 @Serializable
-data class SIMProfile(
+data class SIMConfig(
     val carrier: Carrier,
     val imsi: String,                    // 15 digits, starts with carrier.mccMnc
     val iccid: String,                   // 19-20 digits, country code matches carrier
@@ -72,15 +72,15 @@ data class SIMProfile(
     
     companion object {
         /**
-         * Creates a SIMProfile with all derived fields populated automatically.
-         * This is the recommended way to create a SIMProfile to ensure consistency.
+         * Creates a SIMConfig with all derived fields populated automatically.
+         * This is the recommended way to create a SIMConfig to ensure consistency.
          */
         fun create(
             carrier: Carrier,
             imsi: String,
             iccid: String,
             phoneNumber: String
-        ): SIMProfile = SIMProfile(
+        ): SIMConfig = SIMConfig(
             carrier = carrier,
             imsi = imsi,
             iccid = iccid,

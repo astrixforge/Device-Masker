@@ -9,7 +9,7 @@ import timber.log.Timber
 /**
  * Service Client - Proxy for communicating with DeviceMaskerService via AIDL.
  *
- * In HMA-OSS architecture:
+ * In Multi-Module AIDL architecture:
  * - DeviceMaskerService runs in system_server
  * - UI app communicates via AIDL binder
  * - This client wraps the AIDL interface for convenient access

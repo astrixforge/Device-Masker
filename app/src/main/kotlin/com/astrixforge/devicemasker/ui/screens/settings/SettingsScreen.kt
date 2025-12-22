@@ -1,4 +1,4 @@
-package com.astrixforge.devicemasker.ui.screens
+package com.astrixforge.devicemasker.ui.screens.settings
 
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
@@ -53,14 +53,8 @@ import com.astrixforge.devicemasker.ui.components.SettingsClickableItemWithValue
 import com.astrixforge.devicemasker.ui.components.SettingsInfoItem
 import com.astrixforge.devicemasker.ui.components.SettingsSection
 import com.astrixforge.devicemasker.ui.components.SettingsSwitchItem
+import com.astrixforge.devicemasker.ui.screens.ThemeMode
 import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
-
-/** Theme mode options for the app. */
-enum class ThemeMode(val displayNameRes: Int) {
-    SYSTEM(R.string.settings_theme_system),
-    LIGHT(R.string.settings_theme_light),
-    DARK(R.string.settings_theme_dark)
-}
 
 /**
  * Settings screen for app preferences.
@@ -107,6 +101,51 @@ fun SettingsScreen(
             ThemeMode.LIGHT -> false
         }
 
+    SettingsScreenContent(
+        modifier = modifier,
+        themeMode = themeMode,
+        amoledDarkMode = amoledDarkMode,
+        dynamicColors = dynamicColors,
+        debugLogging = debugLogging,
+        isDarkModeActive = isDarkModeActive,
+        onThemeModeClick = { showThemeModeDialog = true },
+        onAmoledDarkModeChange = onAmoledDarkModeChange,
+        onDynamicColorChange = onDynamicColorChange,
+        onDebugLogChange = onDebugLogChange,
+        onNavigateToDiagnostics = onNavigateToDiagnostics,
+    )
+
+    // Theme Mode Selection Dialog
+    if (showThemeModeDialog) {
+        ThemeModeDialog(
+            currentMode = themeMode,
+            onModeSelected = { mode ->
+                onThemeModeChange(mode)
+                showThemeModeDialog = false
+            },
+            onDismiss = { showThemeModeDialog = false }
+        )
+    }
+}
+
+/**
+ * Stateless content composable for SettingsScreen.
+ * All state is passed as parameters for testability.
+ */
+@Composable
+private fun SettingsScreenContent(
+    modifier: Modifier = Modifier,
+    themeMode: ThemeMode,
+    amoledDarkMode: Boolean,
+    dynamicColors: Boolean,
+    debugLogging: Boolean,
+    isDarkModeActive: Boolean,
+    onThemeModeClick: () -> Unit,
+    onAmoledDarkModeChange: (Boolean) -> Unit,
+    onDynamicColorChange: (Boolean) -> Unit,
+    onDebugLogChange: (Boolean) -> Unit,
+    onNavigateToDiagnostics: () -> Unit,
+) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -130,7 +169,7 @@ fun SettingsScreen(
                         },
                     title = stringResource(id = R.string.settings_theme_mode),
                     description = stringResource(id = themeMode.displayNameRes),
-                    onClick = { showThemeModeDialog = true },
+                    onClick = onThemeModeClick,
                 )
 
                 // AMOLED Dark Mode (only visible when dark mode is active)
@@ -216,18 +255,6 @@ fun SettingsScreen(
 
         // Bottom spacing
         item { Spacer(modifier = Modifier.height(24.dp)) }
-    }
-
-    // Theme Mode Selection Dialog
-    if (showThemeModeDialog) {
-        ThemeModeDialog(
-            currentMode = themeMode,
-            onModeSelected = { mode ->
-                onThemeModeChange(mode)
-                showThemeModeDialog = false
-            },
-            onDismiss = { showThemeModeDialog = false }
-        )
     }
 }
 

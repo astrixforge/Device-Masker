@@ -10,7 +10,7 @@ import timber.log.Timber
  * Extends [ModuleApplication] from YukiHookAPI to properly initialize the module in both the module
  * app process and hooked app processes.
  *
- * HMA-OSS Architecture:
+ * Multi-Module AIDL Architecture:
  * - Initializes ConfigManager for JSON-based configuration
  * - ConfigManager handles local storage and AIDL sync with DeviceMaskerService
  *
@@ -30,7 +30,7 @@ class DeviceMaskerApp : ModuleApplication() {
             Timber.d("Device Masker Application initialized")
         }
 
-        // Initialize ConfigManager (HMA-OSS architecture)
+        // Initialize ConfigManager (Multi-Module AIDL architecture)
         // This loads config from local file and sets up service sync
         ConfigManager.init(this)
         Timber.d("ConfigManager initialized")

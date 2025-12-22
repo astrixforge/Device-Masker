@@ -45,11 +45,11 @@ import com.astrixforge.devicemasker.utils.ImageUtils
  * Individual app item for app selection lists.
  *
  * Displays app icon, name, package name, and selection state.
- * Supports disabled state when app is assigned to another profile.
+ * Supports disabled state when app is assigned to another group.
  *
  * @param app The installed app info
- * @param isAssigned Whether the app is assigned to the current profile
- * @param assignedToOtherProfileName If not null, the app is assigned to another profile
+ * @param isAssigned Whether the app is assigned to the current group
+ * @param assignedToOtherGroupName If not null, the app is assigned to another group
  * @param onToggle Callback when the assignment state changes
  * @param modifier Optional modifier
  */
@@ -57,12 +57,12 @@ import com.astrixforge.devicemasker.utils.ImageUtils
 fun AppListItem(
     app: InstalledApp,
     isAssigned: Boolean,
-    assignedToOtherProfileName: String?,
+    assignedToOtherGroupName: String?,
     onToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val isDisabled = assignedToOtherProfileName != null
+    val isDisabled = assignedToOtherGroupName != null
 
     // Load real app icon from PackageManager
     val appIcon: Drawable? = remember(app.packageName) {
@@ -120,8 +120,8 @@ fun AppListItem(
                 Text(
                     text = if (isDisabled) {
                         stringResource(
-                            id = R.string.profile_detail_assigned_to,
-                            assignedToOtherProfileName ?: ""
+                            id = R.string.group_spoofing_assigned_to,
+                            assignedToOtherGroupName ?: ""
                         )
                     } else {
                         app.packageName
@@ -141,7 +141,7 @@ fun AppListItem(
             if (isDisabled) {
                 Icon(
                     imageVector = Icons.Filled.Lock,
-                    contentDescription = stringResource(id = R.string.profile_detail_locked),
+                    contentDescription = stringResource(id = R.string.group_spoofing_locked),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(24.dp),
                 )
@@ -188,7 +188,7 @@ private fun AppListItemPreview() {
                 isSystemApp = false,
             ),
             isAssigned = false,
-            assignedToOtherProfileName = null,
+            assignedToOtherGroupName = null,
             onToggle = {},
         )
     }
@@ -205,7 +205,7 @@ private fun AppListItemAssignedPreview() {
                 isSystemApp = false,
             ),
             isAssigned = true,
-            assignedToOtherProfileName = null,
+            assignedToOtherGroupName = null,
             onToggle = {},
         )
     }
@@ -222,7 +222,7 @@ private fun AppListItemLockedPreview() {
                 isSystemApp = false,
             ),
             isAssigned = false,
-            assignedToOtherProfileName = "Work Profile",
+            assignedToOtherGroupName = "Work Group",
             onToggle = {},
         )
     }

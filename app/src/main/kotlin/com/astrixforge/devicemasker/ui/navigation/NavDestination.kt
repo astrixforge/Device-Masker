@@ -13,31 +13,31 @@ import androidx.compose.ui.graphics.vector.ImageVector
  * Navigation routes as constants. Using simple string routes to avoid sealed class initialization
  * issues on Android 16.
  *
- * Profile-centric workflow (3-tab layout):
- * - HOME: Dashboard with module status, profile selection, and quick actions
- * - PROFILES: List of spoof profiles (click to open ProfileDetail)
+ * Group-centric workflow (3-tab layout):
+ * - HOME: Dashboard with module status, group selection, and quick actions
+ * - GROUPS: List of spoof groups (click to open GroupSpoofing)
  * - SETTINGS: App settings and diagnostics
  */
 object NavRoutes {
     const val HOME = "home"
-    const val PROFILES = "profiles"
+    const val GROUPS = "groups"
     const val SETTINGS = "settings"
     const val DIAGNOSTICS = "diagnostics"
 
     // Detail screens (not in bottom nav)
-    const val PROFILE_DETAIL = "profile_detail"
+    const val GROUP_SPOOFING = "group_spoofing"
 
     /**
-     * Creates the route for ProfileDetailScreen with a profile ID parameter. Usage:
-     * navController.navigate(NavRoutes.profileDetailRoute(profileId))
+     * Creates the route for GroupSpoofingScreen with a group ID parameter. Usage:
+     * navController.navigate(NavRoutes.groupSpoofingRoute(groupId))
      */
-    fun profileDetailRoute(profileId: String): String = "$PROFILE_DETAIL/$profileId"
+    fun groupSpoofingRoute(groupId: String): String = "$GROUP_SPOOFING/$groupId"
 
     /**
-     * Route pattern for ProfileDetailScreen (use in NavHost composable). Usage:
-     * composable("${NavRoutes.PROFILE_DETAIL}/{profileId}") { ... }
+     * Route pattern for GroupSpoofingScreen (use in NavHost composable). Usage:
+     * composable("${NavRoutes.GROUP_SPOOFING}/{groupId}") { ... }
      */
-    const val PROFILE_DETAIL_PATTERN = "$PROFILE_DETAIL/{profileId}"
+    const val GROUP_SPOOFING_PATTERN = "$GROUP_SPOOFING/{groupId}"
 }
 
 /** Navigation item data class for bottom navigation. */
@@ -49,9 +49,9 @@ data class NavItem(
 )
 
 /**
- * Bottom navigation items (3 tabs for profile-centric workflow). Order: Home → Profiles → Settings
+ * Bottom navigation items (3 tabs for group-centric workflow). Order: Home → Groups → Settings
  *
- * Note: Global Spoof tab removed - each profile now works independently with its own enable/disable
+ * Note: Global Spoof tab removed - each group now works independently with its own enable/disable
  * controls.
  */
 val bottomNavItems: List<NavItem> =
@@ -63,8 +63,8 @@ val bottomNavItems: List<NavItem> =
             unselectedIcon = Icons.Outlined.Home,
         ),
         NavItem(
-            route = NavRoutes.PROFILES,
-            label = "Profiles",
+            route = NavRoutes.GROUPS,
+            label = "Groups",
             selectedIcon = Icons.Filled.Person,
             unselectedIcon = Icons.Outlined.Person,
         ),

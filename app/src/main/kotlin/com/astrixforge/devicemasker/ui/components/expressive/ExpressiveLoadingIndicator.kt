@@ -174,7 +174,7 @@ private fun ExpressiveLoadingWithLabelPreview() {
     DeviceMaskerTheme {
         Box(modifier = Modifier.padding(32.dp)) {
             ExpressiveLoadingIndicatorWithLabel(
-                label = "Loading profiles..."
+                label = "Loading groups..."
             )
         }
     }

@@ -11,7 +11,7 @@ import timber.log.Timber
 /**
  * Service Provider - ContentProvider for receiving binder from system_server.
  *
- * In HMA-OSS architecture:
+ * In Multi-Module AIDL architecture:
  * - DeviceMaskerService hooks ContentProvider.call() in system_server
  * - When our provider is accessed, the hook injects the service binder
  * - This provider receives the binder and links it via ServiceClient

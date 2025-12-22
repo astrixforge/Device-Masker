@@ -5,7 +5,7 @@ package com.astrixforge.devicemasker.data.models
 /**
  * Type aliases for backward compatibility.
  * 
- * HMA-OSS Architecture: Models have been moved to the :common module.
+ * Multi-Module Architecture: Models have been moved to the :common module.
  * These type aliases allow existing UI code to continue working without changes.
  */
 
@@ -18,8 +18,8 @@ typealias SpoofCategory = com.astrixforge.devicemasker.common.SpoofCategory
 // DeviceIdentifier - Same data class, now in common
 typealias DeviceIdentifier = com.astrixforge.devicemasker.common.DeviceIdentifier
 
-// SpoofProfile - Same data class, now in common
-typealias SpoofProfile = com.astrixforge.devicemasker.common.SpoofProfile
+// SpoofGroup - Same data class, now in common
+typealias SpoofGroup = com.astrixforge.devicemasker.common.SpoofGroup
 
 // AppConfig - Same data class, now in common
 typealias AppConfig = com.astrixforge.devicemasker.common.AppConfig

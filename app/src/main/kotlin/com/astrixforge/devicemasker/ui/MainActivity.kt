@@ -19,8 +19,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -28,20 +28,25 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.astrixforge.devicemasker.DeviceMaskerApp
 import com.astrixforge.devicemasker.data.SettingsDataStore
 import com.astrixforge.devicemasker.data.repository.SpoofRepository
 import com.astrixforge.devicemasker.ui.navigation.BottomNavBar
 import com.astrixforge.devicemasker.ui.navigation.NavRoutes
-import com.astrixforge.devicemasker.ui.screens.DiagnosticsScreen
-import com.astrixforge.devicemasker.ui.screens.HomeScreen
-import com.astrixforge.devicemasker.ui.screens.ProfileDetailScreen
-import com.astrixforge.devicemasker.ui.screens.ProfileScreen
-import com.astrixforge.devicemasker.ui.screens.SettingsScreen
+import com.astrixforge.devicemasker.ui.screens.diagnostics.DiagnosticsScreen
+import com.astrixforge.devicemasker.ui.screens.diagnostics.DiagnosticsViewModel
+import com.astrixforge.devicemasker.ui.screens.groupspoofing.GroupSpoofingScreen
+import com.astrixforge.devicemasker.ui.screens.groupspoofing.GroupSpoofingViewModel
 import com.astrixforge.devicemasker.ui.screens.ThemeMode
+import com.astrixforge.devicemasker.ui.screens.home.HomeScreen
+import com.astrixforge.devicemasker.ui.screens.home.HomeViewModel
+import com.astrixforge.devicemasker.ui.screens.groups.GroupsScreen
+import com.astrixforge.devicemasker.ui.screens.groups.GroupsViewModel
+import com.astrixforge.devicemasker.ui.screens.settings.SettingsScreen
+import com.astrixforge.devicemasker.ui.screens.settings.SettingsViewModel
 import com.astrixforge.devicemasker.ui.theme.AppMotion
 import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
@@ -139,10 +144,10 @@ fun DeviceMaskerMainApp(
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: NavRoutes.HOME
-    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
-    // Hide bottom nav on profile detail and diagnostics screens for a cleaner focused experience
-    val showBottomBar = !currentRoute.startsWith(NavRoutes.PROFILE_DETAIL) && 
+    // Hide bottom nav on group spoofing and diagnostics screens for a cleaner focused experience
+    val showBottomBar = !currentRoute.startsWith(NavRoutes.GROUP_SPOOFING) && 
                         currentRoute != NavRoutes.DIAGNOSTICS
 
     Scaffold(
@@ -173,7 +178,7 @@ fun DeviceMaskerMainApp(
                 enterTransition = {
                     fadeIn(animationSpec = spring()) +
                             slideIntoContainer(
-                                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                                     towards = AnimatedContentTransitionScope.SlideDirection.Start,
                                     animationSpec = AppMotion.DefaultSpringOffset,
                             )
                 },
@@ -200,17 +205,25 @@ fun DeviceMaskerMainApp(
                 },
         ) {
             composable(NavRoutes.HOME) {
+                val homeViewModel = viewModel {
+                    HomeViewModel(repository)
+                }
                 HomeScreen(
-                        repository = repository,
-                        onNavigateToSpoof = { navController.navigate(NavRoutes.PROFILES) },
+                        viewModel = homeViewModel,
+                        onNavigateToSpoof = { navController.navigate(NavRoutes.GROUPS) },
                         onRegenerateAll = {
-                            // Will be connected to ViewModel
                             Timber.d("Regenerate all values requested")
+                        },
+                        onNavigateToGroup = { groupId ->
+                            navController.navigate(NavRoutes.groupSpoofingRoute(groupId))
                         },
                 )
             }
 
             composable(NavRoutes.SETTINGS) {
+                val settingsViewModel = viewModel {
+                    SettingsViewModel(settingsStore)
+                }
                 SettingsScreen(
                         themeMode = themeMode,
                         amoledDarkMode = amoledMode,
@@ -218,50 +231,58 @@ fun DeviceMaskerMainApp(
                         debugLogging = debugLogging,
                         onThemeModeChange = { mode ->
                             Timber.d("Theme mode changed: $mode")
-                            scope.launch { settingsStore.setThemeMode(mode) }
+                            settingsViewModel.setThemeMode(mode)
                         },
                         onAmoledDarkModeChange = { enabled ->
                             Timber.d("AMOLED mode changed: $enabled")
-                            scope.launch { settingsStore.setAmoledMode(enabled) }
+                            settingsViewModel.setAmoledMode(enabled)
                         },
                         onDynamicColorChange = { enabled ->
                             Timber.d("Dynamic colors changed: $enabled")
-                            scope.launch { settingsStore.setDynamicColors(enabled) }
+                            settingsViewModel.setDynamicColors(enabled)
                         },
                         onDebugLogChange = { enabled ->
                             Timber.d("Debug logging changed: $enabled")
-                            scope.launch { settingsStore.setDebugLogging(enabled) }
+                            settingsViewModel.setDebugLogging(enabled)
                         },
                         onNavigateToDiagnostics = { navController.navigate(NavRoutes.DIAGNOSTICS) },
                 )
             }
 
-            // Profile Detail Screen - Per-profile spoof values and app assignment
+            // Group Spoofing Screen - Per-group spoof values and app assignment
             composable(
-                    route = NavRoutes.PROFILE_DETAIL_PATTERN,
-                    arguments = listOf(navArgument("profileId") { type = NavType.StringType }),
+                    route = NavRoutes.GROUP_SPOOFING_PATTERN,
+                    arguments = listOf(navArgument("groupId") { type = NavType.StringType }),
             ) { backStackEntry ->
-                val profileId =
-                        backStackEntry.arguments?.getString("profileId") ?: return@composable
-                ProfileDetailScreen(
-                        profileId = profileId,
-                        repository = repository,
+                val groupId =
+                        backStackEntry.arguments?.getString("groupId") ?: return@composable
+                val groupSpoofingViewModel = viewModel {
+                    GroupSpoofingViewModel(repository, groupId)
+                }
+                GroupSpoofingScreen(
+                        viewModel = groupSpoofingViewModel,
                         onNavigateBack = { navController.popBackStack() },
                 )
             }
 
-            composable(NavRoutes.PROFILES) {
-                ProfileScreen(
-                        repository = repository,
-                        onProfileClick = { profile ->
-                            navController.navigate(NavRoutes.profileDetailRoute(profile.id))
+            composable(NavRoutes.GROUPS) {
+                val groupsViewModel = viewModel {
+                    GroupsViewModel(repository)
+                }
+                GroupsScreen(
+                        viewModel = groupsViewModel,
+                        onGroupClick = { group ->
+                            navController.navigate(NavRoutes.groupSpoofingRoute(group.id))
                         },
                 )
             }
 
             composable(NavRoutes.DIAGNOSTICS) {
+                val diagnosticsViewModel = viewModel {
+                    DiagnosticsViewModel(repository, context.applicationContext)
+                }
                 DiagnosticsScreen(
-                        repository = repository,
+                        viewModel = diagnosticsViewModel,
                         onNavigateBack = { navController.popBackStack() },
                 )
             }

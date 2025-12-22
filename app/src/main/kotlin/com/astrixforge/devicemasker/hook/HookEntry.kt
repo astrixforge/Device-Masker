@@ -14,7 +14,7 @@ import com.highcapable.yukihookapi.hook.xposed.proxy.IYukiHookXposedInit
  * This class is automatically detected by LSPosed via the @InjectYukiHookWithXposed annotation.
  * YukiHookAPI's KSP processor generates the necessary Xposed init class.
  *
- * In HMA-OSS architecture:
+ * In Multi-Module AIDL architecture:
  * - This entry point stays in :app module (required for KSP)
  * - Loads XposedHookLoader from :xposed module
  * - XposedHookLoader handles system_server init and target app hooks

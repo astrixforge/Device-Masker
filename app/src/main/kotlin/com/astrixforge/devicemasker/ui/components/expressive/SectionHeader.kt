@@ -42,7 +42,7 @@ import com.astrixforge.devicemasker.ui.theme.StatusActive
  * Use this component for section headers in lists:
  * - Diagnostic category headers
  * - Settings group headers
- * - Profile section headers
+ * - Group section headers
  *
  * @param title Section title
  * @param modifier Modifier for the header

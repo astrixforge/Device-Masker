@@ -19,7 +19,7 @@ import com.highcapable.yukihookapi.hook.type.java.StringClass
  * Note: MEID hooks have been removed as CDMA networks were deprecated in 2022.
  * All modern devices use IMEI only.
  *
- * Uses DeviceMaskerService.instance?.config for values (HMA-OSS architecture).
+ * Uses DeviceMaskerService.instance?.config for values (Multi-Module architecture).
  */
 object DeviceHooker : YukiBaseHooker() {
 
@@ -34,12 +34,12 @@ object DeviceHooker : YukiBaseHooker() {
     private fun getSpoofValue(type: SpoofType, fallback: () -> String): String {
         val service = DeviceMaskerService.instance ?: return fallback()
         val config = service.config
-        val profile = config.getProfileForApp(packageName) ?: return fallback()
+        val group = config.getGroupForApp(packageName) ?: return fallback()
 
-        if (!profile.isEnabled) return fallback()
-        if (!profile.isTypeEnabled(type)) return fallback()
+        if (!group.isEnabled) return fallback()
+        if (!group.isTypeEnabled(type)) return fallback()
 
-        return profile.getValue(type) ?: fallback()
+        return group.getValue(type) ?: fallback()
     }
 
     override fun onHook() {
