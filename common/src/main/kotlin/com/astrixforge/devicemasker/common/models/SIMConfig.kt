@@ -15,6 +15,7 @@ import kotlinx.serialization.Serializable
  * 
  * Detection systems can easily spot mismatches between these values.
  */
+@Suppress("unused") // Properties used for serialization and cross-module access
 @Serializable
 data class SIMConfig(
     val carrier: Carrier,

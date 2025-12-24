@@ -15,7 +15,6 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.MaterialTheme
-import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,9 +27,9 @@ import androidx.compose.ui.unit.dp
 import com.astrixforge.devicemasker.data.models.DeviceIdentifier
 import com.astrixforge.devicemasker.data.models.SpoofType
 import com.astrixforge.devicemasker.ui.components.expressive.CompactExpressiveIconButton
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveIconButton
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveSwitch
-import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
 import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 
 /**
@@ -92,7 +91,8 @@ fun SpoofValueCard(
             // Value Display
             Box(
                 modifier =
-                    Modifier.fillMaxWidth()
+                    Modifier
+                        .fillMaxWidth()
                         .background(
                             color = MaterialTheme.colorScheme.surfaceContainerHigh,
                             shape = MaterialTheme.shapes.small,
@@ -168,7 +168,9 @@ fun CompactSpoofValueCard(
         containerColor = Color.Transparent, // Let the parent container's color show through or use a subtle surface
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -203,7 +205,6 @@ fun CompactSpoofValueCard(
 }
 
 
-
 /** Masks a value for display based on type. */
 private fun maskValueString(type: SpoofType, value: String?): String {
     if (value == null) return "Not set"
@@ -217,6 +218,7 @@ private fun maskValueString(type: SpoofType, value: String?): String {
                 "***"
             }
         }
+
         SpoofType.SERIAL -> {
             if (value.length > 4) {
                 "***" + value.takeLast(4)
@@ -224,6 +226,7 @@ private fun maskValueString(type: SpoofType, value: String?): String {
                 "***"
             }
         }
+
         SpoofType.ANDROID_ID,
         SpoofType.GSF_ID,
         SpoofType.ADVERTISING_ID -> {
@@ -233,6 +236,7 @@ private fun maskValueString(type: SpoofType, value: String?): String {
                 "***"
             }
         }
+
         SpoofType.WIFI_MAC,
         SpoofType.BLUETOOTH_MAC -> {
             val parts = value.split(":")
@@ -242,6 +246,7 @@ private fun maskValueString(type: SpoofType, value: String?): String {
                 "**:**:**:**:**:**"
             }
         }
+
         else -> value
     }
 }

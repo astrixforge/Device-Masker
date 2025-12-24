@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
  * @property groupId ID of the assigned group (null = use default)
  * @property isEnabled Whether spoofing is enabled for this app
  */
+@Suppress("unused") // Methods used across modules
 @Serializable
 data class AppConfig(
     val packageName: String,

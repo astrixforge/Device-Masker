@@ -13,5 +13,18 @@ data class SettingsState(
     val amoledMode: Boolean = true,
     val dynamicColors: Boolean = true,
     val debugLogging: Boolean = false,
-    val showThemeModeDialog: Boolean = false
+    val showThemeModeDialog: Boolean = false,
+    // Log export state
+    val isExportingLogs: Boolean = false,
+    val exportResult: ExportResult? = null
 )
+
+/**
+ * Result of a log export operation.
+ */
+sealed class ExportResult {
+    data class Success(val filePath: String, val logCount: Int) : ExportResult()
+    data class Error(val message: String) : ExportResult()
+    data object NoLogs : ExportResult()
+}
+

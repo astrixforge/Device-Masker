@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.map
 
 /**
  * DataStore for UI/app settings only.
- * 
+ *
  * In the Multi-Module architecture, this is separate from hook configuration.
  * Hook config uses JsonConfig via ConfigManager.
  * This store only handles UI preferences like theme settings.

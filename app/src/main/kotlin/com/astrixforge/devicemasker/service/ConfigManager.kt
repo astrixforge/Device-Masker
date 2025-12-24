@@ -2,11 +2,11 @@ package com.astrixforge.devicemasker.service
 
 import android.content.Context
 import com.astrixforge.devicemasker.common.AppConfig
-import com.astrixforge.devicemasker.common.Constants
 import com.astrixforge.devicemasker.common.DeviceIdentifier
 import com.astrixforge.devicemasker.common.JsonConfig
 import com.astrixforge.devicemasker.common.SpoofGroup
 import com.astrixforge.devicemasker.common.SpoofType
+import com.astrixforge.devicemasker.data.ConfigSync
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -31,13 +31,13 @@ import java.io.File
  * - Read: Local file → ConfigManager → UI StateFlow
  * - Write: UI → ConfigManager → Local file + ServiceClient (if connected)
  */
-@Suppress("PropertyName") // We use _config for backing property
 object ConfigManager {
 
     private const val TAG = "ConfigManager"
     private const val CONFIG_FILE_NAME = "config.json"
 
     private lateinit var configFile: File
+    private lateinit var appContext: Context
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     // In-memory configuration
@@ -62,6 +62,7 @@ object ConfigManager {
             return
         }
 
+        appContext = context.applicationContext
         configFile = File(context.filesDir, CONFIG_FILE_NAME)
         Timber.tag(TAG).d("Config file: ${configFile.absolutePath}")
 
@@ -146,6 +147,11 @@ object ConfigManager {
                     }
                 }
 
+                // CRITICAL: Sync to XposedPrefs for cross-process access
+                // This enables hooked apps to read the config via XSharedPreferences
+                ConfigSync.syncFromConfig(appContext, config)
+                Timber.tag(TAG).d("Config synced to XposedPrefs")
+
             } catch (e: Exception) {
                 Timber.tag(TAG).e(e, "Failed to save config")
             }
@@ -196,17 +202,13 @@ object ConfigManager {
      */
     fun createGroup(name: String, copyFromGroupId: String? = null): SpoofGroup {
         val baseGroup = copyFromGroupId?.let { getGroup(it) }
-        val newGroup = if (baseGroup != null) {
-            baseGroup.copy(
-                id = java.util.UUID.randomUUID().toString(),
-                name = name,
-                createdAt = System.currentTimeMillis(),
-                updatedAt = System.currentTimeMillis(),
-                assignedApps = emptySet() // Don't copy app assignments
-            )
-        } else {
-            SpoofGroup.createNew(name = name, isDefault = false)
-        }
+        val newGroup = baseGroup?.copy(
+            id = java.util.UUID.randomUUID().toString(),
+            name = name,
+            createdAt = System.currentTimeMillis(),
+            updatedAt = System.currentTimeMillis(),
+            assignedApps = emptySet() // Don't copy app assignments
+        ) ?: SpoofGroup.createNew(name = name, isDefault = false)
 
         updateConfig { it.addOrUpdateGroup(newGroup) }
         return newGroup

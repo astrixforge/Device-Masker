@@ -74,7 +74,9 @@ fun ExpressiveIconButton(
 
     IconButton(
         onClick = onClick,
-        modifier = modifier.size(buttonSize).scale(scale),
+        modifier = modifier
+            .size(buttonSize)
+            .scale(scale),
         enabled = enabled,
         interactionSource = interactionSource,
         colors = IconButtonDefaults.iconButtonColors(

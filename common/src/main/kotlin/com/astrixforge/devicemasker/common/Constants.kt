@@ -8,6 +8,7 @@ package com.astrixforge.devicemasker.common
  * - Shared models (SpoofGroup, SpoofType, etc.)
  * - JSON configuration management
  */
+@Suppress("unused") // Used by :app and :xposed modules
 object Constants {
     // Package IDs
     const val PACKAGE_NAME = "com.astrixforge.devicemasker"

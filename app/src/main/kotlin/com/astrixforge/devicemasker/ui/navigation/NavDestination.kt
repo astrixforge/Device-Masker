@@ -1,11 +1,11 @@
 package com.astrixforge.devicemasker.ui.navigation
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -65,8 +65,8 @@ val bottomNavItems: List<NavItem> =
         NavItem(
             route = NavRoutes.GROUPS,
             label = "Groups",
-            selectedIcon = Icons.Filled.Person,
-            unselectedIcon = Icons.Outlined.Person,
+            selectedIcon = Icons.Filled.Groups,
+            unselectedIcon = Icons.Outlined.Groups,
         ),
         NavItem(
             route = NavRoutes.SETTINGS,

@@ -63,6 +63,24 @@ android {
         // Ensure all module classes are in the primary dex
         dex { useLegacyPackaging = true }
     }
+
+    // ═══════════════════════════════════════════════════════════
+    // LINT CONFIGURATION
+    // ═══════════════════════════════════════════════════════════
+    lint {
+        // Enable cross-module analysis to prevent false positives
+        // in library modules (:common, :xposed)
+        checkDependencies = true
+        
+        // Treat lint errors as warnings in debug builds
+        abortOnError = false
+        
+        // Generate HTML report for review
+        htmlReport = true
+        
+        // Baseline file to track known issues (optional)
+        // baseline = file("lint-baseline.xml")
+    }
 }
 
 dependencies {

@@ -35,6 +35,7 @@ object ImageUtils {
                     drawable.draw(canvas)
                     bitmap
                 }
+
                 else -> {
                     val bitmap = createBitmap(
                         drawable.intrinsicWidth.coerceAtLeast(1),

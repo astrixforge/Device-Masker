@@ -19,6 +19,7 @@ import kotlinx.serialization.Serializable
  * @property fingerprint Build.FINGERPRINT - Full fingerprint string
  * @property securityPatch Security patch date (e.g., "2024-12-05")
  */
+@Suppress("unused") // Used via JSON serialization and cross-module
 @Serializable
 data class DeviceProfilePreset(
     val id: String,

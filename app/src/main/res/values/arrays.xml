@@ -2,10 +2,18 @@
 <resources>
     <!-- 
     Xposed/LSPosed module scope configuration.
-    Empty array means all apps can be selected in LSPosed Manager.
-    Users will select which apps to hook via the LSPosed scope settings.
+    
+    Recommended scope for device spoofing modules:
+    - android: System Framework - enables DeviceMaskerService in system_server
+    - com.android.providers.settings: Settings Storage - hook Settings.Secure/Global
+    
+    Additional apps are selected by user in LSPosed Manager.
     -->
     <string-array name="xposed_scope">
-        <!-- Empty scope: Apps are selected by user in LSPosed Manager -->
+        <!-- System Framework: Required for DeviceMaskerService AIDL in system_server -->
+        <item>android</item>
+
+        <!-- Settings Storage: Hook Settings.Secure.ANDROID_ID and similar -->
+        <item>com.android.providers.settings</item>
     </string-array>
 </resources>

@@ -2,7 +2,6 @@ package com.astrixforge.devicemasker.service
 
 import android.os.IBinder
 import android.os.RemoteException
-import com.astrixforge.devicemasker.common.Constants
 import com.astrixforge.devicemasker.common.IDeviceMaskerService
 import timber.log.Timber
 

@@ -16,7 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -82,7 +82,11 @@ fun GroupCard(
         shape = cardShape,
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
-        Column(modifier = Modifier.padding(16.dp).alpha(contentAlpha)) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .alpha(contentAlpha)
+        ) {
             // Group Info Row with Switch
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -106,7 +110,7 @@ fun GroupCard(
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Person,
+                            imageVector = Icons.Default.Groups,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(24.dp),
@@ -255,7 +259,7 @@ fun CompactGroupCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                imageVector = Icons.Default.Person,
+                imageVector = Icons.Default.Groups,
                 contentDescription = null,
                 tint = if (isSelected) {
                     MaterialTheme.colorScheme.primary

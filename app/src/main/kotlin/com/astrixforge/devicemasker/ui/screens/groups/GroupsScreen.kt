@@ -17,8 +17,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material3.AlertDialog
@@ -37,8 +37,8 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -215,7 +215,7 @@ fun GroupsScreenContent(
     val expandedFab by remember {
         derivedStateOf { listState.firstVisibleItemIndex == 0 }
     }
-    
+
     Box(modifier = modifier.fillMaxSize()) {
         ExpressivePullToRefresh(
             isRefreshing = isRefreshing,
@@ -230,7 +230,7 @@ fun GroupsScreenContent(
                 // Header with title and overflow menu
                 item {
                     var showMenu by remember { mutableStateOf(false) }
-                    
+
                     ScreenHeader(
                         title = stringResource(id = R.string.group_screen_title),
                         actions = {
@@ -242,7 +242,7 @@ fun GroupsScreenContent(
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                 }
-                                
+
                                 DropdownMenu(
                                     expanded = showMenu,
                                     onDismissRequest = { showMenu = false },
@@ -283,7 +283,7 @@ fun GroupsScreenContent(
                     // Empty State
                     item {
                         EmptyState(
-                            icon = Icons.Default.Person,
+                            icon = Icons.Default.Groups,
                             title = stringResource(id = R.string.group_list_empty),
                             subtitle = stringResource(id = R.string.group_create_new),
                         )
@@ -316,7 +316,9 @@ fun GroupsScreenContent(
             text = { Text(stringResource(id = R.string.group_new)) },
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
-            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
         )
     }
 }
@@ -392,7 +394,7 @@ fun EditGroupDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon = { Icon(imageVector = Icons.Default.Person, contentDescription = null) },
+        icon = { Icon(imageVector = Icons.Default.Groups, contentDescription = null) },
         title = { Text(stringResource(id = R.string.group_edit_dialog_title)) },
         text = {
             Column {
@@ -429,7 +431,7 @@ fun DeleteGroupDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
         onDismissRequest = onDismiss,
         icon = {
             Icon(
-                imageVector = Icons.Default.Person,
+                imageVector = Icons.Default.Groups,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.error,
             )
@@ -438,12 +440,15 @@ fun DeleteGroupDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
         text = {
             Text(
                 stringResource(id = R.string.group_delete_confirm) + " " +
-                    stringResource(id = R.string.group_delete_warning)
+                        stringResource(id = R.string.group_delete_warning)
             )
         },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text(stringResource(id = R.string.action_delete), color = MaterialTheme.colorScheme.error)
+                Text(
+                    stringResource(id = R.string.action_delete),
+                    color = MaterialTheme.colorScheme.error
+                )
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(id = R.string.action_cancel)) } },

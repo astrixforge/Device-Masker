@@ -121,7 +121,9 @@ fun AnimatedSection(
                 Icon(
                     imageVector = Icons.Default.ExpandMore,
                     contentDescription = if (isExpanded) "Collapse" else "Expand",
-                    modifier = Modifier.padding(12.dp).rotate(iconRotation),
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .rotate(iconRotation),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

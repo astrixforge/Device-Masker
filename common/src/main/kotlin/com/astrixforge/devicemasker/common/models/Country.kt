@@ -8,6 +8,7 @@ package com.astrixforge.devicemasker.common.models
  * @property emoji Flag emoji (e.g., "🇮🇳", "🇺🇸")
  * @property phoneCode Phone prefix without + (e.g., "91", "1")
  */
+@Suppress("unused") // displayName is API for UI use
 data class Country(
     val iso: String,
     val name: String,

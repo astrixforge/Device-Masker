@@ -1,7 +1,7 @@
 package com.astrixforge.devicemasker.ui.screens.groupspoofing
 
-import com.astrixforge.devicemasker.data.models.InstalledApp
 import com.astrixforge.devicemasker.common.SpoofGroup
+import com.astrixforge.devicemasker.data.models.InstalledApp
 
 /**
  * UI state for the Group Spoofing screen.

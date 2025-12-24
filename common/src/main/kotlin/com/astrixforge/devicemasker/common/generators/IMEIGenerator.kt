@@ -94,12 +94,31 @@ object IMEIGenerator {
 
     /**
      * Generates a valid 15-digit IMEI number with Luhn checksum.
-     *
+     * 
+     * @param manufacturer Optional manufacturer name to filter TAC prefixes
      * @return A valid IMEI string (15 digits)
      */
-    fun generate(): String {
-        // Select a random TAC prefix
-        val tac = TAC_PREFIXES[secureRandom.nextInt(TAC_PREFIXES.size)]
+    fun generate(manufacturer: String? = null): String {
+        // Filter TAC prefixes if manufacturer is provided
+        val filteredTacs = if (manufacturer != null) {
+            val lowerManufacturer = manufacturer.lowercase()
+            when {
+                lowerManufacturer.contains("samsung") -> TAC_PREFIXES.filter { it.startsWith("3533") || it.startsWith("3539") || it.startsWith("354") || it.startsWith("355") || it.startsWith("356") || it.startsWith("357") }
+                lowerManufacturer.contains("apple") || lowerManufacturer.contains("iphone") -> TAC_PREFIXES.filter { it.startsWith("35") && !it.startsWith("3533") && !it.startsWith("3539") } // Simplified logic
+                lowerManufacturer.contains("google") || lowerManufacturer.contains("pixel") -> TAC_PREFIXES.filter { it.startsWith("3582") || it.startsWith("35331") || it.startsWith("3538") || it.startsWith("3588") || it.startsWith("3512") || it.startsWith("3592") || it.startsWith("359") }
+                lowerManufacturer.contains("xiaomi") || lowerManufacturer.contains("redmi") || lowerManufacturer.contains("poco") -> TAC_PREFIXES.filter { it.startsWith("867834") || it.startsWith("860762") || it.startsWith("86") }
+                lowerManufacturer.contains("oneplus") -> TAC_PREFIXES.filter { it.startsWith("868318") || it.startsWith("868094") || it.startsWith("864685") || it.startsWith("868996") || it.startsWith("869125") }
+                else -> TAC_PREFIXES
+            }
+        } else {
+            TAC_PREFIXES
+        }
+
+        // Fallback to all TACs if filtered list is empty
+        val finalTacs = filteredTacs.ifEmpty { TAC_PREFIXES }
+        
+        // Select a random TAC prefix from the eligible ones
+        val tac = finalTacs[secureRandom.nextInt(finalTacs.size)]
 
         // Generate 6 random digits for the serial number
         val serial = buildString { repeat(6) { append(secureRandom.nextInt(10)) } }
@@ -128,7 +147,7 @@ object IMEIGenerator {
         for (i in partial.indices) {
             var digit = partial[i].digitToInt()
 
-            // Double every second digit starting from position 1 (even positions are doubled in LUHN for 15-digit IMEI)
+            // Double every second digit starting from position 1
             if (i % 2 != 0) {
                 digit *= 2
                 if (digit > 9) {

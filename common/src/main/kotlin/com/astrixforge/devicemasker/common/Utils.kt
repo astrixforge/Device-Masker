@@ -3,6 +3,7 @@ package com.astrixforge.devicemasker.common
 /**
  * Utility functions shared between the app UI and xposed module.
  */
+@Suppress("unused") // Utility functions for cross-module use
 object Utils {
 
     /**

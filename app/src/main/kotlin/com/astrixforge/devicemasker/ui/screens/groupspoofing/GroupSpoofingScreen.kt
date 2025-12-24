@@ -133,6 +133,7 @@ fun GroupSpoofingScreen(
                         onRegenerateLocation = { viewModel.regenerateLocation() },
                         onCarrierChange = { carrier -> viewModel.updateCarrier(carrier) },
                     )
+
                     1 -> AppsTabContent(
                         group = group,
                         allGroups = groups,

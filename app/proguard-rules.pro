@@ -90,9 +90,8 @@
 # DATASTORE
 # ═══════════════════════════════════════════════════════════
 
--keepclassmembers class * extends androidx.datastore.preferences.protobuf.GeneratedMessageLite {
-    <fields>;
-}
+# Note: Removed GeneratedMessageLite rule - Preferences DataStore doesn't use Protobuf
+# Only Proto DataStore requires protobuf rules
 
 # ═══════════════════════════════════════════════════════════
 # COMPOSE - Needed for release builds

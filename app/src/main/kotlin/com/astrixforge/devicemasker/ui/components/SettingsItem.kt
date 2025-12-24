@@ -22,8 +22,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveSwitch
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveSwitch
 import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 
 /**
@@ -123,6 +123,7 @@ fun SettingsSwitchItem(
  * @param description Subtitle/description text
  * @param onClick Callback when item is clicked
  * @param modifier Optional modifier
+ * @param trailingContent Optional composable content to show instead of chevron
  */
 @Composable
 fun SettingsClickableItem(
@@ -131,6 +132,7 @@ fun SettingsClickableItem(
     description: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    trailingContent: (@Composable () -> Unit)? = null,
 ) {
     Row(
         modifier = modifier
@@ -160,11 +162,15 @@ fun SettingsClickableItem(
             )
         }
 
-        Icon(
-            imageVector = Icons.Filled.ChevronRight,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        if (trailingContent != null) {
+            trailingContent()
+        } else {
+            Icon(
+                imageVector = Icons.Filled.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 

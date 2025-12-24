@@ -22,6 +22,7 @@ import kotlinx.serialization.json.Json
  * @property groups Map of group ID to SpoofGroup
  * @property appConfigs Map of package name to AppConfig
  */
+@Suppress("unused") // API methods used across modules
 @Serializable
 data class JsonConfig(
     val version: Int = Constants.CONFIG_VERSION,

@@ -4,9 +4,7 @@ import com.astrixforge.devicemasker.common.Constants
 import com.astrixforge.devicemasker.common.IDeviceMaskerService
 import com.astrixforge.devicemasker.common.JsonConfig
 import com.astrixforge.devicemasker.common.SpoofType
-import com.highcapable.yukihookapi.hook.log.YLog
 import java.io.File
-import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * Device Masker Service - AIDL implementation running in system_server.
@@ -24,6 +22,7 @@ class DeviceMaskerService private constructor() : IDeviceMaskerService.Stub() {
     companion object {
         private const val TAG = "DeviceMaskerService"
         private const val SERVICE_VERSION = 1
+        @Suppress("unused") // Reserved for future log buffer limit
         private const val MAX_LOGS = 1000
 
         @Volatile
@@ -32,19 +31,27 @@ class DeviceMaskerService private constructor() : IDeviceMaskerService.Stub() {
 
         /**
          * Initializes the service singleton.
-         * Called from XposedEntry.loadSystem{}.
+         * Called from XposedHookLoader when running in system_server.
+         * 
+         * The service manages config files that are read by hooked apps.
+         * ServiceManager registration was removed as it doesn't work due to SELinux.
          */
         fun init() {
             if (instance != null) {
-                YLog.warn("$TAG: Service already initialized")
+                DualLog.warn(TAG, "Service already initialized")
                 return
             }
 
-            instance = DeviceMaskerService().apply {
+            val service = DeviceMaskerService()
+            instance = service.apply {
                 searchDataDir()
                 loadConfig()
-                YLog.info("$TAG: Service initialized, config version: ${config.version}")
             }
+
+            // Note: ServiceManager registration removed - doesn't work due to SELinux
+            // Hooks now read config directly from file via ConfigReader
+
+            DualLog.info(TAG, "Service initialized, config version: ${service.config.version}")
         }
     }
 
@@ -60,9 +67,6 @@ class DeviceMaskerService private constructor() : IDeviceMaskerService.Stub() {
     /** Data directory path */
     private var dataDir: File? = null
 
-    /** Log buffer for diagnostics */
-    private val logBuffer = CopyOnWriteArrayList<String>()
-
     /** Hook count (for diagnostics) */
     @Volatile
     private var hookCount: Int = 0
@@ -73,32 +77,88 @@ class DeviceMaskerService private constructor() : IDeviceMaskerService.Stub() {
 
     /**
      * Finds or creates the data directory.
-     * Uses /data/system/devicemasker/ which is accessible by system_server.
+     * 
+     * Priority order:
+     * 1. /data/system/devicemasker/ - Preferred for system_server access
+     * 2. /data/local/tmp/devicemasker/ - Fallback for testing
+     * 3. In-memory only (no persistence) - Last resort
      */
     private fun searchDataDir() {
+        // Try primary location: /data/system/devicemasker
         val systemDir = File(Constants.SYSTEM_DATA_DIR)
-
-        runCatching {
-            if (!systemDir.exists()) {
-                systemDir.mkdirs()
-                // Set permissions for system_server access
-                systemDir.setReadable(true, false)
-                systemDir.setWritable(true, true)
-            }
+        
+        if (tryCreateDirectory(systemDir)) {
             dataDir = systemDir
-            YLog.info("$TAG: Data directory: ${systemDir.absolutePath}")
-        }.onFailure { e ->
-            YLog.error("$TAG: Failed to create data directory", e)
-            // Fallback to a temporary location
-            dataDir = File("/data/local/tmp/devicemasker").also { it.mkdirs() }
+            DualLog.info(TAG, "Data directory: ${systemDir.absolutePath}")
+            return
+        }
+        
+        // Try fallback location: /data/local/tmp/devicemasker
+        val tmpDir = File("/data/local/tmp/devicemasker")
+        if (tryCreateDirectory(tmpDir)) {
+            dataDir = tmpDir
+            DualLog.warn(TAG, "Using fallback data directory: ${tmpDir.absolutePath}")
+            return
+        }
+        
+        // Last resort: use cache in app's data directory if available
+        // Note: This won't persist well but prevents crashes
+        dataDir = null
+        DualLog.error(TAG, "Could not create any data directory! Config will not persist.")
+    }
+    
+    /**
+     * Attempts to create a directory with proper permissions.
+     * @return true if directory exists or was successfully created
+     */
+    private fun tryCreateDirectory(dir: File): Boolean {
+        return runCatching {
+            if (dir.exists()) {
+                if (dir.isDirectory && dir.canWrite()) {
+                    return@runCatching true
+                }
+                DualLog.warn(TAG, "${dir.absolutePath} exists but is not writable")
+                return@runCatching false
+            }
+            
+            // Attempt to create the directory
+            val created = dir.mkdirs()
+            if (created) {
+                @Suppress("SetWorldReadable") // Required for Xposed hooks to access config
+                dir.setReadable(true, false)
+                dir.setWritable(true, true)
+                dir.setExecutable(true, false)
+                DualLog.debug(TAG, "Created directory: ${dir.absolutePath}")
+                return@runCatching true
+            }
+            
+            // mkdirs() returned false - try using Runtime.exec as fallback
+            // This works in system_server context with proper SELinux permissions
+            runCatching {
+                val process = Runtime.getRuntime().exec(arrayOf("mkdir", "-p", dir.absolutePath))
+                val exitCode = process.waitFor()
+                if (exitCode == 0 && dir.exists()) {
+                    Runtime.getRuntime().exec(arrayOf("chmod", "755", dir.absolutePath)).waitFor()
+                    DualLog.debug(TAG, "Created directory via shell: ${dir.absolutePath}")
+                    return@runCatching true
+                }
+            }
+            
+            DualLog.warn(TAG, "Failed to create directory: ${dir.absolutePath}")
+            false
+        }.getOrElse { e ->
+            DualLog.warn(TAG, "Exception creating directory ${dir.absolutePath}: ${e.message}")
+            false
         }
     }
 
     /**
      * Gets the config file path.
+     * @return File object or null if dataDir is not available
      */
-    private fun getConfigFile(): File {
-        return File(dataDir, Constants.CONFIG_FILE_NAME)
+    private fun getConfigFile(): File? {
+        val dir = dataDir ?: return null
+        return File(dir, Constants.CONFIG_FILE_NAME)
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -110,17 +170,24 @@ class DeviceMaskerService private constructor() : IDeviceMaskerService.Stub() {
      */
     private fun loadConfig() {
         val file = getConfigFile()
+        
+        // If no data directory, just use default config (in-memory only)
+        if (file == null) {
+            DualLog.warn(TAG, "No data directory available, using in-memory config only")
+            config = JsonConfig.createDefault()
+            return
+        }
 
         config = if (file.exists()) {
             runCatching {
                 val json = file.readText()
                 JsonConfig.parse(json)
             }.getOrElse { e ->
-                YLog.error("$TAG: Failed to parse config, using default", e)
+                DualLog.error(TAG, "Failed to parse config, using default", e)
                 JsonConfig.createDefault()
             }
         } else {
-            YLog.info("$TAG: No config file, creating default")
+            DualLog.info(TAG, "No config file, creating default")
             val defaultConfig = JsonConfig.createDefault()
             saveConfigInternal(defaultConfig)
             defaultConfig
@@ -132,23 +199,29 @@ class DeviceMaskerService private constructor() : IDeviceMaskerService.Stub() {
      */
     private fun saveConfigInternal(newConfig: JsonConfig) {
         val file = getConfigFile()
+        
+        // If no data directory available, skip saving (config is in-memory only)
+        if (file == null) {
+            DualLog.debug(TAG, "No data directory, skipping config save")
+            return
+        }
 
         runCatching {
             // Ensure parent directory exists before writing
             file.parentFile?.let { parentDir ->
                 if (!parentDir.exists()) {
-                    val created = parentDir.mkdirs()
-                    if (created) {
-                        parentDir.setReadable(true, false)
-                        parentDir.setWritable(true, true)
-                        YLog.debug("$TAG: Created data directory: ${parentDir.absolutePath}")
+                    if (tryCreateDirectory(parentDir)) {
+                        DualLog.debug(TAG, "Created data directory: ${parentDir.absolutePath}")
+                    } else {
+                        DualLog.warn(TAG, "Could not create parent directory for config")
+                        return
                     }
                 }
             }
             file.writeText(newConfig.toPrettyJsonString())
-            YLog.debug("$TAG: Config saved to ${file.absolutePath}")
+            DualLog.debug(TAG, "Config saved to ${file.absolutePath}")
         }.onFailure { e ->
-            YLog.error("$TAG: Failed to save config", e)
+            DualLog.error(TAG, "Failed to save config", e)
         }
     }
 
@@ -159,10 +232,10 @@ class DeviceMaskerService private constructor() : IDeviceMaskerService.Stub() {
     override fun getServiceVersion(): Int = SERVICE_VERSION
 
     override fun stopService(cleanEnv: Boolean) {
-        YLog.info("$TAG: stopService called, cleanEnv=$cleanEnv")
+        DualLog.info(TAG, "stopService called, cleanEnv=$cleanEnv")
         if (cleanEnv) {
             config = JsonConfig.createDefault()
-            logBuffer.clear()
+            DualLog.clearLogs()
         }
     }
 
@@ -175,36 +248,28 @@ class DeviceMaskerService private constructor() : IDeviceMaskerService.Stub() {
             val newConfig = JsonConfig.parse(json)
             config = newConfig
             saveConfigInternal(newConfig)
-            YLog.info("$TAG: Config updated from UI")
+            DualLog.info(TAG, "Config updated from UI")
         }.onFailure { e ->
-            YLog.error("$TAG: Failed to parse config from UI", e)
+            DualLog.error(TAG, "Failed to parse config from UI", e)
         }
     }
 
     override fun getLogs(): Array<String> {
-        return logBuffer.toTypedArray()
+        return DualLog.getLogs()
     }
 
     override fun clearLogs() {
-        logBuffer.clear()
+        DualLog.clearLogs()
     }
 
     override fun log(level: Int, tag: String, message: String) {
-        val timestamp = System.currentTimeMillis()
-        val levelStr = when (level) {
-            0 -> "V"
-            1 -> "D"
-            2 -> "I"
-            3 -> "W"
-            4 -> "E"
-            else -> "?"
-        }
-        val logEntry = "[$timestamp][$levelStr][$tag] $message"
-
-        // Add to buffer, trim if too large
-        logBuffer.add(logEntry)
-        while (logBuffer.size > MAX_LOGS) {
-            logBuffer.removeAt(0)
+        // Route to DualLog based on level
+        when (level) {
+            0, 1 -> DualLog.debug(tag, message) // Verbose, Debug
+            2 -> DualLog.info(tag, message)     // Info
+            3 -> DualLog.warn(tag, message)     // Warning
+            4 -> DualLog.error(tag, message)    // Error
+            else -> DualLog.debug(tag, message)
         }
     }
 
@@ -238,6 +303,7 @@ class DeviceMaskerService private constructor() : IDeviceMaskerService.Stub() {
     /**
      * Increments hook count (called by hookers).
      */
+    @Suppress("unused") // API method for diagnostics
     fun incrementHookCount() {
         hookCount++
     }

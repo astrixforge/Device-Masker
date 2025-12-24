@@ -64,10 +64,12 @@ fun ExpressiveCard(
     // Effect spring for color (NO overshoot)
     val baseColor = containerColor ?: MaterialTheme.colorScheme.surfaceContainerHigh
     val targetColor = when {
-        isSelected -> selectionColor ?: MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+        isSelected -> selectionColor
+            ?: MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+
         else -> baseColor
     }
-    
+
     val animatedContainerColor by animateColorAsState(
         targetValue = targetColor,
         animationSpec = AppMotion.Effect.Color,
@@ -127,7 +129,9 @@ fun ExpressiveOutlinedCard(
     )
 
     val targetColor = when {
-        isSelected -> selectionColor ?: MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
+        isSelected -> selectionColor
+            ?: MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
+
         else -> Color.Transparent
     }
 
@@ -164,7 +168,9 @@ private fun ExpressiveCardPreview() {
     DeviceMaskerTheme {
         ExpressiveCard(
             onClick = {},
-            modifier = Modifier.fillMaxWidth().padding(16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
         ) {
             Text(
                 text = "Expressive Card",
@@ -183,7 +189,9 @@ private fun ExpressiveCardSelectedPreview() {
         ExpressiveCard(
             onClick = {},
             isSelected = true,
-            modifier = Modifier.fillMaxWidth().padding(16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
         ) {
             Text(
                 text = "Selected Card",

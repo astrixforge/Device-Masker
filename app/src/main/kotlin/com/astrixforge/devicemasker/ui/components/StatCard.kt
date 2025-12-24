@@ -11,7 +11,6 @@ import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,6 +19,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
 import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 
 /**

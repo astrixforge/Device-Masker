@@ -120,7 +120,7 @@ fun QuickActionRow(
             }
             Text(primaryAction.label)
         }
-        
+
         FilledTonalButton(
             onClick = secondaryAction.onClick,
             enabled = secondaryAction.enabled,

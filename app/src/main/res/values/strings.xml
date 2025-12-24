@@ -18,13 +18,9 @@
     <string name="home_module_enabled_label">Module Enabled</string>
     <string name="home_protected_apps_label">Protected Apps</string>
     <string name="home_masked_ids_label">Masked IDs</string>
-    <string name="home_active_group_label">Active Group</string>
+    <string name="home_active_group_label">Select Group</string>
     <string name="home_no_group">No Group</string>
     <string name="home_group_disabled_tag">(Disabled)</string>
-    <plurals name="home_apps_assigned_count">
-        <item quantity="one">%d app assigned</item>
-        <item quantity="other">%d apps assigned</item>
-    </plurals>
     <plurals name="home_apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d apps</item>
@@ -37,7 +33,6 @@
     <string name="group_screen_title">Groups</string>
     <string name="group_list_empty">No groups found</string>
     <string name="group_new">New Group</string>
-    <string name="group_import_export">Import/Export</string>
     <string name="group_create_new">Create New Group</string>
     <string name="group_edit_dialog_title">Edit Group</string>
     <string name="group_name_hint">Group name</string>
@@ -64,6 +59,13 @@
     <string name="settings_debug">Debug</string>
     <string name="settings_debug_logging">Debug logging</string>
     <string name="settings_debug_description">Enable verbose logging for debugging</string>
+    <string name="settings_export_logs">Export Logs</string>
+    <string name="settings_export_logs_description">Save debug logs to Downloads folder</string>
+    <string name="settings_export_logs_success">Logs exported successfully (%1$d entries)\n\nSaved
+        to: %2$s</string>
+    <string name="settings_export_logs_no_logs">No logs available to export</string>
+    <string name="settings_export_logs_error">Failed to export logs: %s</string>
+    <string name="settings_exporting">Exporting…</string>
     <string name="settings_diagnostics">Diagnostics</string>
     <string name="settings_diagnostics_description">Check module health and hook status</string>
     <string name="settings_about">About</string>
@@ -131,7 +133,6 @@
     <!-- Actions -->
     <string name="action_regenerate">Regenerate</string>
     <string name="action_regenerate_all">Regenerate All</string>
-    <string name="action_copy">Copy</string>
     <string name="action_save">Save</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_delete">Delete</string>
@@ -160,4 +161,5 @@
     <!-- Validation -->
 
     <!-- Misc -->
+    <string name="label_choose_sim">Choose Sim</string>
 </resources>

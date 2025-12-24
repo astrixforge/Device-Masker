@@ -1,5 +1,11 @@
 package com.astrixforge.devicemasker.ui.screens.groupspoofing.categories
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,8 +33,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.astrixforge.devicemasker.R
 import com.astrixforge.devicemasker.common.SpoofGroup
 import com.astrixforge.devicemasker.common.SpoofType
 import com.astrixforge.devicemasker.common.models.Carrier
@@ -36,6 +44,7 @@ import com.astrixforge.devicemasker.common.models.Country
 import com.astrixforge.devicemasker.ui.components.dialog.CountryPickerDialog
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveOutlinedCard
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveSwitch
 import com.astrixforge.devicemasker.ui.screens.groupspoofing.items.IndependentSpoofItem
 import com.astrixforge.devicemasker.ui.screens.groupspoofing.items.ReadOnlyValueRow
 
@@ -113,6 +122,7 @@ fun SIMCardCategoryContent(
     // ═══════════════════════════════════════════════════════════
     // 1. CARRIER SELECTION CARD
     // ═══════════════════════════════════════════════════════════
+    val isSimEnabled = group?.isTypeEnabled(SpoofType.CARRIER_NAME) ?: false
     ExpressiveCard(
         onClick = { /* Selection action feedback */ },
         modifier = Modifier.fillMaxWidth(),
@@ -126,110 +136,150 @@ fun SIMCardCategoryContent(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // Country picker row
+            // Choose Sim Switch (Moved to Top)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "Country",
+                    text = stringResource(id = R.string.label_choose_sim),
                     style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
+                ExpressiveSwitch(
+                    checked = isSimEnabled,
+                    onCheckedChange = { enabled ->
+                        // Toggle all carrier related types together
+                        val simTypes = listOf(
+                            SpoofType.CARRIER_NAME,
+                            SpoofType.CARRIER_MCC_MNC,
+                            SpoofType.SIM_COUNTRY_ISO,
+                            SpoofType.NETWORK_COUNTRY_ISO,
+                            SpoofType.SIM_OPERATOR_NAME,
+                            SpoofType.NETWORK_OPERATOR
+                        )
+                        simTypes.forEach { type -> onToggle(type, enabled) }
+                    }
+                )
+            }
 
-                // Country button - opens dialog
-                val selectedCountry = Country.getByIso(selectedCountryIso)
-                ExpressiveOutlinedCard(
-                    onClick = { showCountryPicker = true },
-                    modifier = Modifier.width(200.dp),
-                    shape = RoundedCornerShape(12.dp),
-                ) {
+            // Collapsible content for Country and Carrier
+            AnimatedVisibility(
+                visible = isSimEnabled,
+                enter = expandVertically(animationSpec = spring()) + fadeIn(),
+                exit = shrinkVertically(animationSpec = spring()) + fadeOut(),
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    // Country picker row
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        // Centered: Flag + Country name
-                        Row(
-                            modifier = Modifier.weight(1f),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = "${selectedCountry?.emoji ?: "🌍"} ${selectedCountry?.name ?: selectedCountryIso}",
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                        }
-                        // Right arrow indicator
-                        Icon(
-                            imageVector = Icons.Filled.ChevronRight,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        Text(
+                            text = "Country",
+                            style = MaterialTheme.typography.bodyMedium,
                         )
-                    }
-                }
-            }
 
-            // Carrier dropdown
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "Carrier",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-
-                var carrierDropdownExpanded by remember { mutableStateOf(false) }
-
-                ExposedDropdownMenuBox(
-                    expanded = carrierDropdownExpanded,
-                    onExpandedChange = { carrierDropdownExpanded = it },
-                    modifier = Modifier.width(200.dp),
-                ) {
-                    // Rounded container matching Country picker style
-                    ExpressiveOutlinedCard(
-                        onClick = { carrierDropdownExpanded = true },
-                        modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
+                        // Country button - opens dialog
+                        val selectedCountry = Country.getByIso(selectedCountryIso)
+                        ExpressiveOutlinedCard(
+                            enabled = isSimEnabled,
+                            onClick = { showCountryPicker = true },
+                            modifier = Modifier.width(200.dp),
+                            shape = RoundedCornerShape(12.dp),
                         ) {
-                            Text(
-                                text = currentCarrier?.displayName ?: "Select carrier",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f),
-                            )
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = carrierDropdownExpanded)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                // Centered: Flag + Country name
+                                Row(
+                                    modifier = Modifier.weight(1f),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        text = "${selectedCountry?.emoji ?: "🌍"} ${selectedCountry?.name ?: selectedCountryIso}",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                }
+                                // Right arrow indicator
+                                Icon(
+                                    imageVector = Icons.Filled.ChevronRight,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
                     }
 
-                    ExposedDropdownMenu(
-                        expanded = carrierDropdownExpanded,
-                        onDismissRequest = { carrierDropdownExpanded = false },
+                    // Carrier dropdown
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        carriersForCountry.forEach { carrier ->
-                            DropdownMenuItem(
-                                text = { Text(carrier.displayName) },
-                                onClick = {
-                                    onCarrierChange(carrier)
-                                    carrierDropdownExpanded = false
-                                },
-                                leadingIcon = if (carrier.mccMnc == currentCarrierMccMnc) {
-                                    { Icon(Icons.Filled.Check, null) }
-                                } else null,
-                            )
+                        Text(
+                            text = "Carrier",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+
+                        var carrierDropdownExpanded by remember { mutableStateOf(false) }
+
+                        ExposedDropdownMenuBox(
+                            expanded = carrierDropdownExpanded && isSimEnabled,
+                            onExpandedChange = { if (isSimEnabled) carrierDropdownExpanded = it },
+                            modifier = Modifier.width(200.dp),
+                        ) {
+                            // Rounded container matching Country picker style
+                            ExpressiveOutlinedCard(
+                                enabled = isSimEnabled,
+                                onClick = { if (isSimEnabled) carrierDropdownExpanded = true },
+                                modifier = Modifier
+                                    .menuAnchor()
+                                    .fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        text = currentCarrier?.displayName ?: "Select carrier",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = carrierDropdownExpanded)
+                                }
+                            }
+
+                            ExposedDropdownMenu(
+                                expanded = carrierDropdownExpanded,
+                                onDismissRequest = { carrierDropdownExpanded = false },
+                            ) {
+                                carriersForCountry.forEach { carrier ->
+                                    DropdownMenuItem(
+                                        text = { Text(carrier.displayName) },
+                                        onClick = {
+                                            onCarrierChange(carrier)
+                                            carrierDropdownExpanded = false
+                                        },
+                                        leadingIcon = if (carrier.mccMnc == currentCarrierMccMnc) {
+                                            { Icon(Icons.Filled.Check, null) }
+                                        } else null,
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -240,32 +290,56 @@ fun SIMCardCategoryContent(
     // ═══════════════════════════════════════════════════════════
     // 2. LOCKED VALUES (derived from carrier, no switch/regenerate)
     // ═══════════════════════════════════════════════════════════
-    ExpressiveCard(
-        onClick = { /* Info action feedback */ },
-        modifier = Modifier.fillMaxWidth(),
-        containerColor = MaterialTheme.colorScheme.surface,
-        shape = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
+    AnimatedVisibility(
+        visible = isSimEnabled,
+        enter = expandVertically(animationSpec = spring()) + fadeIn(),
+        exit = shrinkVertically(animationSpec = spring()) + fadeOut(),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ExpressiveCard(
+            onClick = { /* Info action feedback */ },
+            modifier = Modifier.fillMaxWidth(),
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = MaterialTheme.shapes.medium,
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
         ) {
-            Text(
-                text = "Carrier Info",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = "Carrier Info",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
 
-            ReadOnlyValueRow(label = "SIM Country", value = simCountryValue, onCopy = { onCopy(simCountryValue) })
-            ReadOnlyValueRow(label = "Network Country", value = networkCountryValue, onCopy = { onCopy(networkCountryValue) })
-            ReadOnlyValueRow(label = "MCC/MNC", value = mccMncValue, onCopy = { onCopy(mccMncValue) })
-            ReadOnlyValueRow(label = "Carrier Name", value = carrierNameValue, onCopy = { onCopy(carrierNameValue) })
-            ReadOnlyValueRow(label = "SIM Operator", value = simOperatorValue, onCopy = { onCopy(simOperatorValue) })
-            ReadOnlyValueRow(label = "Network Operator", value = networkOperatorValue, onCopy = { onCopy(networkOperatorValue) })
+                ReadOnlyValueRow(
+                    label = "SIM Country",
+                    value = simCountryValue,
+                    onCopy = { onCopy(simCountryValue) })
+                ReadOnlyValueRow(
+                    label = "Network Country",
+                    value = networkCountryValue,
+                    onCopy = { onCopy(networkCountryValue) })
+                ReadOnlyValueRow(
+                    label = "MCC/MNC",
+                    value = mccMncValue,
+                    onCopy = { onCopy(mccMncValue) })
+                ReadOnlyValueRow(
+                    label = "Carrier Name",
+                    value = carrierNameValue,
+                    onCopy = { onCopy(carrierNameValue) })
+                ReadOnlyValueRow(
+                    label = "SIM Operator",
+                    value = simOperatorValue,
+                    onCopy = { onCopy(simOperatorValue) })
+                ReadOnlyValueRow(
+                    label = "Network Operator",
+                    value = networkOperatorValue,
+                    onCopy = { onCopy(networkOperatorValue) })
+            }
         }
     }
 

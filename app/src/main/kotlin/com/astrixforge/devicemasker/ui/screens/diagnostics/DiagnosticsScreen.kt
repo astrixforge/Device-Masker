@@ -1,7 +1,5 @@
 package com.astrixforge.devicemasker.ui.screens.diagnostics
 
-import android.os.Build
-import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,15 +34,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import com.astrixforge.devicemasker.R
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.astrixforge.devicemasker.R
 import com.astrixforge.devicemasker.data.models.SpoofCategory
+import com.astrixforge.devicemasker.data.models.SpoofType
 import com.astrixforge.devicemasker.ui.components.expressive.AnimatedSection
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressivePullToRefresh
@@ -52,7 +51,6 @@ import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 import com.astrixforge.devicemasker.ui.theme.StatusActive
 import com.astrixforge.devicemasker.ui.theme.StatusInactive
 import com.astrixforge.devicemasker.ui.theme.StatusWarning
-import com.astrixforge.devicemasker.data.models.SpoofType
 
 /**
  * Screen for diagnosing spoofing effectiveness.
@@ -149,7 +147,12 @@ fun DiagnosticsContent(
             SpoofCategory.entries.forEach { category ->
                 val categoryResults = diagnosticResults.filter { it.type.category == category }
                 if (categoryResults.isNotEmpty()) {
-                    item { CategoryDiagnosticSection(category = category, results = categoryResults) }
+                    item {
+                        CategoryDiagnosticSection(
+                            category = category,
+                            results = categoryResults
+                        )
+                    }
                 }
             }
         }
@@ -167,12 +170,15 @@ private fun ModuleStatusCard(isXposedActive: Boolean) {
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
                 modifier =
-                    Modifier.size(48.dp)
+                    Modifier
+                        .size(48.dp)
                         .background(
                             color = if (isXposedActive) StatusActive else StatusInactive,
                             shape = CircleShape,
@@ -191,7 +197,9 @@ private fun ModuleStatusCard(isXposedActive: Boolean) {
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = if (isXposedActive) stringResource(id = R.string.module_active) else stringResource(id = R.string.module_inactive),
+                    text = if (isXposedActive) stringResource(id = R.string.module_active) else stringResource(
+                        id = R.string.module_inactive
+                    ),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = if (isXposedActive) StatusActive else StatusInactive,
@@ -224,7 +232,12 @@ private fun AntiDetectionSection(tests: List<AntiDetectionTest>) {
     AnimatedSection(
         title = stringResource(id = R.string.diagnostics_anti_detection),
         icon = Icons.Outlined.Security,
-        count = pluralStringResource(id = R.plurals.diagnostics_tests_passed, count = passedCount, passedCount, tests.size),
+        count = pluralStringResource(
+            id = R.plurals.diagnostics_tests_passed,
+            count = passedCount,
+            passedCount,
+            tests.size
+        ),
         countColor = if (passedCount == tests.size) StatusActive else StatusWarning,
         isExpanded = isExpanded,
         onExpandChange = { isExpanded = it },
@@ -244,7 +257,8 @@ private fun AntiDetectionTestItem(test: AntiDetectionTest) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Box(
             modifier =
-                Modifier.size(24.dp)
+                Modifier
+                    .size(24.dp)
                     .background(
                         color = if (test.isPassed) StatusActive else StatusInactive,
                         shape = CircleShape,
@@ -286,7 +300,11 @@ private fun CategoryDiagnosticSection(category: SpoofCategory, results: List<Dia
 
     AnimatedSection(
         title = category.displayName,
-        count = pluralStringResource(id = R.plurals.diagnostics_items_count, count = results.size, results.size),
+        count = pluralStringResource(
+            id = R.plurals.diagnostics_items_count,
+            count = results.size,
+            results.size
+        ),
         isExpanded = isExpanded,
         onExpandChange = { isExpanded = it },
     ) {
@@ -324,7 +342,11 @@ private fun DiagnosticResultItem(result: DiagnosticResult) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            ValueColumn(labelRes = R.string.diagnostics_real_label, value = result.realValue, modifier = Modifier.weight(1f))
+            ValueColumn(
+                labelRes = R.string.diagnostics_real_label,
+                value = result.realValue,
+                modifier = Modifier.weight(1f)
+            )
             ValueColumn(
                 labelRes = R.string.diagnostics_spoofed_label,
                 value = result.spoofedValue,
@@ -346,13 +368,18 @@ private fun StatusBadge(status: DiagnosticStatus) {
 
     Box(
         modifier =
-            Modifier.background(
+            Modifier
+                .background(
                     color = color.copy(alpha = 0.15f),
                     shape = MaterialTheme.shapes.small,
                 )
                 .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
-        Text(text = stringResource(id = textRes), style = MaterialTheme.typography.labelSmall, color = color)
+        Text(
+            text = stringResource(id = textRes),
+            style = MaterialTheme.typography.labelSmall,
+            color = color
+        )
     }
 }
 
@@ -408,9 +435,21 @@ private fun DiagnosticsContentPreview() {
                 ),
             antiDetectionResults =
                 listOf(
-                    AntiDetectionTest(R.string.diagnostics_test_stack_trace, R.string.diagnostics_test_stack_trace_desc, true),
-                    AntiDetectionTest(R.string.diagnostics_test_class_loading, R.string.diagnostics_test_class_loading_desc, true),
-                    AntiDetectionTest(R.string.diagnostics_test_native_hiding, R.string.diagnostics_test_native_hiding_desc, false),
+                    AntiDetectionTest(
+                        R.string.diagnostics_test_stack_trace,
+                        R.string.diagnostics_test_stack_trace_desc,
+                        true
+                    ),
+                    AntiDetectionTest(
+                        R.string.diagnostics_test_class_loading,
+                        R.string.diagnostics_test_class_loading_desc,
+                        true
+                    ),
+                    AntiDetectionTest(
+                        R.string.diagnostics_test_native_hiding,
+                        R.string.diagnostics_test_native_hiding_desc,
+                        false
+                    ),
                 ),
             isRefreshing = false,
             onRefresh = {},

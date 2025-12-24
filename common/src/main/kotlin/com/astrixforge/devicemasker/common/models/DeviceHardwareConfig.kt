@@ -15,6 +15,7 @@ import kotlinx.serialization.Serializable
  * Note: MEID has been removed as CDMA networks were deprecated/shut down in 2022.
  * All modern devices use IMEI only.
  */
+@Suppress("unused") // Properties used for serialization and cross-module access
 @Serializable
 data class DeviceHardwareConfig(
     val deviceProfile: DeviceProfilePreset,

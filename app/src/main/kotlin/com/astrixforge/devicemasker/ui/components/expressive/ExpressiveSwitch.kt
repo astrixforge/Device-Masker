@@ -150,7 +150,7 @@ fun ExpressiveSwitch(
         targetValue = if (enabled) {
             if (checked) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.outline
         } else {
-            if (checked) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f) 
+            if (checked) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
             else MaterialTheme.colorScheme.outline.copy(alpha = 0.38f)
         },
         animationSpec = AppMotion.Effect.Color,

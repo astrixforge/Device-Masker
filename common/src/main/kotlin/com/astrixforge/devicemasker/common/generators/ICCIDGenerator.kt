@@ -2,6 +2,7 @@ package com.astrixforge.devicemasker.common.generators
 
 import com.astrixforge.devicemasker.common.models.Carrier
 import java.security.SecureRandom
+import java.util.Locale
 
 /**
  * ICCID (Integrated Circuit Card Identifier) Generator.
@@ -33,10 +34,10 @@ object ICCIDGenerator {
         val mii = "89"
         
         // Country code (2 digits) - using common values
-        val countryCode = String.format("%02d", secureRandom.nextInt(100))
+        val countryCode = String.format(Locale.US, "%02d", secureRandom.nextInt(100))
         
         // Issuer identifier (2 digits)
-        val issuer = String.format("%02d", secureRandom.nextInt(100))
+        val issuer = String.format(Locale.US, "%02d", secureRandom.nextInt(100))
         
         // Account identification (12 digits)
         val account = buildString {

@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
  * @property isEnabled Whether this specific spoof type is active
  * @property lastModified Timestamp of last modification (epoch millis)
  */
+@Suppress("unused") // Methods used across modules
 @Serializable
 data class DeviceIdentifier(
     val type: SpoofType,

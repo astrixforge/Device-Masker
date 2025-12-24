@@ -19,6 +19,7 @@ import kotlin.random.Random
  * - type: Build type (user, userdebug)
  * - tags: Build tags (release-keys, test-keys)
  */
+@Suppress("unused") // Used for device profile spoofing
 object FingerprintGenerator {
 
     /**
@@ -203,6 +204,7 @@ object FingerprintGenerator {
     }
 
     /** Generates a fingerprint for a specific device configuration. */
+    @Suppress("SameParameterValue") // Parameter for future extensibility
     private fun generateForDevice(device: DeviceConfig, androidVersion: String): String {
         val buildIdPrefix = device.buildIdPrefixes.random()
         val buildId = generateBuildId(buildIdPrefix)

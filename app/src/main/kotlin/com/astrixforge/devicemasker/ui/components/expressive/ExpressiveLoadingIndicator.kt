@@ -76,7 +76,7 @@ fun ExpressiveLoadingIndicatorWithLabel(
             size = size,
             color = color
         )
-        
+
         if (label != null) {
             Spacer(modifier = Modifier.height(12.dp))
             Text(
@@ -110,7 +110,7 @@ fun AnimatedLoadingOverlay(
         animationSpec = AppMotion.Effect.Alpha,
         label = "loadingOverlayAlpha"
     )
-    
+
     if (isLoading || alpha > 0f) {
         Box(
             modifier = modifier

@@ -36,7 +36,7 @@ import com.astrixforge.devicemasker.common.models.Country
 
 /**
  * Searchable dialog for selecting a country.
- * 
+ *
  * @param selectedCountryIso Currently selected country ISO code
  * @param onCountrySelected Called when a country is selected
  * @param onDismiss Called when dialog is dismissed
@@ -51,10 +51,10 @@ fun CountryPickerDialog(
     val filteredCountries = remember(searchQuery) {
         Country.search(searchQuery)
     }
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { 
+        title = {
             Text(
                 text = "Select Country",
                 style = MaterialTheme.typography.headlineSmall,
@@ -76,9 +76,9 @@ fun CountryPickerDialog(
                     },
                     singleLine = true,
                 )
-                
+
                 Spacer(modifier = Modifier.height(12.dp))
-                
+
                 // Country list
                 LazyColumn(
                     modifier = Modifier
@@ -88,7 +88,7 @@ fun CountryPickerDialog(
                 ) {
                     items(filteredCountries) { country ->
                         val isSelected = country.iso == selectedCountryIso
-                        
+
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -118,7 +118,7 @@ fun CountryPickerDialog(
                                     )
                                 }
                             }
-                            
+
                             if (isSelected) {
                                 Icon(
                                     imageVector = Icons.Filled.Check,
@@ -127,7 +127,7 @@ fun CountryPickerDialog(
                                 )
                             }
                         }
-                        
+
                         if (country != filteredCountries.last()) {
                             HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = 8.dp),

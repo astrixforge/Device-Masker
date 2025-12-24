@@ -44,6 +44,7 @@ enum class CorrelationGroup {
  * Each type represents a specific identifier that can be intercepted and replaced
  * with a spoofed value. Types are organized by [SpoofCategory].
  */
+@Suppress("unused") // Enum values used in :xposed hookers
 @Serializable
 enum class SpoofType(
     val displayName: String,

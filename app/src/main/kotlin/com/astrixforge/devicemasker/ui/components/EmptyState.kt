@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -79,7 +79,7 @@ fun EmptyState(
 private fun EmptyStatePreview() {
     DeviceMaskerTheme {
         EmptyState(
-            icon = Icons.Default.Person,
+            icon = Icons.Default.Groups,
             title = "No groups yet",
             subtitle = "Create your first group",
         )
@@ -91,7 +91,7 @@ private fun EmptyStatePreview() {
 private fun EmptyStateNoSubtitlePreview() {
     DeviceMaskerTheme {
         EmptyState(
-            icon = Icons.Default.Person,
+            icon = Icons.Default.Groups,
             title = "No items found",
         )
     }

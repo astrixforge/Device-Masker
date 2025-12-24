@@ -1,11 +1,10 @@
 package com.astrixforge.devicemasker.xposed.hooker
 
 import com.astrixforge.devicemasker.common.SpoofType
-import com.astrixforge.devicemasker.xposed.DeviceMaskerService
+import com.astrixforge.devicemasker.xposed.PrefsHelper
 import com.highcapable.yukihookapi.hook.entity.YukiBaseHooker
 import com.highcapable.yukihookapi.hook.factory.method
-import com.highcapable.yukihookapi.hook.log.YLog
-import com.highcapable.yukihookapi.hook.type.java.StringClass
+import com.astrixforge.devicemasker.xposed.DualLog
 
 /**
  * Network Identifier Hooker - Spoofs network-related identifiers.
@@ -15,32 +14,29 @@ import com.highcapable.yukihookapi.hook.type.java.StringClass
  * - Bluetooth MAC address
  * - WiFi SSID/BSSID
  * - Carrier name and MCC/MNC
+ *
+ * Uses ServiceProxy for cross-process config access via Binder IPC.
  */
 object NetworkHooker : YukiBaseHooker() {
+
+    private const val TAG = "NetworkHooker"
 
     private val fallbackWifiMac by lazy { generateMac() }
     private val fallbackBluetoothMac by lazy { generateMac() }
 
     private fun getSpoofValue(type: SpoofType, fallback: () -> String): String {
-        val service = DeviceMaskerService.instance ?: return fallback()
-        val config = service.config
-        val group = config.getGroupForApp(packageName) ?: return fallback()
-
-        if (!group.isEnabled) return fallback()
-        if (!group.isTypeEnabled(type)) return fallback()
-
-        return group.getValue(type) ?: fallback()
+        return PrefsHelper.getSpoofValue(prefs, packageName, type, fallback)
     }
 
     override fun onHook() {
-        YLog.debug("NetworkHooker: Starting hooks for: $packageName")
+        DualLog.debug(TAG, "Starting hooks for: $packageName")
 
         hookWifiInfo()
         hookNetworkInterface()
         hookBluetoothAdapter()
         hookTelephonyCarrier()
 
-        DeviceMaskerService.instance?.incrementHookCount()
+        // Hook count tracking removed
     }
 
     private fun hookWifiInfo() {

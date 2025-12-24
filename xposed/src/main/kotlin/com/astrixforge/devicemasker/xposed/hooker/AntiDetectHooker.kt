@@ -2,9 +2,7 @@ package com.astrixforge.devicemasker.xposed.hooker
 
 import com.highcapable.yukihookapi.hook.entity.YukiBaseHooker
 import com.highcapable.yukihookapi.hook.factory.method
-import com.highcapable.yukihookapi.hook.log.YLog
-import com.highcapable.yukihookapi.hook.type.java.BooleanType
-import com.highcapable.yukihookapi.hook.type.java.StringClass
+import com.astrixforge.devicemasker.xposed.DualLog
 
 /**
  * Anti-Detection Hooker - Hides Xposed/LSPosed presence from detection.
@@ -15,11 +13,14 @@ import com.highcapable.yukihookapi.hook.type.java.StringClass
  *
  * Detection Vectors Covered:
  * 1. Stack Trace Analysis - Filter Thread/Throwable.getStackTrace()
- * 2. Class Loading - Block Class.forName() for Xposed classes
- * 3. /proc/self/maps - Filter native library paths
- * 4. Package Detection - Hide Xposed installer packages
+ * 2. /proc/self/maps - Filter native library paths
+ * 3. Package Detection - Hide Xposed installer packages
+ *
+ * NOTE: Class.forName() hooks were removed as they caused crashes with AndroidX Startup.
  */
 object AntiDetectHooker : YukiBaseHooker() {
+
+    private const val TAG = "AntiDetectHooker"
 
     // ═══════════════════════════════════════════════════════════
     // HIDDEN PATTERNS
@@ -83,18 +84,19 @@ object AntiDetectHooker : YukiBaseHooker() {
         // Skip protected processes
         val selfPackages = listOf("com.astrixforge.devicemasker", "android", "system_server")
         if (packageName in selfPackages || processName in selfPackages) {
-            YLog.debug("AntiDetectHooker: Skipping for protected process: $packageName")
+            DualLog.debug(TAG, "Skipping for protected process: $packageName")
             return
         }
 
-        YLog.debug("AntiDetectHooker: Loading anti-detection hooks for: $packageName")
+        DualLog.debug(TAG, "Loading anti-detection hooks for: $packageName")
 
         hookStackTraces()
-        hookClassLoading()
+        // NOTE: hookClassLoading() REMOVED - was causing AndroidX Startup crashes
+        // Stack trace filtering is sufficient for hiding Xposed presence
         hookProcMaps()
         hookPackageManager()
 
-        YLog.debug("AntiDetectHooker: Anti-detection hooks registered")
+        DualLog.debug(TAG, "Anti-detection hooks registered")
     }
 
     private fun hookStackTraces() {
@@ -162,122 +164,11 @@ object AntiDetectHooker : YukiBaseHooker() {
         }
     }
 
-    private fun hookClassLoading() {
-        // Hook Class.forName with safer approach
-        runCatching {
-            "java.lang.Class".toClass().apply {
-                method {
-                    name = "forName"
-                    param(StringClass)
-                }.hook {
-                    before {
-                        val className = args(0).string()
-                        if (isExactXposedClass(className)) {
-                            // Block Xposed class loading
-                            resultNull()
-                            throw ClassNotFoundException("Class not found: $className")
-                        }
-                        // For non-Xposed classes, do nothing - let original execute
-                    }
-                }
 
-                method {
-                    name = "forName"
-                    param(StringClass, BooleanType, ClassLoader::class.java)
-                }.hook {
-                    before {
-                        val className = args(0).string()
-                        if (isExactXposedClass(className)) {
-                            resultNull()
-                            throw ClassNotFoundException("Class not found: $className")
-                        }
-                    }
-                }
-            }
-        }.onFailure { e ->
-            YLog.warn("AntiDetectHooker: Failed to hook Class.forName: ${e.message}")
-        }
+    // NOTE: hookClassLoading() was removed because it was causing crashes with
+    // AndroidX Startup (ClassNotFoundException for WorkManagerInitializer, EmojiCompatInitializer).
+    // Stack trace filtering is sufficient for anti-detection purposes.
 
-        // Hook ClassLoader.loadClass with safer approach
-        runCatching {
-            "java.lang.ClassLoader".toClass().apply {
-                method {
-                    name = "loadClass"
-                    param(StringClass)
-                }.hook {
-                    before {
-                        val className = args(0).string()
-                        if (isExactXposedClass(className)) {
-                            // Throw exception to block class loading
-                            resultNull()
-                            throw ClassNotFoundException("Class not found: $className")
-                        }
-                    }
-                }
-
-                method {
-                    name = "loadClass"
-                    param(StringClass, BooleanType)
-                }.hook {
-                    before {
-                        val className = args(0).string()
-                        if (isExactXposedClass(className)) {
-                            resultNull()
-                            throw ClassNotFoundException("Class not found: $className")
-                        }
-                    }
-                }
-            }
-        }.onFailure { e ->
-            YLog.warn("AntiDetectHooker: Failed to hook ClassLoader.loadClass: ${e.message}")
-        }
-    }
-
-    /**
-     * Checks if a class name is an EXACT Xposed-related class that should be blocked.
-     * More restrictive than shouldBlockClass to avoid false positives.
-     */
-    private fun isExactXposedClass(className: String): Boolean {
-        // Never block standard Android/Java/Kotlin classes
-        val safePatterns = listOf(
-            "android.",
-            "java.",
-            "javax.",
-            "kotlin.",
-            "kotlinx.",
-            "androidx.",
-            "com.google.",
-            "dalvik.",
-            "sun.",
-            "org.apache.",
-            "org.json.",
-            "org.xml.",
-            "com.astrixforge.devicemasker",
-        )
-        
-        if (safePatterns.any { className.startsWith(it) }) {
-            return false
-        }
-
-        // Only block classes that START with Xposed patterns (not contains)
-        val xposedStartPatterns = listOf(
-            "de.robv.android.xposed",
-            "io.github.lsposed",
-            "org.lsposed",
-            "com.elderdrivers.riru",
-            "rikka.ndk",
-        )
-
-        // Block if class starts with any Xposed pattern
-        return xposedStartPatterns.any { pattern ->
-            className.startsWith(pattern)
-        }
-    }
-
-    private fun shouldBlockClass(className: String): Boolean {
-        // Use the more restrictive check
-        return isExactXposedClass(className)
-    }
 
     private fun hookProcMaps() {
         "java.io.BufferedReader".toClass().apply {

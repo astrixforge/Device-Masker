@@ -14,6 +14,7 @@ import com.astrixforge.devicemasker.common.models.DeviceHardwareConfig
  * 
  * Note: MEID has been removed as CDMA networks were deprecated in 2022.
  */
+@Suppress("unused") // Methods used for device hardware spoofing
 object DeviceHardwareGenerator {
     
     /**
@@ -25,7 +26,7 @@ object DeviceHardwareGenerator {
     fun generate(deviceProfile: DeviceProfilePreset): DeviceHardwareConfig {
         return DeviceHardwareConfig(
             deviceProfile = deviceProfile,
-            imei = IMEIGenerator.generate(),
+            imei = IMEIGenerator.generate(deviceProfile.manufacturer),
             serial = SerialGenerator.generate(deviceProfile.manufacturer),
             wifiMAC = MACGenerator.generateWiFiMAC(deviceProfile.manufacturer),
             bluetoothMAC = MACGenerator.generateBluetoothMAC()  // Independent

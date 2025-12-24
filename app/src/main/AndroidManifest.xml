@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Permissions for UI functionality -->
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
 
     <application
@@ -33,6 +34,10 @@
         <meta-data
             android:name="xposedscope"
             android:resource="@array/xposed_scope" />
+        <!-- CRITICAL: Required for XSharedPreferences cross-process access -->
+        <meta-data
+            android:name="xposedsharedprefs"
+            android:value="true" />
 
         <!-- ═══════════════════════════════════════════════════════════ -->
         <!-- ServiceProvider for HMA-OSS AIDL binder delivery -->
@@ -42,7 +47,8 @@
             android:name=".service.ServiceProvider"
             android:authorities="com.astrixforge.devicemasker.provider"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true"
+            tools:ignore="ExportedContentProvider" />
 
         <activity
             android:name=".ui.MainActivity"

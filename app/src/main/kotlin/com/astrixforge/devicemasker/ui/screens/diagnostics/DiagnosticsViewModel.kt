@@ -1,9 +1,8 @@
 package com.astrixforge.devicemasker.ui.screens.diagnostics
 
-import android.content.Context
-import android.os.Build
+import android.app.Application
 import android.provider.Settings
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.astrixforge.devicemasker.DeviceMaskerApp
 import com.astrixforge.devicemasker.R
@@ -13,6 +12,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -21,13 +21,13 @@ import kotlinx.coroutines.launch
  *
  * Manages diagnostic results and anti-detection tests.
  *
+ * @param application Application for context access
  * @param repository The SpoofRepository for data access
- * @param context Application context for system value access
  */
 class DiagnosticsViewModel(
-    private val repository: SpoofRepository,
-    private val context: Context
-) : ViewModel() {
+    application: Application,
+    private val repository: SpoofRepository
+) : AndroidViewModel(application) {
 
     private val _state = MutableStateFlow(DiagnosticsState())
     val state: StateFlow<DiagnosticsState> = _state.asStateFlow()
@@ -50,24 +50,28 @@ class DiagnosticsViewModel(
         viewModelScope.launch {
             val diagnosticResults = runDiagnosticTests()
             val antiDetectionResults = runAntiDetectionTests()
-            
-            _state.update { it.copy(
-                diagnosticResults = diagnosticResults,
-                antiDetectionResults = antiDetectionResults,
-                isLoading = false
-            ) }
+
+            _state.update {
+                it.copy(
+                    diagnosticResults = diagnosticResults,
+                    antiDetectionResults = antiDetectionResults,
+                    isLoading = false
+                )
+            }
         }
     }
 
-    private fun runDiagnosticTests(): List<DiagnosticResult> {
-        // Get current spoofed group
-        val group = repository.getActiveGroupBlocking()
-        
+    private suspend fun runDiagnosticTests(): List<DiagnosticResult> {
+        // Get current spoofed group using suspend function (avoids runBlocking)
+        val group = repository.activeGroup.first()
+
         // Get device group preset info if set
         val presetId = group?.getValue(SpoofType.DEVICE_PROFILE)
-        val presetInfo = presetId?.let { 
+        val presetInfo = presetId?.let {
             com.astrixforge.devicemasker.common.DeviceProfilePreset.findById(it)
         }
+
+        val context = getApplication<Application>()
 
         return listOf(
             // Device Identifiers
@@ -76,7 +80,10 @@ class DiagnosticsViewModel(
                 realValue =
                     try {
                         @Suppress("HardwareIds")
-                        Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+                        Settings.Secure.getString(
+                            context.contentResolver,
+                            Settings.Secure.ANDROID_ID
+                        )
                     } catch (_: Exception) {
                         null
                     },
@@ -87,7 +94,7 @@ class DiagnosticsViewModel(
             // Device Profile (unified Build.* spoofing)
             DiagnosticResult(
                 type = SpoofType.DEVICE_PROFILE,
-                realValue = "${Build.MANUFACTURER} ${Build.MODEL}",
+                realValue = "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}",
                 spoofedValue = presetInfo?.let { "${it.manufacturer} ${it.model}" },
                 isActive = group?.isTypeEnabled(SpoofType.DEVICE_PROFILE) == true,
                 isSpoofed = presetInfo != null,

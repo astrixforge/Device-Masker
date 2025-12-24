@@ -1,25 +1,36 @@
 package com.astrixforge.devicemasker.ui.screens.settings
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import android.os.Environment
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.astrixforge.devicemasker.data.SettingsDataStore
+import com.astrixforge.devicemasker.service.ServiceClient
 import com.astrixforge.devicemasker.ui.screens.ThemeMode
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * ViewModel for the Settings screen.
  *
  * Manages theme and debug settings via SettingsDataStore.
  *
+ * @param application Application for context access
  * @param settingsStore The SettingsDataStore for persistence
  */
 class SettingsViewModel(
+    application: Application,
     private val settingsStore: SettingsDataStore
-) : ViewModel() {
+) : AndroidViewModel(application) {
 
     private val _state = MutableStateFlow(SettingsState())
     val state: StateFlow<SettingsState> = _state.asStateFlow()
@@ -78,11 +89,78 @@ class SettingsViewModel(
         }
     }
 
-    fun showThemeModeDialog() {
-        _state.update { it.copy(showThemeModeDialog = true) }
+    // ═══════════════════════════════════════════════════════════
+    // LOG EXPORT FUNCTIONS
+    // ═══════════════════════════════════════════════════════════
+
+    /**
+     * Exports logs from the Xposed service to a file in Downloads folder.
+     */
+    fun exportLogs() {
+        viewModelScope.launch {
+            _state.update { it.copy(isExportingLogs = true, exportResult = null) }
+
+            val result = withContext(Dispatchers.IO) {
+                try {
+                    // Get logs from service
+                    val logs = ServiceClient.getLogs()
+
+                    if (logs.isEmpty()) {
+                        return@withContext ExportResult.NoLogs
+                    }
+
+                    // Create timestamp for filename
+                    val timestamp =
+                        SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US).format(Date())
+                    val fileName = "devicemasker_logs_$timestamp.txt"
+
+                    // Get Downloads directory
+                    val downloadsDir = Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_DOWNLOADS
+                    )
+                    val logFile = File(downloadsDir, fileName)
+
+                    // Build log content with header
+                    val content = buildString {
+                        appendLine("═══════════════════════════════════════════════════════════")
+                        appendLine("  Device Masker - Debug Logs")
+                        appendLine(
+                            "  Exported: ${
+                                SimpleDateFormat(
+                                    "yyyy-MM-dd HH:mm:ss",
+                                    Locale.US
+                                ).format(Date())
+                            }"
+                        )
+                        appendLine("  Total Entries: ${logs.size}")
+                        appendLine("═══════════════════════════════════════════════════════════")
+                        appendLine()
+                        logs.forEach { log ->
+                            appendLine(log)
+                        }
+                        appendLine()
+                        appendLine("═══════════════════════════════════════════════════════════")
+                        appendLine("  End of Log")
+                        appendLine("═══════════════════════════════════════════════════════════")
+                    }
+
+                    // Write to file
+                    logFile.writeText(content)
+
+                    ExportResult.Success(logFile.absolutePath, logs.size)
+                } catch (e: Exception) {
+                    ExportResult.Error(e.message ?: "Unknown error")
+                }
+            }
+
+            _state.update { it.copy(isExportingLogs = false, exportResult = result) }
+        }
     }
 
-    fun hideThemeModeDialog() {
-        _state.update { it.copy(showThemeModeDialog = false) }
+    /**
+     * Clears the export result from state.
+     */
+    fun clearExportResult() {
+        _state.update { it.copy(exportResult = null) }
     }
 }

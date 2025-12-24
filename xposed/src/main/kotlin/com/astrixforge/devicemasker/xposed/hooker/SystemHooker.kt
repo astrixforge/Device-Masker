@@ -2,11 +2,11 @@ package com.astrixforge.devicemasker.xposed.hooker
 
 import com.astrixforge.devicemasker.common.DeviceProfilePreset
 import com.astrixforge.devicemasker.common.SpoofType
-import com.astrixforge.devicemasker.xposed.DeviceMaskerService
+import com.astrixforge.devicemasker.xposed.PrefsHelper
 import com.highcapable.yukihookapi.hook.entity.YukiBaseHooker
 import com.highcapable.yukihookapi.hook.factory.field
 import com.highcapable.yukihookapi.hook.factory.method
-import com.highcapable.yukihookapi.hook.log.YLog
+import com.astrixforge.devicemasker.xposed.DualLog
 import com.highcapable.yukihookapi.hook.type.java.StringClass
 
 /**
@@ -17,32 +17,32 @@ import com.highcapable.yukihookapi.hook.type.java.StringClass
  *
  * The DEVICE_PROFILE spoof type value is a preset ID (e.g., "pixel_8_pro")
  * that maps to a DeviceProfilePreset containing all Build.* values.
+ *
+ * Uses ServiceProxy for cross-process config access via Binder IPC.
  */
 object SystemHooker : YukiBaseHooker() {
 
-    /**
-     * Gets the active device profile preset for the current package.
-     * Returns null if not enabled or no profile is set.
-     */
+    private const val TAG = "SystemHooker"
+
     private fun getActivePreset(): DeviceProfilePreset? {
-        val service = DeviceMaskerService.instance ?: return null
-        val config = service.config
-        val group = config.getGroupForApp(packageName) ?: return null
-
-        if (!group.isEnabled) return null
-        if (!group.isTypeEnabled(SpoofType.DEVICE_PROFILE)) return null
-
-        val presetId = group.getValue(SpoofType.DEVICE_PROFILE) ?: return null
+        // Get the preset ID from config
+        val presetId = PrefsHelper.getSpoofValue(
+            prefs,
+            packageName, 
+            SpoofType.DEVICE_PROFILE
+        ) { "" }
+        
+        if (presetId.isEmpty()) return null
         return DeviceProfilePreset.findById(presetId)
     }
 
     override fun onHook() {
-        YLog.debug("SystemHooker: Starting hooks for: $packageName")
+        DualLog.debug(TAG, "Starting hooks for: $packageName")
 
         hookBuildFields()
         hookSystemProperties()
 
-        DeviceMaskerService.instance?.incrementHookCount()
+        // Hook count tracking removed
     }
 
     private fun hookBuildFields() {
@@ -67,14 +67,14 @@ object SystemHooker : YukiBaseHooker() {
                     val currentValue = buildClass.field { name = fieldName }.get().string()
                     if (spoofedValue.isNotEmpty() && spoofedValue != currentValue) {
                         buildClass.field { name = fieldName }.get().set(spoofedValue)
-                        YLog.debug("SystemHooker: Set Build.$fieldName to $spoofedValue")
+                        DualLog.debug(TAG, "Set Build.$fieldName to $spoofedValue")
                     }
                 }
             }
 
-            YLog.info("SystemHooker: Applied device profile '${preset.name}' to Build fields")
+            DualLog.info(TAG, "Applied device profile '${preset.name}' to Build fields")
         }.onFailure { e ->
-            YLog.error("SystemHooker: Failed to hook Build fields: ${e.message}")
+            DualLog.error(TAG, "Failed to hook Build fields: ${e.message}")
         }
     }
 
@@ -133,9 +133,9 @@ object SystemHooker : YukiBaseHooker() {
                 }
             }
             
-            YLog.info("SystemHooker: Applied device profile '${preset.name}' to SystemProperties")
+            DualLog.info(TAG, "Applied device profile '${preset.name}' to SystemProperties")
         }.onFailure { e ->
-            YLog.error("SystemHooker: Failed to hook SystemProperties: ${e.message}")
+            DualLog.error(TAG, "Failed to hook SystemProperties: ${e.message}")
         }
     }
 }

@@ -173,6 +173,7 @@ fun CategorySection(
                                 onCopy = onCopy,
                             )
                         }
+
                         UIDisplayCategory.LOCATION -> {
                             LocationCategoryContent(
                                 group = group,
@@ -182,6 +183,7 @@ fun CategorySection(
                                 onCopy = onCopy,
                             )
                         }
+
                         UIDisplayCategory.DEVICE_HARDWARE -> {
                             DeviceHardwareCategoryContent(
                                 group = group,
@@ -191,6 +193,7 @@ fun CategorySection(
                                 onCopy = onCopy,
                             )
                         }
+
                         else -> {
                             // Standard handling for other categories (Network, Advertising)
                             category.types.forEach { type ->

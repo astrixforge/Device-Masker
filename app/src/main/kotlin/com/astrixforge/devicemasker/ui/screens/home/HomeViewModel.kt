@@ -36,7 +36,7 @@ class HomeViewModel(
                     val selectedGroup = currentState.selectedGroup
                         ?: groups.find { it.isDefault }
                         ?: groups.firstOrNull()
-                    
+
                     currentState.copy(
                         groups = groups,
                         selectedGroup = selectedGroup,
@@ -57,7 +57,7 @@ class HomeViewModel(
                     // If we have an active group from dashboard and no selection yet, use it
                     val selectedGroup = currentState.selectedGroup
                         ?: dashboard.activeGroup
-                    
+
                     currentState.copy(
                         isModuleEnabled = dashboard.isModuleEnabled,
                         selectedGroup = selectedGroup,
@@ -102,7 +102,7 @@ class HomeViewModel(
 
     /**
      * Regenerate all values for the selected group.
-     * 
+     *
      * @param onComplete Callback invoked after regeneration starts
      */
     fun regenerateAll(onComplete: () -> Unit = {}) {

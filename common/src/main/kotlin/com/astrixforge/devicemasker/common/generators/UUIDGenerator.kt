@@ -15,6 +15,7 @@ import java.util.UUID
  *
  * All generators use SecureRandom for cryptographic-quality randomness.
  */
+@Suppress("unused") // Methods used for identifier spoofing
 object UUIDGenerator {
 
     /**

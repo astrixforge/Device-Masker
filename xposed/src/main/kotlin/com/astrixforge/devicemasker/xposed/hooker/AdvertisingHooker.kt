@@ -1,10 +1,10 @@
 package com.astrixforge.devicemasker.xposed.hooker
 
 import com.astrixforge.devicemasker.common.SpoofType
-import com.astrixforge.devicemasker.xposed.DeviceMaskerService
+import com.astrixforge.devicemasker.xposed.PrefsHelper
 import com.highcapable.yukihookapi.hook.entity.YukiBaseHooker
 import com.highcapable.yukihookapi.hook.factory.method
-import com.highcapable.yukihookapi.hook.log.YLog
+import com.astrixforge.devicemasker.xposed.DualLog
 import com.highcapable.yukihookapi.hook.type.java.StringClass
 
 /**
@@ -14,32 +14,29 @@ import com.highcapable.yukihookapi.hook.type.java.StringClass
  * - Google Advertising ID
  * - GSF ID (Google Services Framework)
  * - Media DRM ID
+ *
+ * Uses ServiceProxy for cross-process config access via Binder IPC.
  */
 object AdvertisingHooker : YukiBaseHooker() {
+
+    private const val TAG = "AdvertisingHooker"
 
     private val fallbackAdvertisingId by lazy { java.util.UUID.randomUUID().toString() }
     private val fallbackGsfId by lazy { generateHexId(16) }
     private val fallbackMediaDrmId by lazy { generateHexId(64) }
 
     private fun getSpoofValue(type: SpoofType, fallback: () -> String): String {
-        val service = DeviceMaskerService.instance ?: return fallback()
-        val config = service.config
-        val group = config.getGroupForApp(packageName) ?: return fallback()
-
-        if (!group.isEnabled) return fallback()
-        if (!group.isTypeEnabled(type)) return fallback()
-
-        return group.getValue(type) ?: fallback()
+        return PrefsHelper.getSpoofValue(prefs, packageName, type, fallback)
     }
 
     override fun onHook() {
-        YLog.debug("AdvertisingHooker: Starting hooks for: $packageName")
+        DualLog.debug(TAG, "Starting hooks for: $packageName")
 
         hookAdvertisingIdClient()
         hookGooglePlayServices()
         hookMediaDrm()
 
-        DeviceMaskerService.instance?.incrementHookCount()
+        // Hook count tracking removed
     }
 
     private fun hookAdvertisingIdClient() {
@@ -72,10 +69,8 @@ object AdvertisingHooker : YukiBaseHooker() {
                     param("android.content.ContentResolver".toClass(), StringClass)
                 }.hook {
                     after {
-                        val key = args(1).string()
-                        if (key == "android_id") {
-                            // Already handled by DeviceHooker
-                        }
+                        // Note: android_id is handled by DeviceHooker
+                        // Other Settings.Secure keys are not spoofed
                     }
                 }
             }

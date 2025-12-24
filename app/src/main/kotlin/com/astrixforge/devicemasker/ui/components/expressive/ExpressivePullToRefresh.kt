@@ -107,14 +107,14 @@ fun ExpressiveRefreshIndicator(
     // Calculate visibility based on pull progress
     val progress = state.distanceFraction.coerceIn(0f, 1f)
     val showIndicator = isRefreshing || progress > 0f
-    
+
     // Animate alpha for smooth appearance
     val alpha by animateFloatAsState(
         targetValue = if (showIndicator) 1f else 0f,
         animationSpec = AppMotion.Effect.Alpha,
         label = "indicatorAlpha",
     )
-    
+
     // Animate vertical offset based on pull progress
     val offset by animateFloatAsState(
         targetValue = if (isRefreshing) 64f else (progress * 64f),

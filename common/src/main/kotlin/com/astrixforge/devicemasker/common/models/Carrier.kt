@@ -14,6 +14,7 @@ import kotlinx.serialization.Serializable
  * @property iccidIssuerCode Carrier-specific ICCID issuer code (2-4 digits)
  * @property region Optional region name for country-specific carriers
  */
+@Suppress("unused") // Used for SIM spoofing correlation
 @Serializable
 data class Carrier(
     val name: String,

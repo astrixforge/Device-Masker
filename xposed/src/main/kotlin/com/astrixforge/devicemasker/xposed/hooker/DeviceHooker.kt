@@ -1,10 +1,10 @@
 package com.astrixforge.devicemasker.xposed.hooker
 
 import com.astrixforge.devicemasker.common.SpoofType
-import com.astrixforge.devicemasker.xposed.DeviceMaskerService
+import com.astrixforge.devicemasker.xposed.PrefsHelper
 import com.highcapable.yukihookapi.hook.entity.YukiBaseHooker
 import com.highcapable.yukihookapi.hook.factory.method
-import com.highcapable.yukihookapi.hook.log.YLog
+import com.astrixforge.devicemasker.xposed.DualLog
 import com.highcapable.yukihookapi.hook.type.java.IntType
 import com.highcapable.yukihookapi.hook.type.java.StringClass
 
@@ -16,41 +16,30 @@ import com.highcapable.yukihookapi.hook.type.java.StringClass
  * - Serial number
  * - Android ID
  *
- * Note: MEID hooks have been removed as CDMA networks were deprecated in 2022.
- * All modern devices use IMEI only.
- *
- * Uses DeviceMaskerService.instance?.config for values (Multi-Module architecture).
+ * Uses PrefsHelper with YukiHookAPI's XSharedPreferences for cross-process config.
  */
 object DeviceHooker : YukiBaseHooker() {
+
+    private const val TAG = "DeviceHooker"
 
     // Fallback values generated lazily
     private val fallbackImei by lazy { generateImei() }
     private val fallbackSerial by lazy { generateSerial() }
     private val fallbackAndroidId by lazy { generateAndroidId() }
 
-    /**
-     * Gets spoof value from service config or generates fallback.
-     */
     private fun getSpoofValue(type: SpoofType, fallback: () -> String): String {
-        val service = DeviceMaskerService.instance ?: return fallback()
-        val config = service.config
-        val group = config.getGroupForApp(packageName) ?: return fallback()
-
-        if (!group.isEnabled) return fallback()
-        if (!group.isTypeEnabled(type)) return fallback()
-
-        return group.getValue(type) ?: fallback()
+        return PrefsHelper.getSpoofValue(prefs, packageName, type, fallback)
     }
 
     override fun onHook() {
-        YLog.debug("DeviceHooker: Starting hooks for: $packageName")
+        DualLog.debug(TAG, "Starting hooks for: $packageName")
 
         hookTelephonyManager()
         hookSubscriptionInfo()  // NEW: Dual-SIM support
         hookBuildClass()
         hookSettingsSecure()
 
-        DeviceMaskerService.instance?.incrementHookCount()
+        // Hook count tracking removed - not needed for file-based config
     }
 
     private fun hookTelephonyManager() {
@@ -373,7 +362,7 @@ object DeviceHooker : YukiBaseHooker() {
             }
         }.onFailure {
             // SubscriptionInfo may not be available on all devices/API levels
-            YLog.debug("SubscriptionInfo hooks skipped: ${it.message}")
+            DualLog.debug(TAG, "SubscriptionInfo hooks skipped: ${it.message}")
         }
     }
 

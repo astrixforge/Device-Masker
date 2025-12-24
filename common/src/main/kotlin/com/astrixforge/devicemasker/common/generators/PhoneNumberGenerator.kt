@@ -98,22 +98,25 @@ object PhoneNumberGenerator {
      * @return Phone number with matching country code
      */
     fun generate(carrier: Carrier): String {
-        val countryCode = carrier.countryCode
-        
-        return if (countryCode == "1" && carrier.countryIso == "US") {
-            // USA: Use realistic area code
-            generateUSPhoneNumber()
-        } else if (countryCode == "1" && carrier.countryIso == "CA") {
-            // Canada: Use Canadian area codes
-            generateCanadianPhoneNumber()
-        } else {
-            // Other countries: random digits
-            val digits = COUNTRY_PHONE_LENGTH[countryCode] ?: 10
-            val number = buildString {
-                repeat(digits) { append(secureRandom.nextInt(10)) }
+        return when (val countryCode = carrier.countryCode) {
+            "1" -> when (carrier.countryIso) {
+                "US" -> generateUSPhoneNumber()     // USA: Use realistic area code
+                "CA" -> generateCanadianPhoneNumber() // Canada: Use Canadian area codes
+                else -> generateGenericNumber(countryCode) // Other NANP regions
             }
-            "+$countryCode$number"
+            else -> generateGenericNumber(countryCode)
         }
+    }
+    
+    /**
+     * Generates a generic phone number for a given country code.
+     */
+    private fun generateGenericNumber(countryCode: String): String {
+        val digits = COUNTRY_PHONE_LENGTH[countryCode] ?: 10
+        val number = buildString {
+            repeat(digits) { append(secureRandom.nextInt(10)) }
+        }
+        return "+$countryCode$number"
     }
     
     /**

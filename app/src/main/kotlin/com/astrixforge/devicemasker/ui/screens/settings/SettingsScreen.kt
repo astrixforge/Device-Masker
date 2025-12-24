@@ -23,17 +23,22 @@ import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Contrast
 import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -82,14 +87,22 @@ fun SettingsScreen(
     amoledDarkMode: Boolean = true,
     dynamicColors: Boolean = true,
     debugLogging: Boolean = false,
+    isExportingLogs: Boolean = false,
+    exportResult: ExportResult? = null,
     onThemeModeChange: (ThemeMode) -> Unit = {},
     onAmoledDarkModeChange: (Boolean) -> Unit = {},
     onDynamicColorChange: (Boolean) -> Unit = {},
     onDebugLogChange: (Boolean) -> Unit = {},
+    onExportLogs: () -> Unit = {},
+    onClearExportResult: () -> Unit = {},
     onNavigateToDiagnostics: () -> Unit = {},
 ) {
     // Dialog state for theme mode selection
     var showThemeModeDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Pre-fetch string resources for use in LaunchedEffect (fixes LocalContext warning)
+    val exportNoLogsMessage = stringResource(R.string.settings_export_logs_no_logs)
 
     // Get actual system dark mode state
     val isSystemDark = isSystemInDarkTheme()
@@ -101,19 +114,55 @@ fun SettingsScreen(
             ThemeMode.LIGHT -> false
         }
 
-    SettingsScreenContent(
-        modifier = modifier,
-        themeMode = themeMode,
-        amoledDarkMode = amoledDarkMode,
-        dynamicColors = dynamicColors,
-        debugLogging = debugLogging,
-        isDarkModeActive = isDarkModeActive,
-        onThemeModeClick = { showThemeModeDialog = true },
-        onAmoledDarkModeChange = onAmoledDarkModeChange,
-        onDynamicColorChange = onDynamicColorChange,
-        onDebugLogChange = onDebugLogChange,
-        onNavigateToDiagnostics = onNavigateToDiagnostics,
-    )
+    // Handle export result
+    LaunchedEffect(exportResult) {
+        when (exportResult) {
+            is ExportResult.Success -> {
+                // Format message: "Logs exported successfully (X entries)\n\nSaved to: <path>"
+                val message =
+                    "Logs exported successfully (${exportResult.logCount} entries)\n\nSaved to: ${exportResult.filePath}"
+                snackbarHostState.showSnackbar(message)
+                onClearExportResult()
+            }
+
+            is ExportResult.NoLogs -> {
+                snackbarHostState.showSnackbar(exportNoLogsMessage)
+                onClearExportResult()
+            }
+
+            is ExportResult.Error -> {
+                val message = "Failed to export logs: ${exportResult.message}"
+                snackbarHostState.showSnackbar(message)
+                onClearExportResult()
+            }
+
+            null -> { /* No result yet */
+            }
+        }
+    }
+
+    androidx.compose.foundation.layout.Box(modifier = modifier) {
+        SettingsScreenContent(
+            modifier = Modifier,
+            themeMode = themeMode,
+            amoledDarkMode = amoledDarkMode,
+            dynamicColors = dynamicColors,
+            debugLogging = debugLogging,
+            isExportingLogs = isExportingLogs,
+            isDarkModeActive = isDarkModeActive,
+            onThemeModeClick = { showThemeModeDialog = true },
+            onAmoledDarkModeChange = onAmoledDarkModeChange,
+            onDynamicColorChange = onDynamicColorChange,
+            onDebugLogChange = onDebugLogChange,
+            onExportLogs = onExportLogs,
+            onNavigateToDiagnostics = onNavigateToDiagnostics,
+        )
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
 
     // Theme Mode Selection Dialog
     if (showThemeModeDialog) {
@@ -139,11 +188,13 @@ private fun SettingsScreenContent(
     amoledDarkMode: Boolean,
     dynamicColors: Boolean,
     debugLogging: Boolean,
+    isExportingLogs: Boolean,
     isDarkModeActive: Boolean,
     onThemeModeClick: () -> Unit,
     onAmoledDarkModeChange: (Boolean) -> Unit,
     onDynamicColorChange: (Boolean) -> Unit,
     onDebugLogChange: (Boolean) -> Unit,
+    onExportLogs: () -> Unit,
     onNavigateToDiagnostics: () -> Unit,
 ) {
     LazyColumn(
@@ -216,6 +267,31 @@ private fun SettingsScreenContent(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // Export Logs button
+                SettingsClickableItem(
+                    icon = Icons.Outlined.FileDownload,
+                    title = stringResource(id = R.string.settings_export_logs),
+                    description = if (isExportingLogs) {
+                        stringResource(id = R.string.settings_exporting)
+                    } else {
+                        stringResource(id = R.string.settings_export_logs_description)
+                    },
+                    onClick = { if (!isExportingLogs) onExportLogs() },
+                    trailingContent = if (isExportingLogs) {
+                        {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .padding(end = 8.dp)
+                                    .width(24.dp)
+                                    .height(24.dp),
+                                strokeWidth = 2.dp
+                            )
+                        }
+                    } else null
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
                 SettingsClickableItem(
                     icon = Icons.Outlined.Shield,
                     title = stringResource(id = R.string.settings_diagnostics),
@@ -231,7 +307,10 @@ private fun SettingsScreenContent(
                 SettingsInfoItem(
                     icon = Icons.Outlined.Info,
                     title = stringResource(id = R.string.settings_version),
-                    value = stringResource(id = R.string.settings_version_info, BuildConfig.VERSION_NAME),
+                    value = stringResource(
+                        id = R.string.settings_version_info,
+                        BuildConfig.VERSION_NAME
+                    ),
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -279,7 +358,8 @@ private fun ThemeModeDialog(
                 ThemeMode.entries.forEach { mode ->
                     Row(
                         modifier =
-                            Modifier.fillMaxWidth()
+                            Modifier
+                                .fillMaxWidth()
                                 .selectable(
                                     selected = mode == currentMode,
                                     onClick = { onModeSelected(mode) },

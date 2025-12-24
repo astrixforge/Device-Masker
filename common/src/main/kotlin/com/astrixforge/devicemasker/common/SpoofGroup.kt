@@ -21,6 +21,7 @@ import kotlinx.serialization.Serializable
  * @property assignedApps Set of assigned app package names
  * @property selectedCarrierMccMnc MCC/MNC of selected carrier for SIM spoofing (e.g., "40410")
  */
+@Suppress("unused") // Methods used across modules
 @Serializable
 data class SpoofGroup(
     val id: String = UUID.randomUUID().toString(),

@@ -57,32 +57,32 @@ fun ToggleButton(
 
     // Animate the thumb position
     val thumbOffset by
-        animateDpAsState(
-            targetValue =
-                if (checked) {
-                    trackWidth - thumbSize - (thumbPadding * 2)
-                } else {
-                    0.dp
-                },
-            animationSpec = AppMotion.BouncySpringDp,
-            label = "thumbOffset",
-        )
+    animateDpAsState(
+        targetValue =
+            if (checked) {
+                trackWidth - thumbSize - (thumbPadding * 2)
+            } else {
+                0.dp
+            },
+        animationSpec = AppMotion.BouncySpringDp,
+        label = "thumbOffset",
+    )
 
     // Animate the track color
     val trackColor by
-        animateColorAsState(
-            targetValue = if (checked) activeColor else inactiveColor,
-            animationSpec = spring(),
-            label = "trackColor",
-        )
+    animateColorAsState(
+        targetValue = if (checked) activeColor else inactiveColor,
+        animationSpec = spring(),
+        label = "trackColor",
+    )
 
     // Animate the thumb color
     val currentThumbColor by
-        animateColorAsState(
-            targetValue = if (checked) Color.White else thumbColor.copy(alpha = 0.8f),
-            animationSpec = spring(),
-            label = "thumbColor",
-        )
+    animateColorAsState(
+        targetValue = if (checked) Color.White else thumbColor.copy(alpha = 0.8f),
+        animationSpec = spring(),
+        label = "thumbColor",
+    )
 
     val alpha = if (enabled) 1f else 0.5f
 
@@ -104,7 +104,8 @@ fun ToggleButton(
     ) {
         Box(
             modifier =
-                Modifier.offset(x = thumbOffset)
+                Modifier
+                    .offset(x = thumbOffset)
                     .size(thumbSize)
                     .background(color = currentThumbColor.copy(alpha = alpha), shape = CircleShape)
         )
@@ -129,28 +130,28 @@ fun LargeToggleButton(
     val thumbPadding = 4.dp
 
     val thumbOffset by
-        animateDpAsState(
-            targetValue =
-                if (checked) {
-                    trackWidth - thumbSize - (thumbPadding * 2)
-                } else {
-                    0.dp
-                },
-            animationSpec = AppMotion.BouncySpringDp,
-            label = "largeThumbOffset",
-        )
+    animateDpAsState(
+        targetValue =
+            if (checked) {
+                trackWidth - thumbSize - (thumbPadding * 2)
+            } else {
+                0.dp
+            },
+        animationSpec = AppMotion.BouncySpringDp,
+        label = "largeThumbOffset",
+    )
 
     val trackColor by
-        animateColorAsState(
-            targetValue =
-                if (checked) {
-                    StatusActive
-                } else {
-                    MaterialTheme.colorScheme.surfaceContainerHighest
-                },
-            animationSpec = spring(),
-            label = "largeTrackColor",
-        )
+    animateColorAsState(
+        targetValue =
+            if (checked) {
+                StatusActive
+            } else {
+                MaterialTheme.colorScheme.surfaceContainerHighest
+            },
+        animationSpec = spring(),
+        label = "largeTrackColor",
+    )
 
     val alpha = if (enabled) 1f else 0.5f
 
@@ -172,7 +173,8 @@ fun LargeToggleButton(
     ) {
         Box(
             modifier =
-                Modifier.offset(x = thumbOffset)
+                Modifier
+                    .offset(x = thumbOffset)
                     .size(thumbSize)
                     .background(color = Color.White.copy(alpha = alpha), shape = CircleShape)
         )

@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.astrixforge.devicemasker.common.CorrelationGroup
 import com.astrixforge.devicemasker.common.SpoofType
 import com.astrixforge.devicemasker.common.models.Carrier
-import com.astrixforge.devicemasker.common.SpoofGroup
 import com.astrixforge.devicemasker.data.models.DeviceIdentifier
 import com.astrixforge.devicemasker.data.repository.SpoofRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,11 +34,13 @@ class GroupSpoofingViewModel(
         viewModelScope.launch {
             repository.groups.collect { groups ->
                 val group = groups.find { it.id == groupId }
-                _state.update { it.copy(
-                    groups = groups,
-                    group = group,
-                    isLoading = false
-                ) }
+                _state.update {
+                    it.copy(
+                        groups = groups,
+                        group = group,
+                        isLoading = false
+                    )
+                }
             }
         }
 
@@ -58,10 +59,8 @@ class GroupSpoofingViewModel(
     fun regenerateValue(type: SpoofType) {
         val group = state.value.group ?: return
         viewModelScope.launch {
-            val correlationGroup = type.correlationGroup
-            
             // For SIM values: use regenerateSIMValueOnly to keep same carrier
-            val newValue = when (correlationGroup) {
+            val newValue = when (val correlationGroup = type.correlationGroup) {
                 CorrelationGroup.SIM_CARD -> repository.regenerateSIMValueOnly(type)
                 else -> {
                     // For non-SIM correlated values, reset cache first
@@ -71,7 +70,7 @@ class GroupSpoofingViewModel(
                     repository.generateValue(type)
                 }
             }
-            
+
             val updated = group.withValue(type, newValue)
             repository.updateGroup(updated)
         }
@@ -87,7 +86,7 @@ class GroupSpoofingViewModel(
                     repository.resetCorrelationGroup(correlationGroup)
                 }
             }
-            
+
             // Now regenerate all types in this category
             var updatedGroup = group
             types.forEach { type ->
