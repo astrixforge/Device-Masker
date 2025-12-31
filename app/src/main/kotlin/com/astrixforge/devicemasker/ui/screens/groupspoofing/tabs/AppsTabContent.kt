@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -18,11 +19,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -35,13 +38,10 @@ import com.astrixforge.devicemasker.data.models.InstalledApp
 import com.astrixforge.devicemasker.ui.components.AppListItem
 import com.astrixforge.devicemasker.ui.components.EmptyState
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveLoadingIndicatorWithLabel
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
 
-/**
- * Apps tab content for group spoofing screen.
- *
- * Shows a searchable list of installed apps with toggles to assign/unassign them from the current
- * group.
- */
+@OptIn(FlowPreview::class)
 @Composable
 fun AppsTabContent(
     group: SpoofGroup?,
@@ -51,44 +51,40 @@ fun AppsTabContent(
     modifier: Modifier = Modifier,
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    var debouncedQuery by remember { mutableStateOf("") }
 
-    // Filter apps - exclude system apps and own app
-    // Sort with assigned apps first for better UX
-    // Using derivedStateOf for optimized recomposition during search typing
-    val filteredApps by
-        remember(installedApps, group) {
-            derivedStateOf {
-                installedApps
-                    .filter { app ->
-                        // Always exclude our own app and system apps
-                        if (app.packageName == BuildConfig.APPLICATION_ID) {
-                            return@filter false
-                        }
-                        if (app.isSystemApp) {
-                            return@filter false
-                        }
-                        // Match search query
-                        searchQuery.isEmpty() ||
-                            app.label.contains(searchQuery, ignoreCase = true) ||
-                            app.packageName.contains(searchQuery, ignoreCase = true)
-                    }
-                    // Sort: assigned apps first, then alphabetically
-                    .sortedWith(
-                        compareByDescending<InstalledApp> {
-                                group?.isAppAssigned(it.packageName) == true
-                            }
-                            .thenBy { it.label.lowercase() }
-                    )
-            }
+    LaunchedEffect(Unit) {
+        snapshotFlow { searchQuery }
+            .debounce(300)
+            .collect { debouncedQuery = it }
+    }
+
+    val filteredApps by remember(installedApps, group, debouncedQuery) {
+        derivedStateOf {
+            val query = debouncedQuery.lowercase()
+            installedApps
+                .asSequence()
+                .filter { app ->
+                    if (app.packageName == BuildConfig.APPLICATION_ID) return@filter false
+                    if (app.isSystemApp) return@filter false
+                    query.isEmpty() ||
+                        app.label.lowercase().contains(query) ||
+                        app.packageName.lowercase().contains(query)
+                }
+                .sortedWith(
+                    compareByDescending<InstalledApp> {
+                        group?.isAppAssigned(it.packageName) == true
+                    }.thenBy { it.label.lowercase() }
+                )
+                .toList()
         }
+    }
 
     Column(modifier = modifier.fillMaxSize()) {
-        // Search and filter
         Column(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // Search bar
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -112,44 +108,49 @@ fun AppsTabContent(
             )
         }
 
-        // App list with empty state
-        if (installedApps.isEmpty()) {
-            // Loading state
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                ExpressiveLoadingIndicatorWithLabel(
-                    label = stringResource(id = R.string.group_spoofing_loading_apps)
-                )
-            }
-        } else if (filteredApps.isEmpty()) {
-            // Empty state for search results
-            EmptyState(
-                icon = Icons.Filled.Search,
-                title = stringResource(id = R.string.group_spoofing_no_apps_found),
-                subtitle = stringResource(id = R.string.group_spoofing_adjust_search),
-            )
-        } else {
-            LazyColumn(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                items(count = filteredApps.size, key = { filteredApps[it].packageName }) { index ->
-                    val app = filteredApps[index]
-                    val isAssignedToThisGroup = group?.isAppAssigned(app.packageName) == true
-                    val assignedToOtherGroup =
-                        allGroups
-                            .filter { it.id != group?.id }
-                            .find { it.isAppAssigned(app.packageName) }
-
-                    AppListItem(
-                        app = app,
-                        isAssigned = isAssignedToThisGroup,
-                        assignedToOtherGroupName = assignedToOtherGroup?.name,
-                        onToggle = { checked -> onAppToggle(app, checked) },
-                        modifier = Modifier.fillMaxWidth(),
+        when {
+            installedApps.isEmpty() -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    ExpressiveLoadingIndicatorWithLabel(
+                        label = stringResource(id = R.string.group_spoofing_loading_apps)
                     )
                 }
+            }
+            filteredApps.isEmpty() -> {
+                EmptyState(
+                    icon = Icons.Filled.Search,
+                    title = stringResource(id = R.string.group_spoofing_no_apps_found),
+                    subtitle = stringResource(id = R.string.group_spoofing_adjust_search),
+                )
+            }
+            else -> {
+                LazyColumn(
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    items(
+                        items = filteredApps,
+                        key = { it.packageName },
+                        contentType = { "app_item" },
+                    ) { app ->
+                        val isAssignedToThisGroup = group?.isAppAssigned(app.packageName) == true
+                        val assignedToOtherGroup =
+                            allGroups
+                                .firstOrNull { it.id != group?.id && it.isAppAssigned(app.packageName) }
 
-                item { Spacer(modifier = Modifier.height(24.dp)) }
+                        AppListItem(
+                            app = app,
+                            isAssigned = isAssignedToThisGroup,
+                            assignedToOtherGroupName = assignedToOtherGroup?.name,
+                            onToggle = { checked -> onAppToggle(app, checked) },
+                            modifier = Modifier.fillMaxWidth().animateItem(),
+                        )
+                    }
+
+                    item(key = "bottom_spacer", contentType = "spacer") {
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+                }
             }
         }
     }

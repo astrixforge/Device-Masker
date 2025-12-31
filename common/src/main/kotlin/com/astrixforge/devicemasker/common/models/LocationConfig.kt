@@ -257,7 +257,7 @@ data class LocationConfig(
                 locale = locales.random(),
                 latitude = lat,
                 longitude = lon,
-            )
+        )
         }
 
         /**
@@ -268,6 +268,32 @@ data class LocationConfig(
          */
         fun generateForCarrier(carrier: Carrier): LocationConfig {
             return generate(carrier.countryIso)
+        }
+
+        /**
+         * Get country code from a timezone ID.
+         *
+         * @param timezoneId The timezone ID (e.g., "America/New_York")
+         * @return Country ISO code or null if not found
+         */
+        fun getCountryForTimezone(timezoneId: String): String? {
+            return COUNTRY_TIMEZONES.entries.find { (_, timezones) ->
+                timezoneId in timezones
+            }?.key
+        }
+
+        /**
+         * Get a locale for a given timezone.
+         *
+         * Finds the country for the timezone, then returns a locale for that country.
+         *
+         * @param timezoneId The timezone ID
+         * @return Locale string (e.g., "en_US") or null if timezone not mapped
+         */
+        fun getLocaleForTimezone(timezoneId: String): String? {
+            val country = getCountryForTimezone(timezoneId) ?: return null
+            val locales = COUNTRY_LOCALES[country] ?: return null
+            return locales.firstOrNull()
         }
     }
 }

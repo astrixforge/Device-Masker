@@ -29,7 +29,6 @@ class GroupSpoofingViewModel(private val repository: SpoofRepository, private va
     val state: StateFlow<GroupSpoofingState> = _state.asStateFlow()
 
     init {
-        // Collect groups
         viewModelScope.launch {
             repository.groups.collect { groups ->
                 val group = groups.find { it.id == groupId }
@@ -37,9 +36,12 @@ class GroupSpoofingViewModel(private val repository: SpoofRepository, private va
             }
         }
 
-        // Collect installed apps
         viewModelScope.launch {
-            repository.appScopeRepository.getInstalledAppsFlow().collect { apps ->
+            repository.appScopeRepository.loadApps()
+        }
+
+        viewModelScope.launch {
+            repository.appScopeRepository.installedApps.collect { apps ->
                 _state.update { it.copy(installedApps = apps) }
             }
         }

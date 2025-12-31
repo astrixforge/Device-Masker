@@ -204,10 +204,9 @@ data class JsonConfig(
             }
         }
 
-        /** Creates a default configuration with an initial group. */
+        /** Creates a default configuration with no groups (fresh install). */
         fun createDefault(): JsonConfig {
-            val defaultGroup = SpoofGroup.createDefaultGroup()
-            return JsonConfig(groups = mapOf(defaultGroup.id to defaultGroup))
+            return JsonConfig() // Empty - user must create groups
         }
     }
 }

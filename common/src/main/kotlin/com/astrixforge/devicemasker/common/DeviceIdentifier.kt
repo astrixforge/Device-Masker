@@ -34,13 +34,13 @@ data class DeviceIdentifier(
     companion object {
         /**
          * Creates a default DeviceIdentifier for a given type. The value will be null
-         * (auto-generate on use).
+         * (auto-generate on use). Starts disabled - user must enable what they need.
          */
         fun createDefault(type: SpoofType): DeviceIdentifier {
             return DeviceIdentifier(
                 type = type,
                 value = null,
-                isEnabled = true,
+                isEnabled = false, // Start disabled - user enables what they need
                 lastModified = System.currentTimeMillis(),
             )
         }

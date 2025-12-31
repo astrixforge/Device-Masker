@@ -1,6 +1,5 @@
 package com.astrixforge.devicemasker.ui.components
 
-import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,14 +19,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -37,20 +33,7 @@ import com.astrixforge.devicemasker.R
 import com.astrixforge.devicemasker.data.models.InstalledApp
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
 import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
-import com.astrixforge.devicemasker.utils.ImageUtils
 
-/**
- * Individual app item for app selection lists.
- *
- * Displays app icon, name, package name, and selection state. Supports disabled state when app is
- * assigned to another group.
- *
- * @param app The installed app info
- * @param isAssigned Whether the app is assigned to the current group
- * @param assignedToOtherGroupName If not null, the app is assigned to another group
- * @param onToggle Callback when the assignment state changes
- * @param modifier Optional modifier
- */
 @Composable
 fun AppListItem(
     app: InstalledApp,
@@ -59,18 +42,7 @@ fun AppListItem(
     onToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
     val isDisabled = assignedToOtherGroupName != null
-
-    // Load real app icon from PackageManager
-    val appIcon: Drawable? =
-        remember(app.packageName) {
-            try {
-                context.packageManager.getApplicationIcon(app.packageName)
-            } catch (_: Exception) {
-                null
-            }
-        }
 
     ExpressiveCard(
         onClick = { onToggle(!isAssigned) },
@@ -87,23 +59,8 @@ fun AppListItem(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Real app icon or fallback
-            if (appIcon != null) {
-                val bitmap = remember(appIcon) { ImageUtils.drawableToBitmap(appIcon) }
-                if (bitmap != null) {
-                    Image(
-                        painter = BitmapPainter(bitmap.asImageBitmap()),
-                        contentDescription = app.label,
-                        modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp)),
-                    )
-                } else {
-                    AppIconFallback()
-                }
-            } else {
-                AppIconFallback()
-            }
+            AppIcon(app = app)
 
-            // App info
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = app.label,
@@ -134,7 +91,6 @@ fun AppListItem(
                 )
             }
 
-            // Checkbox or lock badge
             if (isDisabled) {
                 Icon(
                     imageVector = Icons.Filled.Lock,
@@ -149,7 +105,21 @@ fun AppListItem(
     }
 }
 
-/** Fallback icon when app icon cannot be loaded. */
+@Composable
+private fun AppIcon(app: InstalledApp, modifier: Modifier = Modifier) {
+    val bitmap = app.iconBitmap
+    
+    if (bitmap != null) {
+        Image(
+            bitmap = bitmap.asImageBitmap(),
+            contentDescription = app.label,
+            modifier = modifier.size(40.dp).clip(RoundedCornerShape(8.dp)),
+        )
+    } else {
+        AppIconFallback(modifier = modifier)
+    }
+}
+
 @Composable
 fun AppIconFallback(modifier: Modifier = Modifier) {
     Box(
@@ -168,10 +138,6 @@ fun AppIconFallback(modifier: Modifier = Modifier) {
         )
     }
 }
-
-// ═══════════════════════════════════════════════════════════
-// Previews
-// ═══════════════════════════════════════════════════════════
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
