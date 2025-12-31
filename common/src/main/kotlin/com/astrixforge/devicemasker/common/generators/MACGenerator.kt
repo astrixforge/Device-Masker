@@ -67,9 +67,7 @@ object MACGenerator {
             "generic" to listOf("02:00:00", "06:00:00", "0A:00:00", "0E:00:00"),
         )
 
-    /**
-     * Secure random instance for cryptographic-quality randomness.
-     */
+    /** Secure random instance for cryptographic-quality randomness. */
     private val secureRandom = SecureRandom()
 
     /**
@@ -119,11 +117,10 @@ object MACGenerator {
 
     /**
      * Generates a WiFi MAC address with optional manufacturer correlation.
-     * 
-     * 50% chance of using manufacturer's OUI, 50% locally-administered.
-     * This creates realistic variation (some devices use manufacturer OUI,
-     * others use locally-administered MACs).
-     * 
+     *
+     * 50% chance of using manufacturer's OUI, 50% locally-administered. This creates realistic
+     * variation (some devices use manufacturer OUI, others use locally-administered MACs).
+     *
      * @param manufacturer Device manufacturer (optional)
      * @return A MAC address for WiFi interface
      */

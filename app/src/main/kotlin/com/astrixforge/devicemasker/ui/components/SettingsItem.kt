@@ -36,11 +36,7 @@ import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
  * @param content Composable content for the settings items
  */
 @Composable
-fun SettingsSection(
-    title: String,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
+fun SettingsSection(title: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
@@ -55,13 +51,7 @@ fun SettingsSection(
             modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.large,
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                content()
-            }
+            Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) { content() }
         }
     }
 }
@@ -85,10 +75,7 @@ fun SettingsSwitchItem(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         IconCircle(
             icon = icon,
             containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -135,9 +122,7 @@ fun SettingsClickableItem(
     trailingContent: (@Composable () -> Unit)? = null,
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
+        modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconCircle(
@@ -189,10 +174,7 @@ fun SettingsInfoItem(
     value: String,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         IconCircle(
             icon = icon,
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -235,9 +217,7 @@ fun SettingsClickableItemWithValue(
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
+        modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconCircle(
@@ -307,10 +287,6 @@ private fun SettingsClickableItemPreview() {
 @Composable
 private fun SettingsInfoItemPreview() {
     DeviceMaskerTheme {
-        SettingsInfoItem(
-            icon = Icons.Outlined.Info,
-            title = "Version",
-            value = "1.0.0 (Build 1)",
-        )
+        SettingsInfoItem(icon = Icons.Outlined.Info, title = "Version", value = "1.0.0 (Build 1)")
     }
 }

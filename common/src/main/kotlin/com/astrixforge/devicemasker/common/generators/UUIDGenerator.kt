@@ -18,9 +18,7 @@ import java.util.UUID
 @Suppress("unused") // Methods used for identifier spoofing
 object UUIDGenerator {
 
-    /**
-     * Secure random instance for cryptographic-quality randomness.
-     */
+    /** Secure random instance for cryptographic-quality randomness. */
     private val secureRandom = SecureRandom()
 
     /** Hex characters for ID generation. */
@@ -76,15 +74,13 @@ object UUIDGenerator {
     }
 
     /**
-     * Generates a random Instance ID (used by Firebase/Google Play Services).
-     * Typically a 22-character random string.
+     * Generates a random Instance ID (used by Firebase/Google Play Services). Typically a
+     * 22-character random string.
      *
      * @return A random alphanumeric string
      */
     fun generateInstanceId(): String {
         val chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-"
-        return buildString {
-            repeat(22) { append(chars[secureRandom.nextInt(chars.length)]) }
-        }
+        return buildString { repeat(22) { append(chars[secureRandom.nextInt(chars.length)]) } }
     }
 }

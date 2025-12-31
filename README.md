@@ -16,7 +16,7 @@ Device Masker is a production-grade LSPosed/Xposed module that **spoofs device i
 ### 🛡️ Anti-Detection (Stealth First)
 - **Stack Trace Filtering**: Sophisticated removal of Xposed/YukiHookAPI frames from stack traces.
 - **Class Hiding**: Blocks detection via `Class.forName()` for all framework classes.
-- **Service Protection**: Secure AIDL-based IPC that doesn't leak to target apps.
+- **XSharedPreferences**: Secure cross-process config sharing that doesn't leak to target apps.
 - **proc/maps Protection**: Hides module libraries from memory maps.
 
 ### 🎭 Spoofing Groups
@@ -32,6 +32,26 @@ Device Masker is a production-grade LSPosed/Xposed module that **spoofs device i
 - **SIM-Location Sync**: Automatically generates matching Timezone, Locale, and GPS coordinates based on the selected SIM carrier's country.
 - **Realistic Generators**: Luhn-valid IMEI/ICCID, hardware-derived Serials, and brand-compliant WiFi SSID patterns.
 - **GPS City Bounds**: Valid coordinates within 42+ major cities across 16+ countries.
+
+---
+
+## ⚠️ Important Notes
+
+### Configuration Sync Behavior
+
+**Config changes require target app restart to take effect.**
+
+This is a fundamental limitation of Android's cross-process SharedPreferences mechanism (XSharedPreferences). When you:
+- Enable/disable spoofing for an app
+- Change spoof values
+- Assign an app to a different group
+
+You must **force-stop and restart the target app** for changes to apply. This is because:
+1. XSharedPreferences caches values in the hooked process
+2. The cached values persist until the app process is killed
+3. New values are read only when the app starts fresh
+
+> 💡 **Tip**: Use the "Force Stop" option in Android Settings → Apps → [App Name] → Force Stop
 
 ---
 

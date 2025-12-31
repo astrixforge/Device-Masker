@@ -6,8 +6,8 @@ import kotlinx.serialization.Serializable
 /**
  * Configuration for a specific app.
  *
- * This determines which group (if any) is assigned to an app,
- * and whether spoofing is enabled for that app.
+ * This determines which group (if any) is assigned to an app, and whether spoofing is enabled for
+ * that app.
  *
  * @property packageName The app's package name
  * @property groupId ID of the assigned group (null = use default)
@@ -17,8 +17,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AppConfig(
     val packageName: String,
-    @SerialName("profileId")
-    val groupId: String? = null,
+    @SerialName("profileId") val groupId: String? = null,
     val isEnabled: Boolean = true,
 ) {
     /** Creates a copy with a new group assignment. */

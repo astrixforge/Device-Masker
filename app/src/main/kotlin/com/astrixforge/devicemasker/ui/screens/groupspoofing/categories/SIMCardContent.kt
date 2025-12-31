@@ -72,19 +72,16 @@ fun SIMCardCategoryContent(
 
     // Get current carrier from group
     val currentCarrierMccMnc = group?.selectedCarrierMccMnc
-    val currentCarrier = remember(currentCarrierMccMnc) {
-        currentCarrierMccMnc?.let { Carrier.getByMccMnc(it) }
-    }
+    val currentCarrier =
+        remember(currentCarrierMccMnc) { currentCarrierMccMnc?.let { Carrier.getByMccMnc(it) } }
 
     // Selected country (from current carrier or default)
-    var selectedCountryIso by remember(currentCarrier) {
-        mutableStateOf(currentCarrier?.countryIso ?: "IN")
-    }
+    var selectedCountryIso by
+        remember(currentCarrier) { mutableStateOf(currentCarrier?.countryIso ?: "IN") }
 
     // Get carriers filtered by selected country
-    val carriersForCountry = remember(selectedCountryIso) {
-        Carrier.getByCountry(selectedCountryIso)
-    }
+    val carriersForCountry =
+        remember(selectedCountryIso) { Carrier.getByCountry(selectedCountryIso) }
 
     // Values from group
     val phoneEnabled = group?.isTypeEnabled(SpoofType.PHONE_NUMBER) ?: false
@@ -115,7 +112,7 @@ fun SIMCardCategoryContent(
                     onCarrierChange(newCarriers.first())
                 }
             },
-            onDismiss = { showCountryPicker = false }
+            onDismiss = { showCountryPicker = false },
         )
     }
 
@@ -128,12 +125,10 @@ fun SIMCardCategoryContent(
         modifier = Modifier.fillMaxWidth(),
         containerColor = MaterialTheme.colorScheme.surface,
         shape = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // Choose Sim Switch (Moved to Top)
@@ -152,16 +147,17 @@ fun SIMCardCategoryContent(
                     checked = isSimEnabled,
                     onCheckedChange = { enabled ->
                         // Toggle all carrier related types together
-                        val simTypes = listOf(
-                            SpoofType.CARRIER_NAME,
-                            SpoofType.CARRIER_MCC_MNC,
-                            SpoofType.SIM_COUNTRY_ISO,
-                            SpoofType.NETWORK_COUNTRY_ISO,
-                            SpoofType.SIM_OPERATOR_NAME,
-                            SpoofType.NETWORK_OPERATOR
-                        )
+                        val simTypes =
+                            listOf(
+                                SpoofType.CARRIER_NAME,
+                                SpoofType.CARRIER_MCC_MNC,
+                                SpoofType.SIM_COUNTRY_ISO,
+                                SpoofType.NETWORK_COUNTRY_ISO,
+                                SpoofType.SIM_OPERATOR_NAME,
+                                SpoofType.NETWORK_OPERATOR,
+                            )
                         simTypes.forEach { type -> onToggle(type, enabled) }
-                    }
+                    },
                 )
             }
 
@@ -178,10 +174,7 @@ fun SIMCardCategoryContent(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            text = "Country",
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
+                        Text(text = "Country", style = MaterialTheme.typography.bodyMedium)
 
                         // Country button - opens dialog
                         val selectedCountry = Country.getByIso(selectedCountryIso)
@@ -192,9 +185,9 @@ fun SIMCardCategoryContent(
                             shape = RoundedCornerShape(12.dp),
                         ) {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                                modifier =
+                                    Modifier.fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
@@ -205,7 +198,8 @@ fun SIMCardCategoryContent(
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Text(
-                                        text = "${selectedCountry?.emoji ?: "🌍"} ${selectedCountry?.name ?: selectedCountryIso}",
+                                        text =
+                                            "${selectedCountry?.emoji ?: "🌍"} ${selectedCountry?.name ?: selectedCountryIso}",
                                         style = MaterialTheme.typography.bodyMedium,
                                     )
                                 }
@@ -226,10 +220,7 @@ fun SIMCardCategoryContent(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            text = "Carrier",
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
+                        Text(text = "Carrier", style = MaterialTheme.typography.bodyMedium)
 
                         var carrierDropdownExpanded by remember { mutableStateOf(false) }
 
@@ -242,15 +233,13 @@ fun SIMCardCategoryContent(
                             ExpressiveOutlinedCard(
                                 enabled = isSimEnabled,
                                 onClick = { if (isSimEnabled) carrierDropdownExpanded = true },
-                                modifier = Modifier
-                                    .menuAnchor()
-                                    .fillMaxWidth(),
+                                modifier = Modifier.menuAnchor().fillMaxWidth(),
                                 shape = RoundedCornerShape(12.dp),
                             ) {
                                 Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                    modifier =
+                                        Modifier.fillMaxWidth()
+                                            .padding(horizontal = 16.dp, vertical = 12.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
@@ -259,7 +248,9 @@ fun SIMCardCategoryContent(
                                         style = MaterialTheme.typography.bodyMedium,
                                         modifier = Modifier.weight(1f),
                                     )
-                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = carrierDropdownExpanded)
+                                    ExposedDropdownMenuDefaults.TrailingIcon(
+                                        expanded = carrierDropdownExpanded
+                                    )
                                 }
                             }
 
@@ -274,9 +265,10 @@ fun SIMCardCategoryContent(
                                             onCarrierChange(carrier)
                                             carrierDropdownExpanded = false
                                         },
-                                        leadingIcon = if (carrier.mccMnc == currentCarrierMccMnc) {
-                                            { Icon(Icons.Filled.Check, null) }
-                                        } else null,
+                                        leadingIcon =
+                                            if (carrier.mccMnc == currentCarrierMccMnc) {
+                                                { Icon(Icons.Filled.Check, null) }
+                                            } else null,
                                     )
                                 }
                             }
@@ -300,12 +292,10 @@ fun SIMCardCategoryContent(
             modifier = Modifier.fillMaxWidth(),
             containerColor = MaterialTheme.colorScheme.surface,
             shape = MaterialTheme.shapes.medium,
-            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text(
@@ -318,27 +308,33 @@ fun SIMCardCategoryContent(
                 ReadOnlyValueRow(
                     label = "SIM Country",
                     value = simCountryValue,
-                    onCopy = { onCopy(simCountryValue) })
+                    onCopy = { onCopy(simCountryValue) },
+                )
                 ReadOnlyValueRow(
                     label = "Network Country",
                     value = networkCountryValue,
-                    onCopy = { onCopy(networkCountryValue) })
+                    onCopy = { onCopy(networkCountryValue) },
+                )
                 ReadOnlyValueRow(
                     label = "MCC/MNC",
                     value = mccMncValue,
-                    onCopy = { onCopy(mccMncValue) })
+                    onCopy = { onCopy(mccMncValue) },
+                )
                 ReadOnlyValueRow(
                     label = "Carrier Name",
                     value = carrierNameValue,
-                    onCopy = { onCopy(carrierNameValue) })
+                    onCopy = { onCopy(carrierNameValue) },
+                )
                 ReadOnlyValueRow(
                     label = "SIM Operator",
                     value = simOperatorValue,
-                    onCopy = { onCopy(simOperatorValue) })
+                    onCopy = { onCopy(simOperatorValue) },
+                )
                 ReadOnlyValueRow(
                     label = "Network Operator",
                     value = networkOperatorValue,
-                    onCopy = { onCopy(networkOperatorValue) })
+                    onCopy = { onCopy(networkOperatorValue) },
+                )
             }
         }
     }
@@ -355,7 +351,7 @@ fun SIMCardCategoryContent(
         onToggle = { enabled -> onToggle(SpoofType.PHONE_NUMBER, enabled) },
         onRegenerate = { onRegenerate(SpoofType.PHONE_NUMBER) },
         onCopy = { onCopy(phoneValue) },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     )
 
     // IMSI
@@ -366,7 +362,7 @@ fun SIMCardCategoryContent(
         onToggle = { enabled -> onToggle(SpoofType.IMSI, enabled) },
         onRegenerate = { onRegenerate(SpoofType.IMSI) },
         onCopy = { onCopy(imsiValue) },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     )
 
     // ICCID
@@ -377,6 +373,6 @@ fun SIMCardCategoryContent(
         onToggle = { enabled -> onToggle(SpoofType.ICCID, enabled) },
         onRegenerate = { onRegenerate(SpoofType.ICCID) },
         onCopy = { onCopy(iccidValue) },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     )
 }

@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 /**
  * Categories for grouping spoof types in the UI.
  *
- * Each category represents a logical grouping of device identifiers
- * that share similar characteristics or purposes.
+ * Each category represents a logical grouping of device identifiers that share similar
+ * characteristics or purposes.
  */
 @Serializable
 enum class SpoofCategory(val displayName: String) {
@@ -19,21 +19,21 @@ enum class SpoofCategory(val displayName: String) {
 
 /**
  * Correlation groups for values that must be generated together.
- * 
- * Values in the same group are interdependent and must maintain consistency.
- * For example, IMSI and CARRIER_MCC_MNC must use the same MCC/MNC value.
+ *
+ * Values in the same group are interdependent and must maintain consistency. For example, IMSI and
+ * CARRIER_MCC_MNC must use the same MCC/MNC value.
  */
 @Serializable
 enum class CorrelationGroup {
     /** No correlation - value is fully independent */
     NONE,
-    
+
     /** SIM card identifiers - IMSI, ICCID, CARRIER must all match */
     SIM_CARD,
-    
+
     /** Location settings - TIMEZONE, LOCALE should correlate */
     LOCATION,
-    
+
     /** Device hardware - IMEI/MEID, Serial, MAC should match device */
     DEVICE_HARDWARE,
 }
@@ -41,8 +41,8 @@ enum class CorrelationGroup {
 /**
  * Enumeration of all spoofable device identifiers.
  *
- * Each type represents a specific identifier that can be intercepted and replaced
- * with a spoofed value. Types are organized by [SpoofCategory].
+ * Each type represents a specific identifier that can be intercepted and replaced with a spoofed
+ * value. Types are organized by [SpoofCategory].
  */
 @Suppress("unused") // Enum values used in :xposed hookers
 @Serializable
@@ -56,92 +56,86 @@ enum class SpoofType(
     // ═══════════════════════════════════════════════════════════
 
     /**
-     * International Mobile Equipment Identity - Primary device identifier.
-     * 15 digits with Luhn checksum validation.
+     * International Mobile Equipment Identity - Primary device identifier. 15 digits with Luhn
+     * checksum validation.
      */
     IMEI(
         displayName = "IMEI",
         category = SpoofCategory.DEVICE,
-        correlationGroup = CorrelationGroup.DEVICE_HARDWARE
+        correlationGroup = CorrelationGroup.DEVICE_HARDWARE,
     ),
 
     /**
-     * International Mobile Subscriber Identity - SIM card identifier.
-     * 15 digits identifying the subscriber.
+     * International Mobile Subscriber Identity - SIM card identifier. 15 digits identifying the
+     * subscriber.
      */
     IMSI(
         displayName = "IMSI",
         category = SpoofCategory.DEVICE,
-        correlationGroup = CorrelationGroup.SIM_CARD
+        correlationGroup = CorrelationGroup.SIM_CARD,
     ),
 
     /** Device serial number. Alphanumeric string, format varies by manufacturer. */
     SERIAL(
         displayName = "Serial Number",
         category = SpoofCategory.DEVICE,
-        correlationGroup = CorrelationGroup.DEVICE_HARDWARE
-   ),
+        correlationGroup = CorrelationGroup.DEVICE_HARDWARE,
+    ),
 
     /**
-     * Integrated Circuit Card Identifier - SIM card serial.
-     * 19-20 digits identifying the SIM card.
+     * Integrated Circuit Card Identifier - SIM card serial. 19-20 digits identifying the SIM card.
      */
     ICCID(
         displayName = "ICCID",
         category = SpoofCategory.DEVICE,
-        correlationGroup = CorrelationGroup.SIM_CARD
+        correlationGroup = CorrelationGroup.SIM_CARD,
     ),
 
     /** Phone number associated with the SIM. */
     PHONE_NUMBER(
         displayName = "Phone Number",
         category = SpoofCategory.DEVICE,
-        correlationGroup = CorrelationGroup.SIM_CARD
+        correlationGroup = CorrelationGroup.SIM_CARD,
     ),
 
     /**
-     * SIM card issuing country ISO code.
-     * Returned by TelephonyManager.getSimCountryIso().
-     * Format: lowercase 2-letter ISO code (e.g., "in" for India, "us" for USA)
+     * SIM card issuing country ISO code. Returned by TelephonyManager.getSimCountryIso(). Format:
+     * lowercase 2-letter ISO code (e.g., "in" for India, "us" for USA)
      */
     SIM_COUNTRY_ISO(
         displayName = "SIM Country",
         category = SpoofCategory.DEVICE,
-        correlationGroup = CorrelationGroup.SIM_CARD
+        correlationGroup = CorrelationGroup.SIM_CARD,
     ),
 
     /**
-     * Current network country ISO code.
-     * Returned by TelephonyManager.getNetworkCountryIso().
-     * Usually same as SIM country unless roaming.
-     * Format: lowercase 2-letter ISO code
+     * Current network country ISO code. Returned by TelephonyManager.getNetworkCountryIso().
+     * Usually same as SIM country unless roaming. Format: lowercase 2-letter ISO code
      */
     NETWORK_COUNTRY_ISO(
         displayName = "Network Country",
         category = SpoofCategory.NETWORK,
-        correlationGroup = CorrelationGroup.SIM_CARD
+        correlationGroup = CorrelationGroup.SIM_CARD,
     ),
 
     /**
-     * SIM operator display name.
-     * Returned by TelephonyManager.getSimOperatorName().
-     * This is the carrier name as stored on the SIM card.
+     * SIM operator display name. Returned by TelephonyManager.getSimOperatorName(). This is the
+     * carrier name as stored on the SIM card.
      */
     SIM_OPERATOR_NAME(
         displayName = "SIM Operator",
         category = SpoofCategory.DEVICE,
-        correlationGroup = CorrelationGroup.SIM_CARD
+        correlationGroup = CorrelationGroup.SIM_CARD,
     ),
 
     /**
-     * Network operator code (MCC+MNC as string).
-     * Returned by TelephonyManager.getNetworkOperator().
+     * Network operator code (MCC+MNC as string). Returned by TelephonyManager.getNetworkOperator().
      * Format: 5-6 digit string (e.g., "40410" for Airtel Delhi)
      */
     NETWORK_OPERATOR(
         displayName = "Network Operator",
         category = SpoofCategory.NETWORK,
-        correlationGroup = CorrelationGroup.SIM_CARD
+        correlationGroup = CorrelationGroup.SIM_CARD,
     ),
 
     // ═══════════════════════════════════════════════════════════
@@ -152,7 +146,7 @@ enum class SpoofType(
     WIFI_MAC(
         displayName = "WiFi MAC",
         category = SpoofCategory.NETWORK,
-        correlationGroup = CorrelationGroup.DEVICE_HARDWARE
+        correlationGroup = CorrelationGroup.DEVICE_HARDWARE,
     ),
 
     /** Bluetooth MAC address. 48-bit address in XX:XX:XX:XX:XX:XX format. */
@@ -168,14 +162,14 @@ enum class SpoofType(
     CARRIER_NAME(
         displayName = "Carrier Name",
         category = SpoofCategory.NETWORK,
-        correlationGroup = CorrelationGroup.SIM_CARD
+        correlationGroup = CorrelationGroup.SIM_CARD,
     ),
 
     /** Mobile Country Code + Mobile Network Code. */
     CARRIER_MCC_MNC(
         displayName = "MCC/MNC",
         category = SpoofCategory.NETWORK,
-        correlationGroup = CorrelationGroup.SIM_CARD
+        correlationGroup = CorrelationGroup.SIM_CARD,
     ),
 
     // ═══════════════════════════════════════════════════════════
@@ -200,9 +194,9 @@ enum class SpoofType(
 
     /**
      * Unified device profile - Sets all Build.* properties consistently.
-     * 
-     * Instead of spoofing individual Build fields (which can cause detection),
-     * this applies a complete device profile with matching:
+     *
+     * Instead of spoofing individual Build fields (which can cause detection), this applies a
+     * complete device profile with matching:
      * - Build.FINGERPRINT
      * - Build.MODEL
      * - Build.MANUFACTURER
@@ -210,8 +204,9 @@ enum class SpoofType(
      * - Build.DEVICE
      * - Build.PRODUCT
      * - Build.BOARD
-     * 
+     *
      * Value format: DeviceProfilePreset ID (e.g., "pixel_8_pro", "samsung_s24_ultra")
+     *
      * @see DeviceProfilePreset for available presets
      */
     DEVICE_PROFILE(displayName = "Device Profile", category = SpoofCategory.SYSTEM),
@@ -230,14 +225,14 @@ enum class SpoofType(
     TIMEZONE(
         displayName = "Timezone",
         category = SpoofCategory.LOCATION,
-        correlationGroup = CorrelationGroup.LOCATION
+        correlationGroup = CorrelationGroup.LOCATION,
     ),
 
     /** Device locale/language setting. */
     LOCALE(
         displayName = "Locale",
         category = SpoofCategory.LOCATION,
-        correlationGroup = CorrelationGroup.LOCATION
+        correlationGroup = CorrelationGroup.LOCATION,
     );
 
     companion object {

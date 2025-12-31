@@ -24,10 +24,8 @@ import kotlinx.coroutines.launch
  * @param application Application for context access
  * @param repository The SpoofRepository for data access
  */
-class DiagnosticsViewModel(
-    application: Application,
-    private val repository: SpoofRepository
-) : AndroidViewModel(application) {
+class DiagnosticsViewModel(application: Application, private val repository: SpoofRepository) :
+    AndroidViewModel(application) {
 
     private val _state = MutableStateFlow(DiagnosticsState())
     val state: StateFlow<DiagnosticsState> = _state.asStateFlow()
@@ -55,7 +53,7 @@ class DiagnosticsViewModel(
                 it.copy(
                     diagnosticResults = diagnosticResults,
                     antiDetectionResults = antiDetectionResults,
-                    isLoading = false
+                    isLoading = false,
                 )
             }
         }
@@ -67,9 +65,8 @@ class DiagnosticsViewModel(
 
         // Get device group preset info if set
         val presetId = group?.getValue(SpoofType.DEVICE_PROFILE)
-        val presetInfo = presetId?.let {
-            com.astrixforge.devicemasker.common.DeviceProfilePreset.findById(it)
-        }
+        val presetInfo =
+            presetId?.let { com.astrixforge.devicemasker.common.DeviceProfilePreset.findById(it) }
 
         val context = getApplication<Application>()
 
@@ -82,7 +79,7 @@ class DiagnosticsViewModel(
                         @Suppress("HardwareIds")
                         Settings.Secure.getString(
                             context.contentResolver,
-                            Settings.Secure.ANDROID_ID
+                            Settings.Secure.ANDROID_ID,
                         )
                     } catch (_: Exception) {
                         null

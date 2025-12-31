@@ -60,41 +60,41 @@ fun ExpressiveIconButton(
     enabled: Boolean = true,
     tint: Color = LocalContentColor.current,
     iconSize: Dp = 24.dp,
-    buttonSize: Dp = 40.dp
+    buttonSize: Dp = 40.dp,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
     // Spatial spring for scale (CAN overshoot for bouncy feel)
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed && enabled) 0.85f else 1f,
-        animationSpec = AppMotion.Spatial.Expressive,
-        label = "iconButtonScale"
-    )
+    val scale by
+        animateFloatAsState(
+            targetValue = if (isPressed && enabled) 0.85f else 1f,
+            animationSpec = AppMotion.Spatial.Expressive,
+            label = "iconButtonScale",
+        )
 
     IconButton(
         onClick = onClick,
-        modifier = modifier
-            .size(buttonSize)
-            .scale(scale),
+        modifier = modifier.size(buttonSize).scale(scale),
         enabled = enabled,
         interactionSource = interactionSource,
-        colors = IconButtonDefaults.iconButtonColors(
-            contentColor = tint,
-            disabledContentColor = tint.copy(alpha = 0.38f)
-        )
+        colors =
+            IconButtonDefaults.iconButtonColors(
+                contentColor = tint,
+                disabledContentColor = tint.copy(alpha = 0.38f),
+            ),
     ) {
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            modifier = Modifier.size(iconSize)
+            modifier = Modifier.size(iconSize),
         )
     }
 }
 
 /**
- * Compact version of ExpressiveIconButton for action rows.
- * Uses smaller default sizes (36.dp button, 20.dp icon).
+ * Compact version of ExpressiveIconButton for action rows. Uses smaller default sizes (36.dp
+ * button, 20.dp icon).
  */
 @Composable
 fun CompactExpressiveIconButton(
@@ -103,7 +103,7 @@ fun CompactExpressiveIconButton(
     contentDescription: String?,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    tint: Color = MaterialTheme.colorScheme.onSurfaceVariant
+    tint: Color = MaterialTheme.colorScheme.onSurfaceVariant,
 ) {
     ExpressiveIconButton(
         onClick = onClick,
@@ -113,7 +113,7 @@ fun CompactExpressiveIconButton(
         enabled = enabled,
         tint = tint,
         iconSize = 20.dp,
-        buttonSize = 36.dp
+        buttonSize = 36.dp,
     )
 }
 
@@ -130,20 +130,20 @@ private fun ExpressiveIconButtonPreview() {
                 onClick = {},
                 icon = Icons.Default.Refresh,
                 contentDescription = "Refresh",
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.primary,
             )
             ExpressiveIconButton(
                 onClick = {},
                 icon = Icons.Default.Edit,
                 contentDescription = "Edit",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             ExpressiveIconButton(
                 onClick = {},
                 icon = Icons.Default.ContentCopy,
                 contentDescription = "Copy",
                 enabled = false,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -157,17 +157,17 @@ private fun CompactExpressiveIconButtonPreview() {
             CompactExpressiveIconButton(
                 onClick = {},
                 icon = Icons.Default.Refresh,
-                contentDescription = "Refresh"
+                contentDescription = "Refresh",
             )
             CompactExpressiveIconButton(
                 onClick = {},
                 icon = Icons.Default.Edit,
-                contentDescription = "Edit"
+                contentDescription = "Edit",
             )
             CompactExpressiveIconButton(
                 onClick = {},
                 icon = Icons.Default.ContentCopy,
-                contentDescription = "Copy"
+                contentDescription = "Copy",
             )
         }
     }

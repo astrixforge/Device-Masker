@@ -24,8 +24,8 @@ import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
 /**
  * Display-only spoof item for correlated categories.
  *
- * No individual switch or regenerate - those are at the category level.
- * Long-press on value to copy.
+ * No individual switch or regenerate - those are at the category level. Long-press on value to
+ * copy.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -41,17 +41,16 @@ fun CorrelatedSpoofItem(
         onLongClick = onCopy,
         modifier = modifier,
         shape = MaterialTheme.shapes.medium,
-        containerColor = if (isEnabled) {
-            MaterialTheme.colorScheme.surface
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerLow
-        },
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
+        containerColor =
+            if (isEnabled) {
+                MaterialTheme.colorScheme.surface
+            } else {
+                MaterialTheme.colorScheme.surfaceContainerLow
+            },
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -60,11 +59,12 @@ fun CorrelatedSpoofItem(
                     text = type.displayName,
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Medium,
-                    color = if (isEnabled) {
-                        MaterialTheme.colorScheme.onSurface
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
+                    color =
+                        if (isEnabled) {
+                            MaterialTheme.colorScheme.onSurface
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
                 )
                 if (isEnabled && value.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(4.dp))

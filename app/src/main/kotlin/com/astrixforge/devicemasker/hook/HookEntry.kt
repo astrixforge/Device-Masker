@@ -27,19 +27,23 @@ object HookEntry : IYukiHookXposedInit {
             // Debug logging configuration
             debugLog {
                 tag = "DeviceMasker"
-                isEnable = BuildConfig.DEBUG
+                // IMPORTANT: Always enable logging for log export functionality
+                // Previously was: isEnable = BuildConfig.DEBUG (disabled in release!)
+                isEnable = true
+                // Enable log recording for export functionality
+                isRecord = true
             }
 
-            // General debug mode
+            // General debug mode (this only affects verbose internal logs)
             isDebug = BuildConfig.DEBUG
         }
 
     /**
      * Called for each app process where the module is active.
      *
-     * Delegates all hook logic to XposedHookLoader in the :xposed module.
-     * The XposedHookLoader handles:
-     * - system_server initialization (DeviceMaskerService)
+     * Delegates all hook logic to XposedHookLoader in the :xposed module. The XposedHookLoader
+     * handles:
+     * - system_server hooks (anti-detection and file-based config)
      * - Target app hook loading (AntiDetect, Device, Network, etc.)
      */
     override fun onHook() = encase {

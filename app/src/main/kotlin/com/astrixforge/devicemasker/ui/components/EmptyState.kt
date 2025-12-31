@@ -37,12 +37,7 @@ fun EmptyState(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(300.dp),
-        contentAlignment = Alignment.Center,
-    ) {
+    Box(modifier = modifier.fillMaxWidth().height(300.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 imageVector = icon,
@@ -89,10 +84,5 @@ private fun EmptyStatePreview() {
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
 private fun EmptyStateNoSubtitlePreview() {
-    DeviceMaskerTheme {
-        EmptyState(
-            icon = Icons.Default.Groups,
-            title = "No items found",
-        )
-    }
+    DeviceMaskerTheme { EmptyState(icon = Icons.Default.Groups, title = "No items found") }
 }

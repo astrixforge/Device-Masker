@@ -1,14 +1,10 @@
 package com.astrixforge.devicemasker.common
 
-/**
- * Utility functions shared between the app UI and xposed module.
- */
+/** Utility functions shared between the app UI and xposed module. */
 @Suppress("unused") // Utility functions for cross-module use
 object Utils {
 
-    /**
-     * Log levels for service logging.
-     */
+    /** Log levels for service logging. */
     object LogLevel {
         const val VERBOSE = 0
         const val DEBUG = 1
@@ -18,8 +14,8 @@ object Utils {
     }
 
     /**
-     * Masks a value for display (e.g., in UI).
-     * Shows first and last 2 characters, rest as asterisks.
+     * Masks a value for display (e.g., in UI). Shows first and last 2 characters, rest as
+     * asterisks.
      *
      * @param value The value to mask
      * @param visibleChars Number of characters to show at start and end
@@ -50,9 +46,7 @@ object Utils {
         return calculateLuhnChecksum(imei.dropLast(1)) == imei.last().digitToInt()
     }
 
-    /**
-     * Calculates Luhn checksum for IMEI validation.
-     */
+    /** Calculates Luhn checksum for IMEI validation. */
     private fun calculateLuhnChecksum(digits: String): Int {
         var sum = 0
         for ((index, char) in digits.reversed().withIndex()) {
@@ -84,9 +78,8 @@ object Utils {
      * @return True if valid format
      */
     fun isValidUuid(uuid: String): Boolean {
-        val uuidRegex = Regex(
-            "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-        )
+        val uuidRegex =
+            Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
         return uuidRegex.matches(uuid)
     }
 

@@ -40,11 +40,12 @@ fun ConfirmationDialog(
             Icon(
                 imageVector = if (isDestructive) Icons.Filled.Delete else Icons.Filled.Warning,
                 contentDescription = null,
-                tint = if (isDestructive) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.primary
-                },
+                tint =
+                    if (isDestructive) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.primary
+                    },
             )
         },
         title = { Text(text = title) },
@@ -53,19 +54,16 @@ fun ConfirmationDialog(
             TextButton(onClick = onConfirm) {
                 Text(
                     text = confirmText,
-                    color = if (isDestructive) {
-                        MaterialTheme.colorScheme.error
-                    } else {
-                        MaterialTheme.colorScheme.primary
-                    },
+                    color =
+                        if (isDestructive) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.primary
+                        },
                 )
             }
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = dismissText)
-            }
-        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(text = dismissText) } },
     )
 }
 
@@ -77,11 +75,7 @@ fun ConfirmationDialog(
  * @param onDismiss Callback when dialog is dismissed
  */
 @Composable
-fun DeleteConfirmationDialog(
-    itemName: String,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
+fun DeleteConfirmationDialog(itemName: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     ConfirmationDialog(
         title = stringResource(id = R.string.dialog_delete_title),
         message = stringResource(id = R.string.dialog_delete_message, itemName),
@@ -113,10 +107,6 @@ private fun ConfirmationDialogPreview() {
 @Composable
 private fun DeleteDialogPreview() {
     DeviceMaskerTheme {
-        DeleteConfirmationDialog(
-            itemName = "Work Group",
-            onConfirm = {},
-            onDismiss = {},
-        )
+        DeleteConfirmationDialog(itemName = "Work Group", onConfirm = {}, onDismiss = {})
     }
 }

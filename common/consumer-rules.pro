@@ -3,13 +3,6 @@
 # These rules will be included when consuming this library
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# AIDL INTERFACES
-# ═══════════════════════════════════════════════════════════════════════════════
-# Keep all AIDL generated classes
--keep class com.astrixforge.devicemasker.common.IDeviceMaskerService { *; }
--keep class com.astrixforge.devicemasker.common.IDeviceMaskerService$* { *; }
-
-# ═══════════════════════════════════════════════════════════════════════════════
 # ANNOTATIONS - Required for kotlinx.serialization to work at runtime
 # ═══════════════════════════════════════════════════════════════════════════════
 # Keep all annotations (original rule maintained for compatibility)

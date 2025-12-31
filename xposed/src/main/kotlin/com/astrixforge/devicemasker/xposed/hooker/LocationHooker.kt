@@ -1,10 +1,7 @@
 package com.astrixforge.devicemasker.xposed.hooker
 
 import com.astrixforge.devicemasker.common.SpoofType
-import com.astrixforge.devicemasker.xposed.PrefsHelper
-import com.highcapable.yukihookapi.hook.entity.YukiBaseHooker
 import com.highcapable.yukihookapi.hook.factory.method
-import com.astrixforge.devicemasker.xposed.DualLog
 import com.highcapable.yukihookapi.hook.type.java.StringClass
 
 /**
@@ -14,163 +11,162 @@ import com.highcapable.yukihookapi.hook.type.java.StringClass
  * - GPS coordinates (latitude, longitude)
  * - Timezone
  * - Locale
- *
- * Uses ServiceProxy for cross-process config access via Binder IPC.
  */
-object LocationHooker : YukiBaseHooker() {
-
-    private const val TAG = "LocationHooker"
-
-    private fun getSpoofValue(type: SpoofType, fallback: () -> String): String {
-        return PrefsHelper.getSpoofValue(prefs, packageName, type, fallback)
-    }
+object LocationHooker : BaseSpoofHooker("LocationHooker") {
 
     override fun onHook() {
-        DualLog.debug(TAG, "Starting hooks for: $packageName")
-
+        logStart()
         hookLocation()
         hookTimeZone()
         hookLocale()
-
-        // Hook count tracking removed
+        recordSuccess()
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // LOCATION HOOKS
+    // ═══════════════════════════════════════════════════════════
+
     private fun hookLocation() {
-        runCatching {
-            "android.location.Location".toClass().apply {
-                method {
+        "android.location.Location".toClassOrNull()?.apply {
+            method {
                     name = "getLatitude"
                     emptyParam()
-                }.hook {
+                }
+                .hook {
                     after {
                         val current = result as? Double ?: 0.0
-                        val spoofed = getSpoofValue(SpoofType.LOCATION_LATITUDE) { current.toString() }
+                        val spoofed =
+                            getSpoofValue(SpoofType.LOCATION_LATITUDE) { current.toString() }
                         result = spoofed.toDoubleOrNull() ?: current
                     }
                 }
 
-                method {
+            method {
                     name = "getLongitude"
                     emptyParam()
-                }.hook {
+                }
+                .hook {
                     after {
                         val current = result as? Double ?: 0.0
-                        val spoofed = getSpoofValue(SpoofType.LOCATION_LONGITUDE) { current.toString() }
+                        val spoofed =
+                            getSpoofValue(SpoofType.LOCATION_LONGITUDE) { current.toString() }
                         result = spoofed.toDoubleOrNull() ?: current
                     }
                 }
-            }
         }
 
         // Hook LocationManager
-        runCatching {
-            "android.location.LocationManager".toClass().apply {
+        "android.location.LocationManager".toClassOrNull()?.apply {
+            runCatching {
                 method {
-                    name = "getLastKnownLocation"
-                    param(StringClass)
-                }.hook {
-                    after {
-                        val location = result ?: return@after
-                        // Modify the location object
-                        val latStr = getSpoofValue(SpoofType.LOCATION_LATITUDE) { "" }
-                        val lonStr = getSpoofValue(SpoofType.LOCATION_LONGITUDE) { "" }
+                        name = "getLastKnownLocation"
+                        param(StringClass)
+                    }
+                    .hook {
+                        after {
+                            val location = result ?: return@after
+                            val latStr = getSpoofValue(SpoofType.LOCATION_LATITUDE) { "" }
+                            val lonStr = getSpoofValue(SpoofType.LOCATION_LONGITUDE) { "" }
 
-                        if (latStr.isNotEmpty() || lonStr.isNotEmpty()) {
-                            runCatching {
-                                val locationClass = location.javaClass
-                                latStr.toDoubleOrNull()?.let { lat ->
-                                    locationClass.getMethod("setLatitude", Double::class.java)
-                                        .invoke(location, lat)
-                                }
-                                lonStr.toDoubleOrNull()?.let { lon ->
-                                    locationClass.getMethod("setLongitude", Double::class.java)
-                                        .invoke(location, lon)
+                            if (latStr.isNotEmpty() || lonStr.isNotEmpty()) {
+                                runCatching {
+                                    val locationClass = location::class.java
+                                    latStr.toDoubleOrNull()?.let { lat ->
+                                        locationClass
+                                            .getMethod("setLatitude", Double::class.java)
+                                            .invoke(location, lat)
+                                    }
+                                    lonStr.toDoubleOrNull()?.let { lon ->
+                                        locationClass
+                                            .getMethod("setLongitude", Double::class.java)
+                                            .invoke(location, lon)
+                                    }
                                 }
                             }
                         }
                     }
-                }
             }
         }
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // TIMEZONE HOOKS
+    // ═══════════════════════════════════════════════════════════
+
     private fun hookTimeZone() {
-        runCatching {
-            "java.util.TimeZone".toClass().apply {
-                method {
+        "java.util.TimeZone".toClass().apply {
+            method {
                     name = "getDefault"
                     emptyParam()
                     modifiers { isStatic }
-                }.hook {
+                }
+                .hook {
                     after {
-                        @Suppress("UNUSED_VARIABLE") // Kept for potential future logging
-                        val current = result as? java.util.TimeZone ?: return@after
                         val spoofedId = getSpoofValue(SpoofType.TIMEZONE) { "" }
-
                         if (spoofedId.isNotBlank()) {
                             result = java.util.TimeZone.getTimeZone(spoofedId)
                         }
                     }
                 }
 
-                method {
+            method {
                     name = "getID"
                     emptyParam()
-                }.hook {
+                }
+                .hook {
                     after {
-                        @Suppress("UNUSED_VARIABLE") // Kept for potential future logging
-                        val current = result as? String ?: ""
                         val spoofed = getSpoofValue(SpoofType.TIMEZONE) { "" }
                         if (spoofed.isNotBlank()) {
                             result = spoofed
                         }
                     }
                 }
-            }
         }
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // LOCALE HOOKS
+    // ═══════════════════════════════════════════════════════════
+
     private fun hookLocale() {
-        runCatching {
-            "java.util.Locale".toClass().apply {
-                method {
+        "java.util.Locale".toClass().apply {
+            method {
                     name = "getDefault"
                     emptyParam()
                     modifiers { isStatic }
-                }.hook {
+                }
+                .hook {
                     after {
                         val current = result as? java.util.Locale ?: return@after
                         val spoofedLocale = getSpoofValue(SpoofType.LOCALE) { "" }
 
                         if (spoofedLocale.isNotBlank()) {
-                            result = try {
-                                val parts = spoofedLocale.split("_", "-")
-                                when (parts.size) {
-                                    1 -> java.util.Locale(parts[0])
-                                    2 -> java.util.Locale(parts[0], parts[1])
-                                    else -> java.util.Locale(parts[0], parts[1], parts[2])
-                                }
-                            } catch (e: Exception) {
-                                current
-                            }
+                            result =
+                                runCatching {
+                                        val parts = spoofedLocale.split("_", "-")
+                                        when (parts.size) {
+                                            1 -> java.util.Locale(parts[0])
+                                            2 -> java.util.Locale(parts[0], parts[1])
+                                            else -> java.util.Locale(parts[0], parts[1], parts[2])
+                                        }
+                                    }
+                                    .getOrElse { current }
                         }
                     }
                 }
 
-                method {
+            method {
                     name = "toString"
                     emptyParam()
-                }.hook {
+                }
+                .hook {
                     after {
-                        @Suppress("UNUSED_VARIABLE") // Kept for potential future logging
-                        val current = result as? String ?: ""
                         val spoofed = getSpoofValue(SpoofType.LOCALE) { "" }
                         if (spoofed.isNotBlank()) {
                             result = spoofed
                         }
                     }
                 }
-            }
         }
     }
 }

@@ -32,7 +32,6 @@ import com.astrixforge.devicemasker.ui.screens.groupspoofing.items.IndependentSp
 
 /**
  * Special content layout for Location category.
- *
  * - Timezone + Locale: Single card, single switch. Regenerate button updates both.
  * - Latitude/Longitude: Each has its own Switch + Regenerate (fully independent)
  *
@@ -61,12 +60,10 @@ fun LocationCategoryContent(
         modifier = Modifier.fillMaxWidth(),
         containerColor = MaterialTheme.colorScheme.surface,
         shape = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             // Header with switch - controls both Timezone AND Locale
@@ -89,7 +86,7 @@ fun LocationCategoryContent(
                         // Toggle timezone AND locale together
                         onToggle(SpoofType.TIMEZONE, enabled)
                         onToggle(SpoofType.LOCALE, enabled)
-                    }
+                    },
                 )
             }
 
@@ -101,18 +98,23 @@ fun LocationCategoryContent(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = timezoneValue.ifEmpty { stringResource(id = R.string.group_spoofing_not_set) },
+                        text =
+                            timezoneValue.ifEmpty {
+                                stringResource(id = R.string.group_spoofing_not_set)
+                            },
                         style = MaterialTheme.typography.bodySmall,
                         fontFamily = FontFamily.Monospace,
                         color = MaterialTheme.colorScheme.primary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .weight(1f)
-                            .combinedClickable(
-                                onClick = { },
-                                onLongClick = { if (timezoneValue.isNotEmpty()) onCopy(timezoneValue) }
-                            ),
+                        modifier =
+                            Modifier.weight(1f)
+                                .combinedClickable(
+                                    onClick = {},
+                                    onLongClick = {
+                                        if (timezoneValue.isNotEmpty()) onCopy(timezoneValue)
+                                    },
+                                ),
                     )
 
                     // Regenerate Timezone + Locale together from same country
@@ -134,16 +136,20 @@ fun LocationCategoryContent(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = localeValue.ifEmpty { stringResource(id = R.string.group_spoofing_not_set) },
+                    text =
+                        localeValue.ifEmpty {
+                            stringResource(id = R.string.group_spoofing_not_set)
+                        },
                     style = MaterialTheme.typography.bodySmall,
                     fontFamily = FontFamily.Monospace,
                     color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.combinedClickable(
-                        onClick = { },
-                        onLongClick = { if (localeValue.isNotEmpty()) onCopy(localeValue) }
-                    ),
+                    modifier =
+                        Modifier.combinedClickable(
+                            onClick = {},
+                            onLongClick = { if (localeValue.isNotEmpty()) onCopy(localeValue) },
+                        ),
                 )
             }
         }
@@ -157,7 +163,7 @@ fun LocationCategoryContent(
         onToggle = { enabled -> onToggle(SpoofType.LOCATION_LATITUDE, enabled) },
         onRegenerate = { onRegenerate(SpoofType.LOCATION_LATITUDE) },
         onCopy = { onCopy(latValue) },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     )
 
     // 3. Longitude - independent with own switch and regenerate
@@ -168,6 +174,6 @@ fun LocationCategoryContent(
         onToggle = { enabled -> onToggle(SpoofType.LOCATION_LONGITUDE, enabled) },
         onRegenerate = { onRegenerate(SpoofType.LOCATION_LONGITUDE) },
         onCopy = { onCopy(longValue) },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     )
 }

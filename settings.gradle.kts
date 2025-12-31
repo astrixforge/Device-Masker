@@ -28,5 +28,7 @@ dependencyResolutionManagement {
 rootProject.name = "DeviceMasker"
 
 include(":app")
+
 include(":common")
+
 include(":xposed")

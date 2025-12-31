@@ -61,11 +61,7 @@ fun LabeledValue(
  * @param modifier Optional modifier
  */
 @Composable
-fun ValueRow(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-) {
+fun ValueRow(label: String, value: String, modifier: Modifier = Modifier) {
     Row(modifier = modifier.fillMaxWidth()) {
         Text(
             text = label,
@@ -91,21 +87,11 @@ fun ValueRow(
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
 private fun LabeledValuePreview() {
-    DeviceMaskerTheme {
-        LabeledValue(
-            label = "IMEI",
-            value = "358673912845672",
-        )
-    }
+    DeviceMaskerTheme { LabeledValue(label = "IMEI", value = "358673912845672") }
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
 private fun ValueRowPreview() {
-    DeviceMaskerTheme {
-        ValueRow(
-            label = "Serial Number",
-            value = "AB1234567890",
-        )
-    }
+    DeviceMaskerTheme { ValueRow(label = "Serial Number", value = "AB1234567890") }
 }

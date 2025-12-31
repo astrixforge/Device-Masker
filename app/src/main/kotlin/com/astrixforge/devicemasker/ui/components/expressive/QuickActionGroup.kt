@@ -39,14 +39,14 @@ data class QuickAction(
     val label: String,
     val icon: ImageVector? = null,
     val onClick: () -> Unit,
-    val enabled: Boolean = true
+    val enabled: Boolean = true,
 )
 
 /**
  * Material 3 Expressive Button Group for quick actions.
  *
- * Uses the new M3 ButtonGroup component with spring animations
- * for a cohesive group of related actions.
+ * Uses the new M3 ButtonGroup component with spring animations for a cohesive group of related
+ * actions.
  *
  * @param actions List of quick actions to display
  * @param modifier Modifier for the button group
@@ -63,13 +63,8 @@ data class QuickAction(
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun QuickActionGroup(
-    actions: List<QuickAction>,
-    modifier: Modifier = Modifier,
-) {
-    ButtonGroup(
-        modifier = modifier.fillMaxWidth(),
-    ) {
+fun QuickActionGroup(actions: List<QuickAction>, modifier: Modifier = Modifier) {
+    ButtonGroup(modifier = modifier.fillMaxWidth()) {
         actions.forEach { action ->
             ToggleButton(
                 checked = false,
@@ -78,10 +73,7 @@ fun QuickActionGroup(
                 modifier = Modifier.weight(1f),
             ) {
                 if (action.icon != null) {
-                    Icon(
-                        imageVector = action.icon,
-                        contentDescription = null,
-                    )
+                    Icon(imageVector = action.icon, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                 }
                 Text(text = action.label)
@@ -105,14 +97,11 @@ fun QuickActionRow(
     secondaryAction: QuickAction,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
+    Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         FilledTonalButton(
             onClick = primaryAction.onClick,
             enabled = primaryAction.enabled,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         ) {
             if (primaryAction.icon != null) {
                 Icon(primaryAction.icon, null)
@@ -124,7 +113,7 @@ fun QuickActionRow(
         FilledTonalButton(
             onClick = secondaryAction.onClick,
             enabled = secondaryAction.enabled,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         ) {
             if (secondaryAction.icon != null) {
                 Icon(secondaryAction.icon, null)
@@ -151,9 +140,7 @@ fun SelectionButtonGroup(
     onSelectionChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    ButtonGroup(
-        modifier = modifier.fillMaxWidth(),
-    ) {
+    ButtonGroup(modifier = modifier.fillMaxWidth()) {
         options.forEachIndexed { index, option ->
             ToggleButton(
                 checked = selectedIndex == index,
@@ -176,18 +163,15 @@ private fun QuickActionGroupPreview() {
     DeviceMaskerTheme {
         Box(modifier = Modifier.padding(16.dp)) {
             QuickActionGroup(
-                actions = listOf(
-                    QuickAction(
-                        label = "Configure",
-                        icon = Icons.Outlined.Fingerprint,
-                        onClick = {}
-                    ),
-                    QuickAction(
-                        label = "Regenerate",
-                        icon = Icons.Filled.Refresh,
-                        onClick = {}
+                actions =
+                    listOf(
+                        QuickAction(
+                            label = "Configure",
+                            icon = Icons.Outlined.Fingerprint,
+                            onClick = {},
+                        ),
+                        QuickAction(label = "Regenerate", icon = Icons.Filled.Refresh, onClick = {}),
                     )
-                )
             )
         }
     }
@@ -199,16 +183,14 @@ private fun QuickActionRowPreview() {
     DeviceMaskerTheme {
         Box(modifier = Modifier.padding(16.dp)) {
             QuickActionRow(
-                primaryAction = QuickAction(
-                    label = "Configure",
-                    icon = Icons.Outlined.Fingerprint,
-                    onClick = {}
-                ),
-                secondaryAction = QuickAction(
-                    label = "Regenerate",
-                    icon = Icons.Filled.Refresh,
-                    onClick = {}
-                )
+                primaryAction =
+                    QuickAction(
+                        label = "Configure",
+                        icon = Icons.Outlined.Fingerprint,
+                        onClick = {},
+                    ),
+                secondaryAction =
+                    QuickAction(label = "Regenerate", icon = Icons.Filled.Refresh, onClick = {}),
             )
         }
     }
@@ -223,7 +205,7 @@ private fun SelectionButtonGroupPreview() {
             SelectionButtonGroup(
                 options = listOf("Day", "Week", "Month"),
                 selectedIndex = selectedIndex,
-                onSelectionChange = { selectedIndex = it }
+                onSelectionChange = { selectedIndex = it },
             )
         }
     }

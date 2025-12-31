@@ -2,15 +2,13 @@ package com.astrixforge.devicemasker.ui.screens.diagnostics
 
 import com.astrixforge.devicemasker.data.models.SpoofType
 
-/**
- * UI state for the Diagnostics screen.
- */
+/** UI state for the Diagnostics screen. */
 data class DiagnosticsState(
     val isLoading: Boolean = true,
     val isRefreshing: Boolean = false,
     val isXposedActive: Boolean = false,
     val diagnosticResults: List<DiagnosticResult> = emptyList(),
-    val antiDetectionResults: List<AntiDetectionTest> = emptyList()
+    val antiDetectionResults: List<AntiDetectionTest> = emptyList(),
 )
 
 /** Data class representing a diagnostic result. */
@@ -37,8 +35,4 @@ enum class DiagnosticStatus {
 }
 
 /** Anti-detection test result. */
-data class AntiDetectionTest(
-    val nameRes: Int,
-    val descriptionRes: Int,
-    val isPassed: Boolean
-)
+data class AntiDetectionTest(val nameRes: Int, val descriptionRes: Int, val isPassed: Boolean)

@@ -5,9 +5,7 @@ plugins {
 }
 
 // Use JVM 17 for Android/Xposed compatibility
-kotlin {
-    jvmToolchain(17)
-}
+kotlin { jvmToolchain(17) }
 
 android {
     namespace = "com.astrixforge.devicemasker.common"
@@ -23,7 +21,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -46,4 +44,8 @@ dependencies {
 
     // Core Kotlin
     implementation(libs.kotlinx.coroutines.core)
+
+    // Testing
+    testImplementation(libs.junit)
+    testImplementation(kotlin("test"))
 }

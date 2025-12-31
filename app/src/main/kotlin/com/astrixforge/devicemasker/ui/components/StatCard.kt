@@ -47,9 +47,7 @@ fun StatCard(
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(
@@ -82,11 +80,7 @@ fun StatCard(
 @Composable
 private fun StatCardPreview() {
     DeviceMaskerTheme {
-        StatCard(
-            icon = Icons.Outlined.Apps,
-            value = "12",
-            label = "Protected Apps",
-        )
+        StatCard(icon = Icons.Outlined.Apps, value = "12", label = "Protected Apps")
     }
 }
 
@@ -94,10 +88,6 @@ private fun StatCardPreview() {
 @Composable
 private fun StatCardIdentifiersPreview() {
     DeviceMaskerTheme {
-        StatCard(
-            icon = Icons.Outlined.Fingerprint,
-            value = "24",
-            label = "Masked IDs",
-        )
+        StatCard(icon = Icons.Outlined.Fingerprint, value = "24", label = "Masked IDs")
     }
 }

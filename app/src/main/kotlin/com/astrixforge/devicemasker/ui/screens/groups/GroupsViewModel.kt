@@ -18,9 +18,7 @@ import kotlinx.coroutines.launch
  *
  * @param repository The SpoofRepository for data access
  */
-class GroupsViewModel(
-    private val repository: SpoofRepository
-) : ViewModel() {
+class GroupsViewModel(private val repository: SpoofRepository) : ViewModel() {
 
     private val _state = MutableStateFlow(GroupsState())
     val state: StateFlow<GroupsState> = _state.asStateFlow()
@@ -29,12 +27,7 @@ class GroupsViewModel(
         // Collect groups
         viewModelScope.launch {
             repository.getAllGroups().collect { groups ->
-                _state.update {
-                    it.copy(
-                        groups = groups,
-                        isLoading = false
-                    )
-                }
+                _state.update { it.copy(groups = groups, isLoading = false) }
             }
         }
     }
@@ -60,34 +53,26 @@ class GroupsViewModel(
     }
 
     fun createGroup(name: String, description: String) {
-        viewModelScope.launch {
-            repository.createGroup(name, description)
-        }
+        viewModelScope.launch { repository.createGroup(name, description) }
         hideCreateDialog()
     }
 
     fun deleteGroup(groupId: String) {
-        viewModelScope.launch {
-            repository.deleteGroup(groupId)
-        }
+        viewModelScope.launch { repository.deleteGroup(groupId) }
         hideDeleteDialog()
     }
 
     fun setDefaultGroup(groupId: String) {
-        viewModelScope.launch {
-            repository.setDefaultGroup(groupId)
-        }
+        viewModelScope.launch { repository.setDefaultGroup(groupId) }
     }
 
     fun setGroupEnabled(groupId: String, enabled: Boolean) {
-        viewModelScope.launch {
-            repository.setGroupEnabled(groupId, enabled)
-        }
+        viewModelScope.launch { repository.setGroupEnabled(groupId, enabled) }
     }
 
     /**
-     * Exports groups and returns data via callback.
-     * The screen handles file writing via ActivityResultContract.
+     * Exports groups and returns data via callback. The screen handles file writing via
+     * ActivityResultContract.
      */
     fun exportGroups(onResult: (String) -> Unit) {
         viewModelScope.launch {
@@ -97,22 +82,15 @@ class GroupsViewModel(
     }
 
     /**
-     * Imports groups from JSON string directly.
-     * The screen handles file reading via ActivityResultContract.
+     * Imports groups from JSON string directly. The screen handles file reading via
+     * ActivityResultContract.
      */
     fun importGroups(jsonData: String) {
-        viewModelScope.launch {
-            repository.importGroups(jsonData)
-        }
+        viewModelScope.launch { repository.importGroups(jsonData) }
     }
 
-    /**
-     * Updates an existing group.
-     */
+    /** Updates an existing group. */
     fun updateGroup(group: SpoofGroup) {
-        viewModelScope.launch {
-            repository.updateGroup(group)
-        }
+        viewModelScope.launch { repository.updateGroup(group) }
     }
 }
-

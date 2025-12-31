@@ -44,9 +44,7 @@ import com.astrixforge.devicemasker.ui.screens.groupspoofing.items.IndependentSp
 import com.astrixforge.devicemasker.ui.screens.groupspoofing.model.UIDisplayCategory
 import com.astrixforge.devicemasker.ui.theme.AppMotion
 
-/**
- * Category section for group spoof values - organized by correlation groups.
- */
+/** Category section for group spoof values - organized by correlation groups. */
 @Composable
 fun CategorySection(
     category: UIDisplayCategory,
@@ -61,22 +59,22 @@ fun CategorySection(
     onCopy: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val rotationAngle by animateFloatAsState(
-        targetValue = if (isExpanded) 0f else 180f,
-        animationSpec = AppMotion.FastSpring,
-        label = "expandRotation",
-    )
+    val rotationAngle by
+        animateFloatAsState(
+            targetValue = if (isExpanded) 0f else 180f,
+            animationSpec = AppMotion.FastSpring,
+            label = "expandRotation",
+        )
 
-    val categoryShape = animatedRoundedCornerShape(
-        targetRadius = if (isExpanded) 24.dp else 16.dp
-    )
+    val categoryShape = animatedRoundedCornerShape(targetRadius = if (isExpanded) 24.dp else 16.dp)
 
     // For correlated categories, check if ANY type is enabled
-    val isCategoryEnabled = if (category.isCorrelated) {
-        category.types.any { group?.isTypeEnabled(it) ?: false }
-    } else {
-        false // Not used for independent categories
-    }
+    val isCategoryEnabled =
+        if (category.isCorrelated) {
+            category.types.any { group?.isTypeEnabled(it) ?: false }
+        } else {
+            false // Not used for independent categories
+        }
 
     ExpressiveCard(
         onClick = { onToggleExpand() },
@@ -87,16 +85,14 @@ fun CategorySection(
         Column {
             // Header - simplified, only icon + title + expand arrow
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     IconCircle(
                         icon = category.icon,
@@ -113,11 +109,12 @@ fun CategorySection(
 
                 Icon(
                     imageVector = Icons.Filled.ExpandLess,
-                    contentDescription = if (isExpanded) {
-                        stringResource(id = R.string.action_collapse)
-                    } else {
-                        stringResource(id = R.string.action_expand)
-                    },
+                    contentDescription =
+                        if (isExpanded) {
+                            stringResource(id = R.string.action_collapse)
+                        } else {
+                            stringResource(id = R.string.action_expand)
+                        },
                     modifier = Modifier.rotate(rotationAngle),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -144,17 +141,16 @@ fun CategorySection(
                                 checked = isCategoryEnabled,
                                 onCheckedChange = { enabled ->
                                     // Toggle ALL types in this category together
-                                    category.types.forEach { type ->
-                                        onToggle(type, enabled)
-                                    }
-                                }
+                                    category.types.forEach { type -> onToggle(type, enabled) }
+                                },
                             )
 
                             if (isCategoryEnabled) {
                                 CompactExpressiveIconButton(
                                     onClick = onRegenerateCategory,
                                     icon = Icons.Filled.Refresh,
-                                    contentDescription = stringResource(id = R.string.action_regenerate_all),
+                                    contentDescription =
+                                        stringResource(id = R.string.action_regenerate_all),
                                     tint = category.color,
                                 )
                             }
@@ -201,11 +197,12 @@ fun CategorySection(
                                 val rawValue = group?.getValue(type) ?: ""
 
                                 // For DEVICE_PROFILE, show the preset name instead of ID
-                                val displayValue = if (type == SpoofType.DEVICE_PROFILE) {
-                                    DeviceProfilePreset.findById(rawValue)?.name ?: rawValue
-                                } else {
-                                    rawValue
-                                }
+                                val displayValue =
+                                    if (type == SpoofType.DEVICE_PROFILE) {
+                                        DeviceProfilePreset.findById(rawValue)?.name ?: rawValue
+                                    } else {
+                                        rawValue
+                                    }
 
                                 if (category.isCorrelated) {
                                     // Correlated: display-only items (no individual controls)
@@ -214,7 +211,7 @@ fun CategorySection(
                                         value = displayValue,
                                         isEnabled = isCategoryEnabled,
                                         onCopy = { onCopy(displayValue) },
-                                        modifier = Modifier.fillMaxWidth()
+                                        modifier = Modifier.fillMaxWidth(),
                                     )
                                 } else {
                                     // Independent: items with individual controls
@@ -225,7 +222,7 @@ fun CategorySection(
                                         onToggle = { enabled -> onToggle(type, enabled) },
                                         onRegenerate = { onRegenerate(type) },
                                         onCopy = { onCopy(displayValue) },
-                                        modifier = Modifier.fillMaxWidth()
+                                        modifier = Modifier.fillMaxWidth(),
                                     )
                                 }
                             }

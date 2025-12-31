@@ -31,11 +31,11 @@ import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 /**
  * Material 3 Expressive Loading Indicator.
  *
- * Uses the new M3 LoadingIndicator that morphs between abstract shapes,
- * providing a more engaging loading experience than traditional spinners.
+ * Uses the new M3 LoadingIndicator that morphs between abstract shapes, providing a more engaging
+ * loading experience than traditional spinners.
  *
- * Best for: 200ms - 5s wait times
- * For longer waits: Use progress indicators with determinate progress
+ * Best for: 200ms - 5s wait times For longer waits: Use progress indicators with determinate
+ * progress
  *
  * @param modifier Modifier for the indicator
  * @param size Size of the loading indicator
@@ -45,12 +45,9 @@ import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 fun ExpressiveLoadingIndicator(
     modifier: Modifier = Modifier,
     size: Dp = 48.dp,
-    color: Color = MaterialTheme.colorScheme.primary
+    color: Color = MaterialTheme.colorScheme.primary,
 ) {
-    LoadingIndicator(
-        modifier = modifier.size(size),
-        color = color
-    )
+    LoadingIndicator(modifier = modifier.size(size), color = color)
 }
 
 /**
@@ -66,23 +63,17 @@ fun ExpressiveLoadingIndicatorWithLabel(
     modifier: Modifier = Modifier,
     label: String? = null,
     size: Dp = 48.dp,
-    color: Color = MaterialTheme.colorScheme.primary
+    color: Color = MaterialTheme.colorScheme.primary,
 ) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        ExpressiveLoadingIndicator(
-            size = size,
-            color = color
-        )
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        ExpressiveLoadingIndicator(size = size, color = color)
 
         if (label != null) {
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -101,29 +92,29 @@ fun ExpressiveLoadingIndicatorWithLabel(
 fun AnimatedLoadingOverlay(
     isLoading: Boolean,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit = {
-        ExpressiveLoadingIndicator()
-    }
+    content: @Composable () -> Unit = { ExpressiveLoadingIndicator() },
 ) {
-    val alpha by animateFloatAsState(
-        targetValue = if (isLoading) 1f else 0f,
-        animationSpec = AppMotion.Effect.Alpha,
-        label = "loadingOverlayAlpha"
-    )
+    val alpha by
+        animateFloatAsState(
+            targetValue = if (isLoading) 1f else 0f,
+            animationSpec = AppMotion.Effect.Alpha,
+            label = "loadingOverlayAlpha",
+        )
 
     if (isLoading || alpha > 0f) {
         Box(
-            modifier = modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
-                .alpha(alpha)
-                .clickable(
-                    enabled = isLoading,
-                    onClick = {},
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ),
-            contentAlignment = Alignment.Center
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .alpha(alpha)
+                    .clickable(
+                        enabled = isLoading,
+                        onClick = {},
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() },
+                    ),
+            contentAlignment = Alignment.Center,
         ) {
             content()
         }
@@ -131,8 +122,7 @@ fun AnimatedLoadingOverlay(
 }
 
 /**
- * Compact loading indicator for inline use.
- * Uses CircularProgressIndicator for smaller spaces.
+ * Compact loading indicator for inline use. Uses CircularProgressIndicator for smaller spaces.
  *
  * @param modifier Modifier for the indicator
  * @param size Size of the indicator (default 24dp)
@@ -144,13 +134,13 @@ fun CompactLoadingIndicator(
     modifier: Modifier = Modifier,
     size: Dp = 24.dp,
     strokeWidth: Dp = 2.dp,
-    color: Color = MaterialTheme.colorScheme.primary
+    color: Color = MaterialTheme.colorScheme.primary,
 ) {
     CircularProgressIndicator(
         modifier = modifier.size(size),
         strokeWidth = strokeWidth,
         color = color,
-        trackColor = color.copy(alpha = 0.2f)
+        trackColor = color.copy(alpha = 0.2f),
     )
 }
 
@@ -161,11 +151,7 @@ fun CompactLoadingIndicator(
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
 private fun ExpressiveLoadingIndicatorPreview() {
-    DeviceMaskerTheme {
-        Box(modifier = Modifier.padding(32.dp)) {
-            ExpressiveLoadingIndicator()
-        }
-    }
+    DeviceMaskerTheme { Box(modifier = Modifier.padding(32.dp)) { ExpressiveLoadingIndicator() } }
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
@@ -173,9 +159,7 @@ private fun ExpressiveLoadingIndicatorPreview() {
 private fun ExpressiveLoadingWithLabelPreview() {
     DeviceMaskerTheme {
         Box(modifier = Modifier.padding(32.dp)) {
-            ExpressiveLoadingIndicatorWithLabel(
-                label = "Loading groups..."
-            )
+            ExpressiveLoadingIndicatorWithLabel(label = "Loading groups...")
         }
     }
 }
@@ -183,9 +167,5 @@ private fun ExpressiveLoadingWithLabelPreview() {
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
 private fun CompactLoadingIndicatorPreview() {
-    DeviceMaskerTheme {
-        Box(modifier = Modifier.padding(16.dp)) {
-            CompactLoadingIndicator()
-        }
-    }
+    DeviceMaskerTheme { Box(modifier = Modifier.padding(16.dp)) { CompactLoadingIndicator() } }
 }

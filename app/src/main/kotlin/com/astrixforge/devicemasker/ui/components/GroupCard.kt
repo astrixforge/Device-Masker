@@ -71,10 +71,11 @@ fun GroupCard(
 ) {
     val contentAlpha = if (isEnabled) 1f else 0.5f
 
-    val cardShape = animatedRoundedCornerShape(
-        targetRadius = if (isEnabled) 24.dp else 16.dp,
-        label = "groupCardMorph"
-    )
+    val cardShape =
+        animatedRoundedCornerShape(
+            targetRadius = if (isEnabled) 24.dp else 16.dp,
+            label = "groupCardMorph",
+        )
 
     ExpressiveCard(
         onClick = onClick,
@@ -82,11 +83,7 @@ fun GroupCard(
         shape = cardShape,
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .alpha(contentAlpha)
-        ) {
+        Column(modifier = Modifier.padding(16.dp).alpha(contentAlpha)) {
             // Group Info Row with Switch
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -99,14 +96,12 @@ fun GroupCard(
                 ) {
                     // Group Icon
                     Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.primary.copy(
-                                    alpha = 0.15f
+                        modifier =
+                            Modifier.size(40.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                    shape = CircleShape,
                                 ),
-                                shape = CircleShape,
-                            ),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
@@ -148,10 +143,7 @@ fun GroupCard(
                 }
 
                 // Enable/Disable Switch
-                ExpressiveSwitch(
-                    checked = isEnabled,
-                    onCheckedChange = onEnableChange,
-                )
+                ExpressiveSwitch(checked = isEnabled, onCheckedChange = onEnableChange)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -163,14 +155,16 @@ fun GroupCard(
             ) {
                 Column {
                     Text(
-                        text = pluralStringResource(
-                            id = R.plurals.group_card_apps_count,
-                            count = appCount,
-                            appCount
-                        ),
+                        text =
+                            pluralStringResource(
+                                id = R.plurals.group_card_apps_count,
+                                count = appCount,
+                                appCount,
+                            ),
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (appCount > 0) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        color =
+                            if (appCount > 0) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
                         text = "Created ${formatDate(group.createdAt)}",
@@ -186,7 +180,7 @@ fun GroupCard(
                             onClick = onSetDefault,
                             icon = Icons.Default.Star,
                             contentDescription = "Set as Default",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
 
@@ -194,7 +188,7 @@ fun GroupCard(
                         onClick = onEdit,
                         icon = Icons.Default.Edit,
                         contentDescription = "Edit",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
 
                     if (!group.isDefault) {
@@ -202,7 +196,7 @@ fun GroupCard(
                             onClick = onDelete,
                             icon = Icons.Default.Delete,
                             contentDescription = "Delete",
-                            tint = MaterialTheme.colorScheme.error
+                            tint = MaterialTheme.colorScheme.error,
                         )
                     }
                 }
@@ -215,12 +209,13 @@ fun GroupCard(
 @Composable
 private fun DefaultBadge(modifier: Modifier = Modifier) {
     Box(
-        modifier = modifier
-            .background(
-                color = MaterialTheme.colorScheme.primary,
-                shape = MaterialTheme.shapes.small,
-            )
-            .padding(horizontal = 6.dp, vertical = 2.dp)
+        modifier =
+            modifier
+                .background(
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = MaterialTheme.shapes.small,
+                )
+                .padding(horizontal = 6.dp, vertical = 2.dp)
     ) {
         Text(
             text = "Default",
@@ -231,8 +226,8 @@ private fun DefaultBadge(modifier: Modifier = Modifier) {
 }
 
 /**
- * Compact group card for selection lists.
- * Uses ExpressiveCard for spring-animated selection feedback.
+ * Compact group card for selection lists. Uses ExpressiveCard for spring-animated selection
+ * feedback.
  */
 @Composable
 fun CompactGroupCard(
@@ -241,10 +236,11 @@ fun CompactGroupCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val compactShape = animatedRoundedCornerShape(
-        targetRadius = if (isSelected) 16.dp else 12.dp,
-        label = "compactGroupCardMorph"
-    )
+    val compactShape =
+        animatedRoundedCornerShape(
+            targetRadius = if (isSelected) 16.dp else 12.dp,
+            label = "compactGroupCardMorph",
+        )
 
     ExpressiveCard(
         onClick = onClick,
@@ -253,19 +249,18 @@ fun CompactGroupCard(
         shape = compactShape,
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = Icons.Default.Groups,
                 contentDescription = null,
-                tint = if (isSelected) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
+                tint =
+                    if (isSelected) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                 modifier = Modifier.size(24.dp),
             )
 
@@ -343,10 +338,6 @@ private fun GroupCardCustomPreview() {
 @Composable
 private fun CompactGroupCardPreview() {
     DeviceMaskerTheme {
-        CompactGroupCard(
-            group = SpoofGroup.createDefaultGroup(),
-            isSelected = true,
-            onClick = {},
-        )
+        CompactGroupCard(group = SpoofGroup.createDefaultGroup(), isSelected = true, onClick = {})
     }
 }

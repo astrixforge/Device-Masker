@@ -39,7 +39,6 @@ class AppScopeRepository(private val context: Context) {
             cachedApps ?: emptyList()
         }
 
-
     /** Queries installed apps from PackageManager. */
     private fun queryInstalledApps(includeSystem: Boolean): List<InstalledApp> {
         val flags = PackageManager.GET_META_DATA
@@ -64,5 +63,4 @@ class AppScopeRepository(private val context: Context) {
             }
             .sortedBy { it.label.lowercase() }
     }
-
 }

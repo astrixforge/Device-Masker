@@ -28,8 +28,8 @@ import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveSwitch
 /**
  * Independent spoof item with individual controls.
  *
- * Has its own switch and regenerate button since values don't need to sync.
- * Long-press on value to copy.
+ * Has its own switch and regenerate button since values don't need to sync. Long-press on value to
+ * copy.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -48,12 +48,10 @@ fun IndependentSpoofItem(
         modifier = modifier,
         shape = MaterialTheme.shapes.medium,
         containerColor = MaterialTheme.colorScheme.surface,
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             // Header row with switch
@@ -80,7 +78,8 @@ fun IndependentSpoofItem(
                 ) {
                     // Value text
                     Text(
-                        text = value.ifEmpty { stringResource(id = R.string.group_spoofing_not_set) },
+                        text =
+                            value.ifEmpty { stringResource(id = R.string.group_spoofing_not_set) },
                         style = MaterialTheme.typography.bodySmall,
                         fontFamily = FontFamily.Monospace,
                         color = MaterialTheme.colorScheme.primary,

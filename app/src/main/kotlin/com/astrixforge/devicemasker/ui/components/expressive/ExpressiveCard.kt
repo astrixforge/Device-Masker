@@ -28,9 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.astrixforge.devicemasker.ui.theme.AppMotion
 import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 
-/**
- * ElevatedCard with Material 3 Expressive enhancements.
- */
+/** ElevatedCard with Material 3 Expressive enhancements. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ExpressiveCard(
@@ -44,63 +42,65 @@ fun ExpressiveCard(
     selectionColor: Color? = null,
     colors: CardColors? = null,
     elevation: androidx.compose.material3.CardElevation = CardDefaults.elevatedCardElevation(),
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
     // Spatial spring for scale (CAN overshoot)
-    val scale by animateFloatAsState(
-        targetValue = when {
-            !enabled -> 1f
-            isPressed -> 0.98f
-            isSelected -> 1.02f
-            else -> 1f
-        },
-        animationSpec = AppMotion.Spatial.Expressive,
-        label = "expressiveCardScale"
-    )
+    val scale by
+        animateFloatAsState(
+            targetValue =
+                when {
+                    !enabled -> 1f
+                    isPressed -> 0.98f
+                    isSelected -> 1.02f
+                    else -> 1f
+                },
+            animationSpec = AppMotion.Spatial.Expressive,
+            label = "expressiveCardScale",
+        )
 
     // Effect spring for color (NO overshoot)
     val baseColor = containerColor ?: MaterialTheme.colorScheme.surfaceContainerHigh
-    val targetColor = when {
-        isSelected -> selectionColor
-            ?: MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+    val targetColor =
+        when {
+            isSelected ->
+                selectionColor ?: MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
 
-        else -> baseColor
-    }
+            else -> baseColor
+        }
 
-    val animatedContainerColor by animateColorAsState(
-        targetValue = targetColor,
-        animationSpec = AppMotion.Effect.Color,
-        label = "expressiveCardColor"
-    )
+    val animatedContainerColor by
+        animateColorAsState(
+            targetValue = targetColor,
+            animationSpec = AppMotion.Effect.Color,
+            label = "expressiveCardColor",
+        )
 
-    val finalColors = colors ?: CardDefaults.elevatedCardColors(
-        containerColor = animatedContainerColor
-    )
+    val finalColors =
+        colors ?: CardDefaults.elevatedCardColors(containerColor = animatedContainerColor)
 
     ElevatedCard(
-        modifier = modifier
-            .scale(scale)
-            .combinedClickable(
-                interactionSource = interactionSource,
-                indication = null,
-                enabled = enabled,
-                onClick = onClick,
-                onLongClick = onLongClick
-            ),
+        modifier =
+            modifier
+                .scale(scale)
+                .combinedClickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    enabled = enabled,
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                ),
         colors = finalColors,
         shape = shape,
-        elevation = elevation
+        elevation = elevation,
     ) {
         Column(content = content)
     }
 }
 
-/**
- * OutlinedCard with Material 3 Expressive enhancements.
- */
+/** OutlinedCard with Material 3 Expressive enhancements. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ExpressiveOutlinedCard(
@@ -112,47 +112,52 @@ fun ExpressiveOutlinedCard(
     shape: Shape = MaterialTheme.shapes.large,
     selectionColor: Color? = null,
     colors: CardColors? = null,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
-    val scale by animateFloatAsState(
-        targetValue = when {
-            !enabled -> 1f
-            isPressed -> 0.98f
-            isSelected -> 1.02f
-            else -> 1f
-        },
-        animationSpec = AppMotion.Spatial.Expressive,
-        label = "expressiveCardScale"
-    )
+    val scale by
+        animateFloatAsState(
+            targetValue =
+                when {
+                    !enabled -> 1f
+                    isPressed -> 0.98f
+                    isSelected -> 1.02f
+                    else -> 1f
+                },
+            animationSpec = AppMotion.Spatial.Expressive,
+            label = "expressiveCardScale",
+        )
 
-    val targetColor = when {
-        isSelected -> selectionColor
-            ?: MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
+    val targetColor =
+        when {
+            isSelected ->
+                selectionColor ?: MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
 
-        else -> Color.Transparent
-    }
+            else -> Color.Transparent
+        }
 
-    val animatedContainerColor by animateColorAsState(
-        targetValue = targetColor,
-        animationSpec = AppMotion.Effect.Color,
-        label = "expressiveCardColor"
-    )
+    val animatedContainerColor by
+        animateColorAsState(
+            targetValue = targetColor,
+            animationSpec = AppMotion.Effect.Color,
+            label = "expressiveCardColor",
+        )
 
     OutlinedCard(
-        modifier = modifier
-            .scale(scale)
-            .combinedClickable(
-                interactionSource = interactionSource,
-                indication = null,
-                enabled = enabled,
-                onClick = onClick,
-                onLongClick = onLongClick
-            ),
+        modifier =
+            modifier
+                .scale(scale)
+                .combinedClickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    enabled = enabled,
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                ),
         shape = shape,
-        colors = colors ?: CardDefaults.outlinedCardColors(containerColor = animatedContainerColor)
+        colors = colors ?: CardDefaults.outlinedCardColors(containerColor = animatedContainerColor),
     ) {
         Column(content = content)
     }
@@ -166,17 +171,12 @@ fun ExpressiveOutlinedCard(
 @Composable
 private fun ExpressiveCardPreview() {
     DeviceMaskerTheme {
-        ExpressiveCard(
-            onClick = {},
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
+        ExpressiveCard(onClick = {}, modifier = Modifier.fillMaxWidth().padding(16.dp)) {
             Text(
                 text = "Expressive Card",
                 modifier = Modifier.padding(16.dp),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
     }
@@ -189,15 +189,13 @@ private fun ExpressiveCardSelectedPreview() {
         ExpressiveCard(
             onClick = {},
             isSelected = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
         ) {
             Text(
                 text = "Selected Card",
                 modifier = Modifier.padding(16.dp),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
     }

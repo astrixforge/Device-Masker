@@ -22,8 +22,7 @@ import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 /**
  * Circular container for icons with customizable colors and sizes.
  *
- * Common usage pattern across the app for settings items, status indicators,
- * and feature icons.
+ * Common usage pattern across the app for settings items, status indicators, and feature icons.
  *
  * @param icon The icon to display
  * @param modifier Optional modifier
@@ -44,10 +43,7 @@ fun IconCircle(
     contentDescription: String? = null,
 ) {
     Box(
-        modifier = modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(containerColor),
+        modifier = modifier.size(size).clip(CircleShape).background(containerColor),
         contentAlignment = Alignment.Center,
     ) {
         Icon(

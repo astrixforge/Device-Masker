@@ -7,11 +7,7 @@ plugins {
 // Use JVM 17 for Android/Xposed compatibility
 kotlin {
     jvmToolchain(17)
-    compilerOptions {
-        freeCompilerArgs.addAll(
-            "-Xwarning-level=DEPRECATION:disabled"
-        )
-    }
+    compilerOptions { freeCompilerArgs.addAll("-Xwarning-level=DEPRECATION:disabled") }
 }
 
 android {
@@ -28,7 +24,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -38,16 +34,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    buildFeatures {
-        buildConfig = true
-    }
+    buildFeatures { buildConfig = true }
 
     // Include assets in the library (for xposed_init)
-    sourceSets {
-        getByName("main") {
-            assets.srcDirs("src/main/assets")
-        }
-    }
+    sourceSets { getByName("main") { assets.srcDirs("src/main/assets") } }
 }
 
 dependencies {
@@ -73,4 +63,3 @@ dependencies {
     // Serialization for config parsing
     implementation(libs.kotlinx.serialization.json)
 }
-

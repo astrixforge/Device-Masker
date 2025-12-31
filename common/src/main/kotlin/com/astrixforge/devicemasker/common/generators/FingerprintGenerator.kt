@@ -196,7 +196,6 @@ object FingerprintGenerator {
             ),
         )
 
-
     /** Generates a random build fingerprint. */
     fun generate(): String {
         val device = DEVICE_DATABASE.random()
@@ -273,5 +272,4 @@ object FingerprintGenerator {
             "HOST" to "build.android.google.com",
         )
     }
-
 }

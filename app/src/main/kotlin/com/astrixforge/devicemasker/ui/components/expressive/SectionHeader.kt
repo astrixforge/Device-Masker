@@ -60,39 +60,41 @@ fun SectionHeader(
     count: String? = null,
     countColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     isExpanded: Boolean = true,
-    onExpandChange: ((Boolean) -> Unit)? = null
+    onExpandChange: ((Boolean) -> Unit)? = null,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
     // Spring-animated rotation for expand icon
-    val iconRotation by animateFloatAsState(
-        targetValue = if (isExpanded) 180f else 0f,
-        animationSpec = AppMotion.Spatial.Standard,
-        label = "headerExpandRotation"
-    )
+    val iconRotation by
+        animateFloatAsState(
+            targetValue = if (isExpanded) 180f else 0f,
+            animationSpec = AppMotion.Spatial.Standard,
+            label = "headerExpandRotation",
+        )
 
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .then(
-                if (onExpandChange != null) {
-                    Modifier.clickable(
-                        interactionSource = interactionSource,
-                        indication = null,
-                        onClick = { onExpandChange(!isExpanded) }
-                    )
-                } else {
-                    Modifier
-                }
-            )
-            .padding(vertical = 12.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .then(
+                    if (onExpandChange != null) {
+                        Modifier.clickable(
+                            interactionSource = interactionSource,
+                            indication = null,
+                            onClick = { onExpandChange(!isExpanded) },
+                        )
+                    } else {
+                        Modifier
+                    }
+                )
+                .padding(vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         ) {
             // Optional leading icon
             if (icon != null) {
@@ -100,7 +102,7 @@ fun SectionHeader(
                     imageVector = icon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(24.dp),
                 )
             }
 
@@ -109,14 +111,14 @@ fun SectionHeader(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 if (count != null) {
                     Text(
                         text = count,
                         style = MaterialTheme.typography.bodySmall,
-                        color = countColor
+                        color = countColor,
                     )
                 }
             }
@@ -129,7 +131,7 @@ fun SectionHeader(
                     imageVector = Icons.Default.ExpandMore,
                     contentDescription = if (isExpanded) "Collapse" else "Expand",
                     modifier = Modifier.rotate(iconRotation),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -150,7 +152,7 @@ private fun SectionHeaderPreview() {
                 icon = Icons.Outlined.Security,
                 count = "4/5 passed",
                 countColor = StatusActive,
-                onExpandChange = {}
+                onExpandChange = {},
             )
         }
     }
@@ -165,7 +167,7 @@ private fun SectionHeaderCollapsedPreview() {
                 title = "Device Identifiers",
                 count = "8 items",
                 isExpanded = false,
-                onExpandChange = {}
+                onExpandChange = {},
             )
         }
     }
@@ -180,7 +182,7 @@ private fun SectionHeaderNoExpandPreview() {
                 title = "Static Section",
                 icon = Icons.Outlined.Security,
                 count = "No toggle",
-                onExpandChange = null
+                onExpandChange = null,
             )
         }
     }

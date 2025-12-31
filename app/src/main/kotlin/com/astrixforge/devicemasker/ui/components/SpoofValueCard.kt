@@ -91,8 +91,7 @@ fun SpoofValueCard(
             // Value Display
             Box(
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
+                    Modifier.fillMaxWidth()
                         .background(
                             color = MaterialTheme.colorScheme.surfaceContainerHigh,
                             shape = MaterialTheme.shapes.small,
@@ -128,7 +127,7 @@ fun SpoofValueCard(
                         onClick = onRegenerate,
                         icon = Icons.Default.Refresh,
                         contentDescription = "Regenerate",
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.primary,
                     )
 
                     Spacer(modifier = Modifier.width(4.dp))
@@ -165,12 +164,12 @@ fun CompactSpoofValueCard(
         onClick = { /* Compact item click */ },
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
-        containerColor = Color.Transparent, // Let the parent container's color show through or use a subtle surface
+        containerColor =
+            Color.Transparent, // Let the parent container's color show through or use a subtle
+        // surface
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -181,7 +180,8 @@ fun CompactSpoofValueCard(
                 )
                 Text(
                     text = value ?: "Not set",
-                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                    style =
+                        MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
                     color =
                         if (value != null) {
                             MaterialTheme.colorScheme.primary
@@ -203,7 +203,6 @@ fun CompactSpoofValueCard(
         }
     }
 }
-
 
 /** Masks a value for display based on type. */
 private fun maskValueString(type: SpoofType, value: String?): String {

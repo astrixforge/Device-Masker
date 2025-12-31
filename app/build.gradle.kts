@@ -54,7 +54,7 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
-        aidl = true  // Enable AIDL for IPC with xposed module
+        aidl = true // Enable AIDL for IPC with xposed module
     }
 
     // CRITICAL: Prevent synthetic lambda classes that cause ClassNotFoundException in Xposed
@@ -71,13 +71,13 @@ android {
         // Enable cross-module analysis to prevent false positives
         // in library modules (:common, :xposed)
         checkDependencies = true
-        
+
         // Treat lint errors as warnings in debug builds
         abortOnError = false
-        
+
         // Generate HTML report for review
         htmlReport = true
-        
+
         // Baseline file to track known issues (optional)
         // baseline = file("lint-baseline.xml")
     }
@@ -87,8 +87,8 @@ dependencies {
     // ═══════════════════════════════════════════════════════════
     // HMA-OSS ARCHITECTURE MODULES
     // ═══════════════════════════════════════════════════════════
-    implementation(project(":common"))  // Shared models and AIDL
-    implementation(project(":xposed"))  // Hook logic - bundled in APK
+    implementation(project(":common")) // Shared models and AIDL
+    implementation(project(":xposed")) // Hook logic - bundled in APK
 
     // ═══════════════════════════════════════════════════════════
     // CORE ANDROID

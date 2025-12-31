@@ -21,10 +21,8 @@ import kotlinx.coroutines.launch
  * @param repository The SpoofRepository for data access
  * @param groupId The ID of the group to display
  */
-class GroupSpoofingViewModel(
-    private val repository: SpoofRepository,
-    private val groupId: String
-) : ViewModel() {
+class GroupSpoofingViewModel(private val repository: SpoofRepository, private val groupId: String) :
+    ViewModel() {
 
     private val _state = MutableStateFlow(GroupSpoofingState())
     val state: StateFlow<GroupSpoofingState> = _state.asStateFlow()
@@ -34,13 +32,7 @@ class GroupSpoofingViewModel(
         viewModelScope.launch {
             repository.groups.collect { groups ->
                 val group = groups.find { it.id == groupId }
-                _state.update {
-                    it.copy(
-                        groups = groups,
-                        group = group,
-                        isLoading = false
-                    )
-                }
+                _state.update { it.copy(groups = groups, group = group, isLoading = false) }
             }
         }
 
@@ -60,16 +52,17 @@ class GroupSpoofingViewModel(
         val group = state.value.group ?: return
         viewModelScope.launch {
             // For SIM values: use regenerateSIMValueOnly to keep same carrier
-            val newValue = when (val correlationGroup = type.correlationGroup) {
-                CorrelationGroup.SIM_CARD -> repository.regenerateSIMValueOnly(type)
-                else -> {
-                    // For non-SIM correlated values, reset cache first
-                    if (correlationGroup != CorrelationGroup.NONE) {
-                        repository.resetCorrelationGroup(correlationGroup)
+            val newValue =
+                when (val correlationGroup = type.correlationGroup) {
+                    CorrelationGroup.SIM_CARD -> repository.regenerateSIMValueOnly(type)
+                    else -> {
+                        // For non-SIM correlated values, reset cache first
+                        if (correlationGroup != CorrelationGroup.NONE) {
+                            repository.resetCorrelationGroup(correlationGroup)
+                        }
+                        repository.generateValue(type)
                     }
-                    repository.generateValue(type)
                 }
-            }
 
             val updated = group.withValue(type, newValue)
             repository.updateGroup(updated)
@@ -108,27 +101,19 @@ class GroupSpoofingViewModel(
 
     fun regenerateLocation() {
         val group = state.value.group ?: return
-        viewModelScope.launch {
-            repository.regenerateLocationValues(group.id)
-        }
+        viewModelScope.launch { repository.regenerateLocationValues(group.id) }
     }
 
     fun updateCarrier(carrier: Carrier) {
         val group = state.value.group ?: return
-        viewModelScope.launch {
-            repository.updateGroupWithCarrier(group.id, carrier)
-        }
+        viewModelScope.launch { repository.updateGroupWithCarrier(group.id, carrier) }
     }
 
     fun addAppToGroup(packageName: String) {
-        viewModelScope.launch {
-            repository.addAppToGroup(groupId, packageName)
-        }
+        viewModelScope.launch { repository.addAppToGroup(groupId, packageName) }
     }
 
     fun removeAppFromGroup(packageName: String) {
-        viewModelScope.launch {
-            repository.removeAppFromGroup(groupId, packageName)
-        }
+        viewModelScope.launch { repository.removeAppFromGroup(groupId, packageName) }
     }
 }

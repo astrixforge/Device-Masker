@@ -1,10 +1,8 @@
 package com.astrixforge.devicemasker.xposed.hooker
 
 import com.astrixforge.devicemasker.common.SpoofType
-import com.astrixforge.devicemasker.xposed.PrefsHelper
-import com.highcapable.yukihookapi.hook.entity.YukiBaseHooker
+import com.astrixforge.devicemasker.xposed.utils.ValueGenerators
 import com.highcapable.yukihookapi.hook.factory.method
-import com.astrixforge.devicemasker.xposed.DualLog
 
 /**
  * Network Identifier Hooker - Spoofs network-related identifiers.
@@ -14,164 +12,160 @@ import com.astrixforge.devicemasker.xposed.DualLog
  * - Bluetooth MAC address
  * - WiFi SSID/BSSID
  * - Carrier name and MCC/MNC
- *
- * Uses ServiceProxy for cross-process config access via Binder IPC.
  */
-object NetworkHooker : YukiBaseHooker() {
+object NetworkHooker : BaseSpoofHooker("NetworkHooker") {
 
-    private const val TAG = "NetworkHooker"
-
-    private val fallbackWifiMac by lazy { generateMac() }
-    private val fallbackBluetoothMac by lazy { generateMac() }
-
-    private fun getSpoofValue(type: SpoofType, fallback: () -> String): String {
-        return PrefsHelper.getSpoofValue(prefs, packageName, type, fallback)
+    // Cached class references
+    private val wifiInfoClass by lazy { "android.net.wifi.WifiInfo".toClassOrNull() }
+    private val bluetoothAdapterClass by lazy {
+        "android.bluetooth.BluetoothAdapter".toClassOrNull()
     }
+    private val telephonyClass by lazy { "android.telephony.TelephonyManager".toClassOrNull() }
+    private val networkInterfaceClass by lazy { "java.net.NetworkInterface".toClassOrNull() }
+
+    // Fallback values (thread-safe lazy)
+    private val fallbackWifiMac by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { ValueGenerators.mac() }
+    private val fallbackBluetoothMac by
+        lazy(LazyThreadSafetyMode.SYNCHRONIZED) { ValueGenerators.mac() }
 
     override fun onHook() {
-        DualLog.debug(TAG, "Starting hooks for: $packageName")
-
+        logStart()
         hookWifiInfo()
         hookNetworkInterface()
         hookBluetoothAdapter()
         hookTelephonyCarrier()
-
-        // Hook count tracking removed
+        recordSuccess()
     }
+
+    // ═══════════════════════════════════════════════════════════
+    // WIFI INFO HOOKS
+    // ═══════════════════════════════════════════════════════════
 
     private fun hookWifiInfo() {
-        runCatching {
-            "android.net.wifi.WifiInfo".toClass().apply {
-                method {
+        val cachedWifiMac = getSpoofValue(SpoofType.WIFI_MAC) { fallbackWifiMac }
+        val cachedSsid = getSpoofValue(SpoofType.WIFI_SSID) { "\"HomeNetwork\"" }
+        val cachedBssid = getSpoofValue(SpoofType.WIFI_BSSID) { ValueGenerators.mac() }
+
+        wifiInfoClass?.apply {
+            method {
                     name = "getMacAddress"
                     emptyParam()
-                }.hook {
-                    after {
-                        result = getSpoofValue(SpoofType.WIFI_MAC) { fallbackWifiMac }
-                    }
                 }
+                .hook { replaceAny { cachedWifiMac } }
 
-                runCatching {
-                    method {
+            runCatching {
+                method {
                         name = "getSSID"
                         emptyParam()
-                    }.hook {
-                        after {
-                            val currentSsid = result as? String
-                            val spoofed = getSpoofValue(SpoofType.WIFI_SSID) { currentSsid ?: "\"unknown\"" }
-                            result = if (spoofed.startsWith("\"")) spoofed else "\"$spoofed\""
+                    }
+                    .hook {
+                        replaceAny {
+                            if (cachedSsid.startsWith("\"")) cachedSsid else "\"$cachedSsid\""
                         }
                     }
-                }
+            }
 
-                runCatching {
-                    method {
+            runCatching {
+                method {
                         name = "getBSSID"
                         emptyParam()
-                    }.hook {
-                        after {
-                            result = getSpoofValue(SpoofType.WIFI_BSSID) { generateMac() }
-                        }
                     }
-                }
+                    .hook { replaceAny { cachedBssid } }
             }
-        }
+        } ?: logDebug("WifiInfo class not found")
     }
+
+    // ═══════════════════════════════════════════════════════════
+    // NETWORK INTERFACE HOOKS
+    // ═══════════════════════════════════════════════════════════
 
     private fun hookNetworkInterface() {
-        runCatching {
-            "java.net.NetworkInterface".toClass().apply {
-                method {
+        networkInterfaceClass?.apply {
+            method {
                     name = "getHardwareAddress"
                     emptyParam()
-                }.hook {
+                }
+                .hook {
                     after {
                         val spoofedMac = getSpoofValue(SpoofType.WIFI_MAC) { fallbackWifiMac }
-                        result = parseMacToBytes(spoofedMac)
+                        result = ValueGenerators.parseMacToBytes(spoofedMac)
                     }
                 }
-            }
-        }
+        } ?: logDebug("NetworkInterface class not found")
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // BLUETOOTH ADAPTER HOOKS
+    // ═══════════════════════════════════════════════════════════
+
     private fun hookBluetoothAdapter() {
-        runCatching {
-            "android.bluetooth.BluetoothAdapter".toClass().apply {
-                method {
+        bluetoothAdapterClass?.apply {
+            method {
                     name = "getAddress"
                     emptyParam()
-                }.hook {
+                }
+                .hook {
                     after {
                         result = getSpoofValue(SpoofType.BLUETOOTH_MAC) { fallbackBluetoothMac }
                     }
                 }
-            }
-        }
+        } ?: logDebug("BluetoothAdapter class not found")
     }
+
+    // ═══════════════════════════════════════════════════════════
+    // TELEPHONY CARRIER HOOKS
+    // ═══════════════════════════════════════════════════════════
 
     private fun hookTelephonyCarrier() {
-        runCatching {
-            "android.telephony.TelephonyManager".toClass().apply {
-                method {
+        telephonyClass?.apply {
+            method {
                     name = "getNetworkOperatorName"
                     emptyParam()
-                }.hook {
+                }
+                .hook {
                     after {
                         val current = result as? String
                         result = getSpoofValue(SpoofType.CARRIER_NAME) { current ?: "Unknown" }
                     }
                 }
 
+            runCatching {
                 method {
-                    name = "getSimOperatorName"
-                    emptyParam()
-                }.hook {
-                    after {
-                        val current = result as? String
-                        result = getSpoofValue(SpoofType.CARRIER_NAME) { current ?: "Unknown" }
+                        name = "getSimOperatorName"
+                        emptyParam()
                     }
-                }
+                    .hook {
+                        after {
+                            val current = result as? String
+                            result = getSpoofValue(SpoofType.CARRIER_NAME) { current ?: "Unknown" }
+                        }
+                    }
+            }
 
-                method {
+            method {
                     name = "getNetworkOperator"
                     emptyParam()
-                }.hook {
+                }
+                .hook {
                     after {
                         val current = result as? String
                         result = getSpoofValue(SpoofType.CARRIER_MCC_MNC) { current ?: "310260" }
                     }
                 }
 
+            runCatching {
                 method {
-                    name = "getSimOperator"
-                    emptyParam()
-                }.hook {
-                    after {
-                        val current = result as? String
-                        result = getSpoofValue(SpoofType.CARRIER_MCC_MNC) { current ?: "310260" }
+                        name = "getSimOperator"
+                        emptyParam()
                     }
-                }
+                    .hook {
+                        after {
+                            val current = result as? String
+                            result =
+                                getSpoofValue(SpoofType.CARRIER_MCC_MNC) { current ?: "310260" }
+                        }
+                    }
             }
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // GENERATORS
-    // ═══════════════════════════════════════════════════════════
-
-    private fun generateMac(): String {
-        val bytes = ByteArray(6)
-        java.util.Random().nextBytes(bytes)
-        // Clear multicast bit, set local bit
-        bytes[0] = ((bytes[0].toInt() and 0xFC) or 0x02).toByte()
-        return bytes.joinToString(":") { String.format("%02X", it) }
-    }
-
-    private fun parseMacToBytes(mac: String): ByteArray {
-        return try {
-            mac.split(":").map { it.toInt(16).toByte() }.toByteArray()
-        } catch (e: Exception) {
-            ByteArray(6)
-        }
+        } ?: logDebug("TelephonyManager class not found")
     }
 }

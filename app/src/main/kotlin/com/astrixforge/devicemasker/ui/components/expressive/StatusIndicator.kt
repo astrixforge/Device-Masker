@@ -57,74 +57,70 @@ fun StatusIndicator(
     size: Dp = 24.dp,
     icon: ImageVector? = null,
     iconTint: Color = Color.White,
-    showPulse: Boolean = false
+    showPulse: Boolean = false,
 ) {
     // Effect spring for color (NO overshoot)
-    val animatedColor by animateColorAsState(
-        targetValue = color,
-        animationSpec = AppMotion.Effect.Color,
-        label = "statusColor"
-    )
+    val animatedColor by
+        animateColorAsState(
+            targetValue = color,
+            animationSpec = AppMotion.Effect.Color,
+            label = "statusColor",
+        )
 
     // Optional pulse animation
-    val scale by animateFloatAsState(
-        targetValue = if (showPulse) 1.05f else 1f,
-        animationSpec = AppMotion.Spatial.Standard,
-        label = "statusPulse"
-    )
+    val scale by
+        animateFloatAsState(
+            targetValue = if (showPulse) 1.05f else 1f,
+            animationSpec = AppMotion.Spatial.Standard,
+            label = "statusPulse",
+        )
 
     Box(
-        modifier = modifier
-            .size(size)
-            .scale(scale)
-            .background(color = animatedColor, shape = CircleShape),
-        contentAlignment = Alignment.Center
+        modifier =
+            modifier.size(size).scale(scale).background(color = animatedColor, shape = CircleShape),
+        contentAlignment = Alignment.Center,
     ) {
         if (icon != null) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = iconTint,
-                modifier = Modifier.size(size * 0.6f)
+                modifier = Modifier.size(size * 0.6f),
             )
         }
     }
 }
 
-/**
- * Status indicator that automatically shows check/close icons based on state.
- */
+/** Status indicator that automatically shows check/close icons based on state. */
 @Composable
 fun StatusIndicatorWithIcon(
     isSuccess: Boolean,
     modifier: Modifier = Modifier,
     size: Dp = 24.dp,
     successColor: Color = StatusActive,
-    failureColor: Color = StatusInactive
+    failureColor: Color = StatusInactive,
 ) {
     StatusIndicator(
         color = if (isSuccess) successColor else failureColor,
         icon = if (isSuccess) Icons.Default.Check else Icons.Default.Close,
         modifier = modifier,
-        size = size
+        size = size,
     )
 }
 
-/**
- * Larger status indicator for hero displays (e.g., module status card).
- */
+/** Larger status indicator for hero displays (e.g., module status card). */
 @Composable
 fun HeroStatusIndicator(
     isActive: Boolean,
     modifier: Modifier = Modifier,
-    icon: ImageVector? = null
+    icon: ImageVector? = null,
 ) {
     StatusIndicator(
         color = if (isActive) StatusActive else StatusInactive,
         icon = icon,
         modifier = modifier,
         size = 48.dp,
-        showPulse = isActive
+        showPulse = isActive,
     )
 }
 
@@ -138,7 +134,7 @@ private fun StatusIndicatorPreview() {
     DeviceMaskerTheme {
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+            modifier = Modifier.background(MaterialTheme.colorScheme.surface),
         ) {
             StatusIndicator(color = StatusActive)
             StatusIndicator(color = StatusWarning)

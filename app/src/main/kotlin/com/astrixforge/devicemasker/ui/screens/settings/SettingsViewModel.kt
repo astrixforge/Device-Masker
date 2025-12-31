@@ -1,11 +1,12 @@
 package com.astrixforge.devicemasker.ui.screens.settings
 
 import android.app.Application
-import android.os.Environment
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.astrixforge.devicemasker.data.SettingsDataStore
-import com.astrixforge.devicemasker.service.ServiceClient
+import com.astrixforge.devicemasker.service.LogExportResult
+import com.astrixforge.devicemasker.service.LogManager
 import com.astrixforge.devicemasker.ui.screens.ThemeMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,23 +15,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * ViewModel for the Settings screen.
  *
- * Manages theme and debug settings via SettingsDataStore.
+ * Manages theme settings and log export functionality.
  *
  * @param application Application for context access
  * @param settingsStore The SettingsDataStore for persistence
  */
-class SettingsViewModel(
-    application: Application,
-    private val settingsStore: SettingsDataStore
-) : AndroidViewModel(application) {
+class SettingsViewModel(application: Application, private val settingsStore: SettingsDataStore) :
+    AndroidViewModel(application) {
 
     private val _state = MutableStateFlow(SettingsState())
     val state: StateFlow<SettingsState> = _state.asStateFlow()
@@ -38,9 +33,7 @@ class SettingsViewModel(
     init {
         // Collect theme mode
         viewModelScope.launch {
-            settingsStore.themeMode.collect { mode ->
-                _state.update { it.copy(themeMode = mode) }
-            }
+            settingsStore.themeMode.collect { mode -> _state.update { it.copy(themeMode = mode) } }
         }
 
         // Collect AMOLED mode
@@ -56,111 +49,53 @@ class SettingsViewModel(
                 _state.update { it.copy(dynamicColors = enabled) }
             }
         }
-
-        // Collect debug logging
-        viewModelScope.launch {
-            settingsStore.debugLogging.collect { enabled ->
-                _state.update { it.copy(debugLogging = enabled) }
-            }
-        }
     }
 
     fun setThemeMode(mode: ThemeMode) {
-        viewModelScope.launch {
-            settingsStore.setThemeMode(mode)
-        }
+        viewModelScope.launch { settingsStore.setThemeMode(mode) }
     }
 
     fun setAmoledMode(enabled: Boolean) {
-        viewModelScope.launch {
-            settingsStore.setAmoledMode(enabled)
-        }
+        viewModelScope.launch { settingsStore.setAmoledMode(enabled) }
     }
 
     fun setDynamicColors(enabled: Boolean) {
-        viewModelScope.launch {
-            settingsStore.setDynamicColors(enabled)
-        }
-    }
-
-    fun setDebugLogging(enabled: Boolean) {
-        viewModelScope.launch {
-            settingsStore.setDebugLogging(enabled)
-        }
+        viewModelScope.launch { settingsStore.setDynamicColors(enabled) }
     }
 
     // ═══════════════════════════════════════════════════════════
-    // LOG EXPORT FUNCTIONS
+    // EXPORT LOGS (In-Memory YLog Data)
     // ═══════════════════════════════════════════════════════════
 
-    /**
-     * Exports logs from the Xposed service to a file in Downloads folder.
-     */
-    fun exportLogs() {
+    /** Exports YLog in-memory data to a custom URI location (file picker). */
+    fun exportLogsToUri(uri: Uri) {
         viewModelScope.launch {
             _state.update { it.copy(isExportingLogs = true, exportResult = null) }
 
-            val result = withContext(Dispatchers.IO) {
-                try {
-                    // Get logs from service
-                    val logs = ServiceClient.getLogs()
-
-                    if (logs.isEmpty()) {
-                        return@withContext ExportResult.NoLogs
-                    }
-
-                    // Create timestamp for filename
-                    val timestamp =
-                        SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US).format(Date())
-                    val fileName = "devicemasker_logs_$timestamp.txt"
-
-                    // Get Downloads directory
-                    val downloadsDir = Environment.getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_DOWNLOADS
-                    )
-                    val logFile = File(downloadsDir, fileName)
-
-                    // Build log content with header
-                    val content = buildString {
-                        appendLine("═══════════════════════════════════════════════════════════")
-                        appendLine("  Device Masker - Debug Logs")
-                        appendLine(
-                            "  Exported: ${
-                                SimpleDateFormat(
-                                    "yyyy-MM-dd HH:mm:ss",
-                                    Locale.US
-                                ).format(Date())
-                            }"
-                        )
-                        appendLine("  Total Entries: ${logs.size}")
-                        appendLine("═══════════════════════════════════════════════════════════")
-                        appendLine()
-                        logs.forEach { log ->
-                            appendLine(log)
-                        }
-                        appendLine()
-                        appendLine("═══════════════════════════════════════════════════════════")
-                        appendLine("  End of Log")
-                        appendLine("═══════════════════════════════════════════════════════════")
-                    }
-
-                    // Write to file
-                    logFile.writeText(content)
-
-                    ExportResult.Success(logFile.absolutePath, logs.size)
-                } catch (e: Exception) {
-                    ExportResult.Error(e.message ?: "Unknown error")
+            val result =
+                withContext(Dispatchers.IO) {
+                    LogManager.exportLogsToUri(getApplication(), uri).toExportResult()
                 }
-            }
 
             _state.update { it.copy(isExportingLogs = false, exportResult = result) }
         }
     }
 
-    /**
-     * Clears the export result from state.
-     */
+    // ═══════════════════════════════════════════════════════════
+    // UTILITY FUNCTIONS
+    // ═══════════════════════════════════════════════════════════
+
     fun clearExportResult() {
         _state.update { it.copy(exportResult = null) }
+    }
+
+    /** Generate filename for Export Logs file picker */
+    fun generateLogFileName(): String = LogManager.generateLogFileName()
+
+    private fun LogExportResult.toExportResult(): ExportResult {
+        return when (this) {
+            is LogExportResult.Success -> ExportResult.Success(filePath, lineCount)
+            is LogExportResult.Error -> ExportResult.Error(message)
+        }
     }
 }

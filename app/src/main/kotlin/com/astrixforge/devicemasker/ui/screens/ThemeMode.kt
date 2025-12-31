@@ -10,5 +10,5 @@ import com.astrixforge.devicemasker.R
 enum class ThemeMode(val displayNameRes: Int) {
     SYSTEM(R.string.settings_theme_system),
     LIGHT(R.string.settings_theme_light),
-    DARK(R.string.settings_theme_dark)
+    DARK(R.string.settings_theme_dark),
 }

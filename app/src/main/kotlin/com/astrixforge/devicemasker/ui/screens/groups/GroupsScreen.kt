@@ -53,13 +53,13 @@ import com.astrixforge.devicemasker.ui.components.GroupCard
 import com.astrixforge.devicemasker.ui.components.ScreenHeader
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressivePullToRefresh
 import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * Screen for managing spoof groups.
@@ -91,37 +91,38 @@ fun GroupsScreen(
     var showDeleteDialog by remember { mutableStateOf<SpoofGroup?>(null) }
 
     // Export launcher - creates a JSON file
-    val exportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/json")
-    ) { uri: Uri? ->
-        uri?.let {
-            viewModel.exportGroups { jsonData ->
-                scope.launch {
-                    withContext(Dispatchers.IO) {
-                        context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                            outputStream.write(jsonData.toByteArray())
+    val exportLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.CreateDocument("application/json")
+        ) { uri: Uri? ->
+            uri?.let {
+                viewModel.exportGroups { jsonData ->
+                    scope.launch {
+                        withContext(Dispatchers.IO) {
+                            context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                                outputStream.write(jsonData.toByteArray())
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
     // Import launcher - reads a JSON file
-    val importLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            scope.launch {
-                withContext(Dispatchers.IO) {
-                    context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                        val jsonData = inputStream.bufferedReader().readText()
-                        viewModel.importGroups(jsonData)
+    val importLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) {
+            uri: Uri? ->
+            uri?.let {
+                scope.launch {
+                    withContext(Dispatchers.IO) {
+                        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                            val jsonData = inputStream.bufferedReader().readText()
+                            viewModel.importGroups(jsonData)
+                        }
                     }
                 }
             }
         }
-    }
 
     var isRefreshing by remember { mutableStateOf(false) }
 
@@ -146,9 +147,7 @@ fun GroupsScreen(
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
             exportLauncher.launch("devicemasker_groups_$timestamp.json")
         },
-        onImport = {
-            importLauncher.launch("application/json")
-        },
+        onImport = { importLauncher.launch("application/json") },
         modifier = modifier,
     )
 
@@ -212,15 +211,10 @@ fun GroupsScreenContent(
 ) {
     // Track scroll position for FAB animation
     val listState = rememberLazyListState()
-    val expandedFab by remember {
-        derivedStateOf { listState.firstVisibleItemIndex == 0 }
-    }
+    val expandedFab by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
 
     Box(modifier = modifier.fillMaxSize()) {
-        ExpressivePullToRefresh(
-            isRefreshing = isRefreshing,
-            onRefresh = onRefresh
-        ) {
+        ExpressivePullToRefresh(isRefreshing = isRefreshing, onRefresh = onRefresh) {
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
@@ -238,7 +232,8 @@ fun GroupsScreenContent(
                                 IconButton(onClick = { showMenu = true }) {
                                     Icon(
                                         imageVector = Icons.Default.MoreVert,
-                                        contentDescription = stringResource(id = R.string.action_more_options),
+                                        contentDescription =
+                                            stringResource(id = R.string.action_more_options),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                 }
@@ -248,7 +243,9 @@ fun GroupsScreenContent(
                                     onDismissRequest = { showMenu = false },
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text(stringResource(id = R.string.group_import_groups)) },
+                                        text = {
+                                            Text(stringResource(id = R.string.group_import_groups))
+                                        },
                                         onClick = {
                                             showMenu = false
                                             onImport()
@@ -261,7 +258,9 @@ fun GroupsScreenContent(
                                         },
                                     )
                                     DropdownMenuItem(
-                                        text = { Text(stringResource(id = R.string.group_export_groups)) },
+                                        text = {
+                                            Text(stringResource(id = R.string.group_export_groups))
+                                        },
                                         onClick = {
                                             showMenu = false
                                             onExport()
@@ -275,7 +274,7 @@ fun GroupsScreenContent(
                                     )
                                 }
                             }
-                        }
+                        },
                     )
                 }
 
@@ -316,9 +315,7 @@ fun GroupsScreenContent(
             text = { Text(stringResource(id = R.string.group_new)) },
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp),
+            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
         )
     }
 }
@@ -372,12 +369,13 @@ fun CreateGroupDialog(
             }
         },
         confirmButton = {
-            TextButton(
-                onClick = { onCreate(name.trim(), description.trim()) },
-                enabled = isValid
-            ) { Text(stringResource(id = R.string.action_create)) }
+            TextButton(onClick = { onCreate(name.trim(), description.trim()) }, enabled = isValid) {
+                Text(stringResource(id = R.string.action_create))
+            }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(id = R.string.action_cancel)) } },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(id = R.string.action_cancel)) }
+        },
     )
 }
 
@@ -415,12 +413,13 @@ fun EditGroupDialog(
             }
         },
         confirmButton = {
-            TextButton(
-                onClick = { onSave(name.trim(), description.trim()) },
-                enabled = isValid
-            ) { Text(stringResource(id = R.string.action_save)) }
+            TextButton(onClick = { onSave(name.trim(), description.trim()) }, enabled = isValid) {
+                Text(stringResource(id = R.string.action_save))
+            }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(id = R.string.action_cancel)) } },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(id = R.string.action_cancel)) }
+        },
     )
 }
 
@@ -439,19 +438,22 @@ fun DeleteGroupDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
         title = { Text(stringResource(id = R.string.group_delete_dialog_title)) },
         text = {
             Text(
-                stringResource(id = R.string.group_delete_confirm) + " " +
-                        stringResource(id = R.string.group_delete_warning)
+                stringResource(id = R.string.group_delete_confirm) +
+                    " " +
+                    stringResource(id = R.string.group_delete_warning)
             )
         },
         confirmButton = {
             TextButton(onClick = onConfirm) {
                 Text(
                     stringResource(id = R.string.action_delete),
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(id = R.string.action_cancel)) } },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(id = R.string.action_cancel)) }
+        },
     )
 }
 

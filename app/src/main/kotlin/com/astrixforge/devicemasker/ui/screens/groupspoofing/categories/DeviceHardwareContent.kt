@@ -65,7 +65,7 @@ fun DeviceHardwareCategoryContent(
             onToggle = { enabled -> onToggle(SpoofType.DEVICE_PROFILE, enabled) },
             onRegenerate = { onRegenerate(SpoofType.DEVICE_PROFILE) },
             onCopy = { onCopy(deviceProfileDisplayValue) },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
 
         // Collapsible Device Info
@@ -79,12 +79,10 @@ fun DeviceHardwareCategoryContent(
                 modifier = Modifier.fillMaxWidth(),
                 containerColor = MaterialTheme.colorScheme.surface,
                 shape = MaterialTheme.shapes.medium,
-                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Text(
@@ -98,36 +96,44 @@ fun DeviceHardwareCategoryContent(
                         ReadOnlyValueRow(
                             label = "Manufacturer",
                             value = preset.manufacturer,
-                            onCopy = { onCopy(preset.manufacturer) })
+                            onCopy = { onCopy(preset.manufacturer) },
+                        )
                         ReadOnlyValueRow(
                             label = "Brand",
                             value = preset.brand,
-                            onCopy = { onCopy(preset.brand) })
+                            onCopy = { onCopy(preset.brand) },
+                        )
                         ReadOnlyValueRow(
                             label = "Model",
                             value = preset.model,
-                            onCopy = { onCopy(preset.model) })
+                            onCopy = { onCopy(preset.model) },
+                        )
                         ReadOnlyValueRow(
                             label = "Device",
                             value = preset.device,
-                            onCopy = { onCopy(preset.device) })
+                            onCopy = { onCopy(preset.device) },
+                        )
                         ReadOnlyValueRow(
                             label = "Product",
                             value = preset.product,
-                            onCopy = { onCopy(preset.product) })
+                            onCopy = { onCopy(preset.product) },
+                        )
                         ReadOnlyValueRow(
                             label = "Board",
                             value = preset.board,
-                            onCopy = { onCopy(preset.board) })
+                            onCopy = { onCopy(preset.board) },
+                        )
                         ReadOnlyValueRow(
                             label = "Fingerprint",
                             value = preset.fingerprint,
-                            onCopy = { onCopy(preset.fingerprint) })
+                            onCopy = { onCopy(preset.fingerprint) },
+                        )
                         if (preset.securityPatch.isNotBlank()) {
                             ReadOnlyValueRow(
                                 label = "Security Patch",
                                 value = preset.securityPatch,
-                                onCopy = { onCopy(preset.securityPatch) })
+                                onCopy = { onCopy(preset.securityPatch) },
+                            )
                         }
                     }
                 }
@@ -143,7 +149,7 @@ fun DeviceHardwareCategoryContent(
         onToggle = { enabled -> onToggle(SpoofType.IMEI, enabled) },
         onRegenerate = { onRegenerate(SpoofType.IMEI) },
         onCopy = { onCopy(imeiValue) },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     )
 
     // 3. Serial - independent
@@ -154,6 +160,6 @@ fun DeviceHardwareCategoryContent(
         onToggle = { enabled -> onToggle(SpoofType.SERIAL, enabled) },
         onRegenerate = { onRegenerate(SpoofType.SERIAL) },
         onCopy = { onCopy(serialValue) },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     )
 }

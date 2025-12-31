@@ -12,7 +12,7 @@ import timber.log.Timber
  *
  * Multi-Module AIDL Architecture:
  * - Initializes ConfigManager for JSON-based configuration
- * - ConfigManager handles local storage and AIDL sync with DeviceMaskerService
+ * - ConfigManager handles local storage and XposedPrefs sync for cross-process access
  *
  * Responsibilities:
  * - Initialize Timber logging in debug builds

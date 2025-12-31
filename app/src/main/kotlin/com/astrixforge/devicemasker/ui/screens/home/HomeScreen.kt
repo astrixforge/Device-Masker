@@ -103,14 +103,10 @@ fun HomeScreen(
         isModuleEnabled = state.isModuleEnabled,
         groups = state.groups,
         selectedGroup = state.selectedGroup,
-        onGroupSelected = { group ->
-            viewModel.selectGroup(group.id)
-        },
+        onGroupSelected = { group -> viewModel.selectGroup(group.id) },
         enabledAppsCount = state.enabledAppsCount,
         maskedIdentifiersCount = state.maskedIdentifiersCount,
-        onModuleEnabledChange = { enabled ->
-            viewModel.setModuleEnabled(enabled)
-        },
+        onModuleEnabledChange = { enabled -> viewModel.setModuleEnabled(enabled) },
         onNavigateToSpoof = {
             // Navigate to the selected group's spoofing screen
             val selectedGroup = state.selectedGroup
@@ -120,11 +116,7 @@ fun HomeScreen(
                 onNavigateToSpoof()
             }
         },
-        onRegenerateAll = {
-            viewModel.regenerateAll {
-                onRegenerateAll()
-            }
-        },
+        onRegenerateAll = { viewModel.regenerateAll { onRegenerateAll() } },
         isLoading = state.isLoading,
         modifier = modifier,
     )
@@ -147,13 +139,12 @@ fun HomeScreenContent(
     isLoading: Boolean = false,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
-
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .alpha(if (isLoading) 0f else 1f),
+            modifier =
+                Modifier.fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .alpha(if (isLoading) 0f else 1f),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // Status Card - Hero Section
@@ -161,7 +152,7 @@ fun HomeScreenContent(
                 isXposedActive = isXposedActive,
                 isModuleEnabled = isModuleEnabled,
                 onModuleEnabledChange = onModuleEnabledChange,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -193,7 +184,7 @@ fun HomeScreenContent(
                 selectedGroup = selectedGroup,
                 onGroupSelected = onGroupSelected,
                 onClick = onNavigateToSpoof,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -202,7 +193,7 @@ fun HomeScreenContent(
             QuickActionsSection(
                 onNavigateToSpoof = onNavigateToSpoof,
                 onRegenerateAll = onRegenerateAll,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -223,23 +214,24 @@ private fun StatusCard(
     modifier: Modifier = Modifier,
 ) {
     val statusColor by
-    animateColorAsState(
-        targetValue = if (isXposedActive && isModuleEnabled) StatusActive else StatusInactive,
-        animationSpec = AppMotion.Effect.Color,
-        label = "statusColor",
-    )
+        animateColorAsState(
+            targetValue = if (isXposedActive && isModuleEnabled) StatusActive else StatusInactive,
+            animationSpec = AppMotion.Effect.Color,
+            label = "statusColor",
+        )
 
     val scale by
-    animateFloatAsState(
-        targetValue = if (isXposedActive && isModuleEnabled) 1f else 0.95f,
-        animationSpec = AppMotion.Spatial.Expressive,
-        label = "cardScale",
-    )
+        animateFloatAsState(
+            targetValue = if (isXposedActive && isModuleEnabled) 1f else 0.95f,
+            animationSpec = AppMotion.Spatial.Expressive,
+            label = "cardScale",
+        )
 
-    val statusShape = animatedRoundedCornerShape(
-        targetRadius = if (isXposedActive && isModuleEnabled) 28.dp else 16.dp,
-        label = "statusCardMorph"
-    )
+    val statusShape =
+        animatedRoundedCornerShape(
+            targetRadius = if (isXposedActive && isModuleEnabled) 28.dp else 16.dp,
+            label = "statusCardMorph",
+        )
 
     Card(
         modifier = modifier.scale(scale),
@@ -249,8 +241,7 @@ private fun StatusCard(
     ) {
         Box(
             modifier =
-                Modifier
-                    .fillMaxWidth()
+                Modifier.fillMaxWidth()
                     .background(
                         Brush.verticalGradient(
                             colors = listOf(statusColor.copy(alpha = 0.15f), Color.Transparent)
@@ -265,8 +256,7 @@ private fun StatusCard(
                 // Shield Icon with Status
                 Box(
                     modifier =
-                        Modifier
-                            .size(80.dp)
+                        Modifier.size(80.dp)
                             .clip(CircleShape)
                             .background(statusColor.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center,
@@ -296,18 +286,15 @@ private fun StatusCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(12.dp)
-                            .clip(CircleShape)
-                            .background(statusColor)
-                    )
+                    Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(statusColor))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text =
                             when {
-                                !isXposedActive -> stringResource(id = R.string.home_module_not_injected)
-                                isModuleEnabled -> stringResource(id = R.string.home_protection_active)
+                                !isXposedActive ->
+                                    stringResource(id = R.string.home_module_not_injected)
+                                isModuleEnabled ->
+                                    stringResource(id = R.string.home_protection_active)
                                 else -> stringResource(id = R.string.home_protection_disabled)
                             },
                         style = MaterialTheme.typography.bodyLarge,
@@ -366,31 +353,25 @@ private fun GroupSelectorCard(
 ) {
     var dropdownExpanded by remember { mutableStateOf(false) }
     val rotationAngle by
-    animateFloatAsState(
-        targetValue = if (dropdownExpanded) 180f else 0f,
-        animationSpec = AppMotion.FastSpring,
-        label = "dropdownRotation",
-    )
+        animateFloatAsState(
+            targetValue = if (dropdownExpanded) 180f else 0f,
+            animationSpec = AppMotion.FastSpring,
+            label = "dropdownRotation",
+        )
 
     ExpressiveCard(
         onClick = { dropdownExpanded = true },
         modifier = modifier,
         shape = MaterialTheme.shapes.large,
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
     ) {
         Column {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                IconCircle(
-                    icon = Icons.Filled.Groups,
-                    size = 48.dp,
-                    iconSize = 24.dp,
-                )
+                IconCircle(icon = Icons.Filled.Groups, size = 48.dp, iconSize = 24.dp)
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -400,8 +381,8 @@ private fun GroupSelectorCard(
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = selectedGroup?.name
-                                ?: stringResource(id = R.string.home_no_group),
+                            text =
+                                selectedGroup?.name ?: stringResource(id = R.string.home_no_group),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -418,7 +399,7 @@ private fun GroupSelectorCard(
                 }
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowDown,
@@ -459,16 +440,16 @@ private fun GroupSelectorCard(
                                         Text(
                                             text = group.name,
                                             fontWeight =
-                                                if (group.id == selectedGroup?.id)
-                                                    FontWeight.Bold
+                                                if (group.id == selectedGroup?.id) FontWeight.Bold
                                                 else FontWeight.Normal,
                                         )
                                         Text(
-                                            text = pluralStringResource(
-                                                id = R.plurals.home_apps_count,
-                                                count = group.assignedAppCount(),
-                                                group.assignedAppCount()
-                                            ),
+                                            text =
+                                                pluralStringResource(
+                                                    id = R.plurals.home_apps_count,
+                                                    count = group.assignedAppCount(),
+                                                    group.assignedAppCount(),
+                                                ),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
@@ -476,10 +457,11 @@ private fun GroupSelectorCard(
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                         if (!group.isEnabled) {
                                             Text(
-                                                text = stringResource(id = R.string.home_group_disabled_tag).trim(
-                                                    '(',
-                                                    ')'
-                                                ),
+                                                text =
+                                                    stringResource(
+                                                            id = R.string.home_group_disabled_tag
+                                                        )
+                                                        .trim('(', ')'),
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.error,
                                             )
@@ -524,18 +506,19 @@ private fun QuickActionsSection(
 
         // Material 3 Expressive Button Group
         QuickActionGroup(
-            actions = listOf(
-                QuickAction(
-                    label = stringResource(id = R.string.home_action_configure),
-                    icon = Icons.Outlined.Fingerprint,
-                    onClick = onNavigateToSpoof
-                ),
-                QuickAction(
-                    label = stringResource(id = R.string.action_regenerate),
-                    icon = Icons.Filled.Refresh,
-                    onClick = onRegenerateAll
+            actions =
+                listOf(
+                    QuickAction(
+                        label = stringResource(id = R.string.home_action_configure),
+                        icon = Icons.Outlined.Fingerprint,
+                        onClick = onNavigateToSpoof,
+                    ),
+                    QuickAction(
+                        label = stringResource(id = R.string.action_regenerate),
+                        icon = Icons.Filled.Refresh,
+                        onClick = onRegenerateAll,
+                    ),
                 )
-            )
         )
     }
 }

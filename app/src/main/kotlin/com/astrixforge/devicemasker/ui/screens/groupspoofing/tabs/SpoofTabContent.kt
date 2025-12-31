@@ -32,8 +32,8 @@ import com.astrixforge.devicemasker.ui.screens.groupspoofing.categories.Category
 import com.astrixforge.devicemasker.ui.screens.groupspoofing.model.UIDisplayCategory
 
 /**
- * Session-scoped state holder for category expansion.
- * Persists across navigation but resets when app is killed.
+ * Session-scoped state holder for category expansion. Persists across navigation but resets when
+ * app is killed.
  */
 internal object CategoryExpansionState {
     private val expandedCategories = mutableSetOf<String>()
@@ -52,8 +52,8 @@ internal object CategoryExpansionState {
 /**
  * Spoof Values tab content for group spoofing screen.
  *
- * Shows all spoof categories (SIM, Device, Network, Advertising, Location)
- * organized as expandable sections.
+ * Shows all spoof categories (SIM, Device, Network, Advertising, Location) organized as expandable
+ * sections.
  */
 @Composable
 fun SpoofTabContent(
@@ -83,7 +83,7 @@ fun SpoofTabContent(
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.medium,
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                    elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
+                    elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
                 ) {
                     Row(
                         modifier = Modifier.padding(12.dp),
@@ -105,8 +105,7 @@ fun SpoofTabContent(
             item(key = "spoof_${category.name}") {
                 // Read from session state (refreshTrigger forces recomposition)
                 val isExpanded = CategoryExpansionState.isExpanded(category.name)
-                @Suppress("UNUSED_EXPRESSION")
-                refreshTrigger // Use to trigger recomposition
+                @Suppress("UNUSED_EXPRESSION") refreshTrigger // Use to trigger recomposition
 
                 CategorySection(
                     category = category,
@@ -121,10 +120,8 @@ fun SpoofTabContent(
                     onRegenerateLocation = onRegenerateLocation,
                     onToggle = onToggle,
                     onCarrierChange = onCarrierChange,
-                    onCopy = { value ->
-                        clipboardManager.setText(AnnotatedString(value))
-                    },
-                    modifier = Modifier.fillMaxWidth()
+                    onCopy = { value -> clipboardManager.setText(AnnotatedString(value)) },
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }

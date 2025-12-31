@@ -30,7 +30,8 @@ import com.astrixforge.devicemasker.ui.theme.AppMotion
  * Material 3 Expressive Pull-to-Refresh container.
  *
  * Wraps content with pull-to-refresh functionality using the M3 Expressive
- * [androidx.compose.material3.LoadingIndicator] (morphing shapes) instead of the standard circular indicator.
+ * [androidx.compose.material3.LoadingIndicator] (morphing shapes) instead of the standard circular
+ * indicator.
  *
  * Features:
  * - Morphing shape animation during refresh
@@ -91,8 +92,8 @@ fun ExpressivePullToRefresh(
 /**
  * M3 Expressive refresh indicator with morphing LoadingIndicator.
  *
- * Shows a Surface container with the morphing LoadingIndicator inside.
- * Animates visibility based on pull progress and refresh state.
+ * Shows a Surface container with the morphing LoadingIndicator inside. Animates visibility based on
+ * pull progress and refresh state.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -109,41 +110,37 @@ fun ExpressiveRefreshIndicator(
     val showIndicator = isRefreshing || progress > 0f
 
     // Animate alpha for smooth appearance
-    val alpha by animateFloatAsState(
-        targetValue = if (showIndicator) 1f else 0f,
-        animationSpec = AppMotion.Effect.Alpha,
-        label = "indicatorAlpha",
-    )
+    val alpha by
+        animateFloatAsState(
+            targetValue = if (showIndicator) 1f else 0f,
+            animationSpec = AppMotion.Effect.Alpha,
+            label = "indicatorAlpha",
+        )
 
     // Animate vertical offset based on pull progress
-    val offset by animateFloatAsState(
-        targetValue = if (isRefreshing) 64f else (progress * 64f),
-        animationSpec = AppMotion.Spatial.Standard,
-        label = "indicatorOffset",
-    )
+    val offset by
+        animateFloatAsState(
+            targetValue = if (isRefreshing) 64f else (progress * 64f),
+            animationSpec = AppMotion.Spatial.Standard,
+            label = "indicatorOffset",
+        )
 
     if (showIndicator) {
         Surface(
-            modifier = modifier
-                .padding(top = 8.dp)
-                .offset(y = offset.dp)
-                .size(indicatorSize + 16.dp)
-                .alpha(alpha),
+            modifier =
+                modifier
+                    .padding(top = 8.dp)
+                    .offset(y = offset.dp)
+                    .size(indicatorSize + 16.dp)
+                    .alpha(alpha),
             shape = CircleShape,
             color = containerColor,
             shadowElevation = 4.dp,
             tonalElevation = 2.dp,
         ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
-                LoadingIndicator(
-                    modifier = Modifier.size(indicatorSize),
-                    color = indicatorColor,
-                )
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                LoadingIndicator(modifier = Modifier.size(indicatorSize), color = indicatorColor)
             }
         }
     }
 }
-

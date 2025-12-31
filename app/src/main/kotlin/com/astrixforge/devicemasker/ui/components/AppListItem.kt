@@ -42,8 +42,8 @@ import com.astrixforge.devicemasker.utils.ImageUtils
 /**
  * Individual app item for app selection lists.
  *
- * Displays app icon, name, package name, and selection state.
- * Supports disabled state when app is assigned to another group.
+ * Displays app icon, name, package name, and selection state. Supports disabled state when app is
+ * assigned to another group.
  *
  * @param app The installed app info
  * @param isAssigned Whether the app is assigned to the current group
@@ -63,13 +63,14 @@ fun AppListItem(
     val isDisabled = assignedToOtherGroupName != null
 
     // Load real app icon from PackageManager
-    val appIcon: Drawable? = remember(app.packageName) {
-        try {
-            context.packageManager.getApplicationIcon(app.packageName)
-        } catch (_: Exception) {
-            null
+    val appIcon: Drawable? =
+        remember(app.packageName) {
+            try {
+                context.packageManager.getApplicationIcon(app.packageName)
+            } catch (_: Exception) {
+                null
+            }
         }
-    }
 
     ExpressiveCard(
         onClick = { onToggle(!isAssigned) },
@@ -79,12 +80,10 @@ fun AppListItem(
         shape = MaterialTheme.shapes.small,
         containerColor = MaterialTheme.colorScheme.surface,
         selectionColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -95,9 +94,7 @@ fun AppListItem(
                     Image(
                         painter = BitmapPainter(bitmap.asImageBitmap()),
                         contentDescription = app.label,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(8.dp)),
+                        modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp)),
                     )
                 } else {
                     AppIconFallback()
@@ -116,20 +113,22 @@ fun AppListItem(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = if (isDisabled) {
-                        stringResource(
-                            id = R.string.group_spoofing_assigned_to,
-                            assignedToOtherGroupName ?: ""
-                        )
-                    } else {
-                        app.packageName
-                    },
+                    text =
+                        if (isDisabled) {
+                            stringResource(
+                                id = R.string.group_spoofing_assigned_to,
+                                assignedToOtherGroupName ?: "",
+                            )
+                        } else {
+                            app.packageName
+                        },
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (isDisabled) {
-                        MaterialTheme.colorScheme.error
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
+                    color =
+                        if (isDisabled) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -150,16 +149,15 @@ fun AppListItem(
     }
 }
 
-/**
- * Fallback icon when app icon cannot be loaded.
- */
+/** Fallback icon when app icon cannot be loaded. */
 @Composable
 fun AppIconFallback(modifier: Modifier = Modifier) {
     Box(
-        modifier = modifier
-            .size(40.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.secondaryContainer),
+        modifier =
+            modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.secondaryContainer),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
@@ -180,11 +178,12 @@ fun AppIconFallback(modifier: Modifier = Modifier) {
 private fun AppListItemPreview() {
     DeviceMaskerTheme {
         AppListItem(
-            app = InstalledApp(
-                packageName = "com.example.app",
-                label = "Example App",
-                isSystemApp = false,
-            ),
+            app =
+                InstalledApp(
+                    packageName = "com.example.app",
+                    label = "Example App",
+                    isSystemApp = false,
+                ),
             isAssigned = false,
             assignedToOtherGroupName = null,
             onToggle = {},
@@ -197,11 +196,12 @@ private fun AppListItemPreview() {
 private fun AppListItemAssignedPreview() {
     DeviceMaskerTheme {
         AppListItem(
-            app = InstalledApp(
-                packageName = "com.example.app",
-                label = "Example App",
-                isSystemApp = false,
-            ),
+            app =
+                InstalledApp(
+                    packageName = "com.example.app",
+                    label = "Example App",
+                    isSystemApp = false,
+                ),
             isAssigned = true,
             assignedToOtherGroupName = null,
             onToggle = {},
@@ -214,11 +214,12 @@ private fun AppListItemAssignedPreview() {
 private fun AppListItemLockedPreview() {
     DeviceMaskerTheme {
         AppListItem(
-            app = InstalledApp(
-                packageName = "com.example.app",
-                label = "Example App",
-                isSystemApp = false,
-            ),
+            app =
+                InstalledApp(
+                    packageName = "com.example.app",
+                    label = "Example App",
+                    isSystemApp = false,
+                ),
             isAssigned = false,
             assignedToOtherGroupName = "Work Group",
             onToggle = {},

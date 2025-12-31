@@ -61,41 +61,40 @@ fun AnimatedSection(
     icon: ImageVector? = null,
     count: String? = null,
     countColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     // Spring-animated rotation for expand icon
-    val iconRotation by animateFloatAsState(
-        targetValue = if (isExpanded) 180f else 0f,
-        animationSpec = AppMotion.Spatial.Standard,
-        label = "expandIconRotation"
-    )
+    val iconRotation by
+        animateFloatAsState(
+            targetValue = if (isExpanded) 180f else 0f,
+            animationSpec = AppMotion.Spatial.Standard,
+            label = "expandIconRotation",
+        )
 
     ExpressiveCard(
         onClick = { onExpandChange(!isExpanded) },
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
     ) {
         Column {
             // Header row
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     // Optional leading icon
                     if (icon != null) {
                         Icon(
                             imageVector = icon,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
                         )
                     }
 
@@ -103,7 +102,7 @@ fun AnimatedSection(
                         Text(
                             text = title,
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
 
                         // Optional count badge
@@ -111,7 +110,7 @@ fun AnimatedSection(
                             Text(
                                 text = count,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = countColor
+                                color = countColor,
                             )
                         }
                     }
@@ -121,10 +120,8 @@ fun AnimatedSection(
                 Icon(
                     imageVector = Icons.Default.ExpandMore,
                     contentDescription = if (isExpanded) "Collapse" else "Expand",
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .rotate(iconRotation),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    modifier = Modifier.padding(12.dp).rotate(iconRotation),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -135,12 +132,8 @@ fun AnimatedSection(
                 exit = shrinkVertically(animationSpec = AppMotion.Spatial.StandardIntSize),
             ) {
                 Column(
-                    modifier = Modifier.padding(
-                        start = 16.dp,
-                        end = 16.dp,
-                        bottom = 16.dp
-                    ),
-                    content = content
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    content = content,
                 )
             }
         }
@@ -148,8 +141,8 @@ fun AnimatedSection(
 }
 
 /**
- * Stateful variant of AnimatedSection that manages its own expand state.
- * Use this when you don't need external control over the expand state.
+ * Stateful variant of AnimatedSection that manages its own expand state. Use this when you don't
+ * need external control over the expand state.
  */
 @Composable
 fun AnimatedSectionStateful(
@@ -159,7 +152,7 @@ fun AnimatedSectionStateful(
     icon: ImageVector? = null,
     count: String? = null,
     countColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     var isExpanded by remember { mutableStateOf(initiallyExpanded) }
 
@@ -171,7 +164,7 @@ fun AnimatedSectionStateful(
         icon = icon,
         count = count,
         countColor = countColor,
-        content = content
+        content = content,
     )
 }
 
@@ -186,12 +179,12 @@ private fun AnimatedSectionExpandedPreview() {
         AnimatedSectionStateful(
             title = "Device Identifiers",
             count = "4 items",
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
         ) {
             Text(
                 text = "Content goes here",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
     }
@@ -205,7 +198,7 @@ private fun AnimatedSectionCollapsedPreview() {
             title = "Network Identifiers",
             isExpanded = false,
             count = "2 items",
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
         ) {
             Text("Content")
         }

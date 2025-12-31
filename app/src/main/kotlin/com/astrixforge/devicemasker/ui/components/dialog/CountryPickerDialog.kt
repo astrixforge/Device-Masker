@@ -48,18 +48,11 @@ fun CountryPickerDialog(
     onDismiss: () -> Unit,
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    val filteredCountries = remember(searchQuery) {
-        Country.search(searchQuery)
-    }
+    val filteredCountries = remember(searchQuery) { Country.search(searchQuery) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "Select Country",
-                style = MaterialTheme.typography.headlineSmall,
-            )
-        },
+        title = { Text(text = "Select Country", style = MaterialTheme.typography.headlineSmall) },
         text = {
             Column {
                 // Search field
@@ -69,10 +62,7 @@ fun CountryPickerDialog(
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text("Search countries...") },
                     leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Filled.Search,
-                            contentDescription = null,
-                        )
+                        Icon(imageVector = Icons.Filled.Search, contentDescription = null)
                     },
                     singleLine = true,
                 )
@@ -81,19 +71,17 @@ fun CountryPickerDialog(
 
                 // Country list
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 300.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    items(filteredCountries) { country ->
+                    items(filteredCountries, key = { it.iso }) { country ->
                         val isSelected = country.iso == selectedCountryIso
 
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onCountrySelected(country) }
-                                .padding(vertical = 12.dp, horizontal = 8.dp),
+                            modifier =
+                                Modifier.fillMaxWidth()
+                                    .clickable { onCountrySelected(country) }
+                                    .padding(vertical = 12.dp, horizontal = 8.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -109,7 +97,8 @@ fun CountryPickerDialog(
                                     Text(
                                         text = country.name,
                                         style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                        fontWeight =
+                                            if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                     )
                                     Text(
                                         text = "+${country.phoneCode}",

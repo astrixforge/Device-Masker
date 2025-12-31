@@ -7,6 +7,14 @@
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
 
+    <!-- Storage permissions for log export -->
+    <!-- Android 9 and below: Direct file access -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28"
+        tools:ignore="ScopedStorage" />
+    <!-- Android 10+: Uses MediaStore API (no permission needed for Downloads) -->
+
     <application
         android:name=".DeviceMaskerApp"
         android:allowBackup="true"
@@ -39,17 +47,8 @@
             android:name="xposedsharedprefs"
             android:value="true" />
 
-        <!-- ═══════════════════════════════════════════════════════════ -->
-        <!-- ServiceProvider for HMA-OSS AIDL binder delivery -->
-        <!-- The Xposed hook in system_server injects the binder here -->
-        <!-- ═══════════════════════════════════════════════════════════ -->
-        <provider
-            android:name=".service.ServiceProvider"
-            android:authorities="com.astrixforge.devicemasker.provider"
-            android:enabled="true"
-            android:exported="true"
-            tools:ignore="ExportedContentProvider" />
 
+        <!-- MainActivity -->
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"

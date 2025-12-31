@@ -5,14 +5,14 @@ package com.astrixforge.devicemasker.data.models
 /**
  * Type aliases for backward compatibility.
  *
- * Multi-Module Architecture: Models have been moved to the :common module.
- * These type aliases allow existing UI code to continue working without changes.
+ * Multi-Module Architecture: Models have been moved to the :common module. These type aliases allow
+ * existing UI code to continue working without changes.
  */
 
 // SpoofType - Same enum, now in common
 typealias SpoofType = com.astrixforge.devicemasker.common.SpoofType
 
-// SpoofCategory - Same enum, now in common  
+// SpoofCategory - Same enum, now in common
 typealias SpoofCategory = com.astrixforge.devicemasker.common.SpoofCategory
 
 // DeviceIdentifier - Same data class, now in common

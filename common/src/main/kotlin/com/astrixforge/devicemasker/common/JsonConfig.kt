@@ -27,8 +27,7 @@ import kotlinx.serialization.json.Json
 data class JsonConfig(
     val version: Int = Constants.CONFIG_VERSION,
     val isModuleEnabled: Boolean = true,
-    @SerialName("profiles")
-    val groups: Map<String, SpoofGroup> = emptyMap(),
+    @SerialName("profiles") val groups: Map<String, SpoofGroup> = emptyMap(),
     val appConfigs: Map<String, AppConfig> = emptyMap(),
 ) {
     // ═══════════════════════════════════════════════════════════
@@ -37,6 +36,7 @@ data class JsonConfig(
 
     /**
      * Gets a group by ID.
+     *
      * @return The group or null if not found
      */
     fun getGroup(groupId: String): SpoofGroup? {
@@ -45,21 +45,21 @@ data class JsonConfig(
 
     /**
      * Gets the default group (the one with isDefault = true).
+     *
      * @return The default group or null if none is set
      */
     fun getDefaultGroup(): SpoofGroup? {
         return groups.values.find { it.isDefault }
     }
 
-    /**
-     * Gets all groups as a list.
-     */
+    /** Gets all groups as a list. */
     fun getAllGroups(): List<SpoofGroup> {
         return groups.values.toList()
     }
 
     /**
      * Adds or updates a group.
+     *
      * @return Updated JsonConfig
      */
     fun withGroup(group: SpoofGroup): JsonConfig {
@@ -70,12 +70,14 @@ data class JsonConfig(
 
     /**
      * Alias for withGroup - adds or updates a group.
+     *
      * @return Updated JsonConfig
      */
     fun addOrUpdateGroup(group: SpoofGroup): JsonConfig = withGroup(group)
 
     /**
      * Removes a group by ID.
+     *
      * @return Updated JsonConfig
      */
     fun removeGroup(groupId: String): JsonConfig {
@@ -90,6 +92,7 @@ data class JsonConfig(
 
     /**
      * Gets app configuration for a package.
+     *
      * @return The AppConfig or null if not configured
      */
     fun getAppConfig(packageName: String): AppConfig? {
@@ -97,8 +100,8 @@ data class JsonConfig(
     }
 
     /**
-     * Gets the group assigned to an app.
-     * Falls back to default group if no specific assignment.
+     * Gets the group assigned to an app. Falls back to default group if no specific assignment.
+     *
      * @return The assigned group, default group, or null
      */
     fun getGroupForApp(packageName: String): SpoofGroup? {
@@ -109,7 +112,9 @@ data class JsonConfig(
 
         // If app has a specific group assignment, use it
         appConfig?.groupId?.let { groupId ->
-            groups[groupId]?.let { return it }
+            groups[groupId]?.let {
+                return it
+            }
         }
 
         // Fall back to default group
@@ -118,6 +123,7 @@ data class JsonConfig(
 
     /**
      * Adds or updates an app configuration.
+     *
      * @return Updated JsonConfig
      */
     fun withAppConfig(appConfig: AppConfig): JsonConfig {
@@ -128,12 +134,14 @@ data class JsonConfig(
 
     /**
      * Alias for withAppConfig - sets app configuration.
+     *
      * @return Updated JsonConfig
      */
     fun setAppConfig(appConfig: AppConfig): JsonConfig = withAppConfig(appConfig)
 
     /**
      * Removes app configuration for a package.
+     *
      * @return Updated JsonConfig
      */
     fun removeAppConfig(packageName: String): JsonConfig {
@@ -146,16 +154,12 @@ data class JsonConfig(
     // SERIALIZATION
     // ═══════════════════════════════════════════════════════════
 
-    /**
-     * Serializes this config to a JSON string.
-     */
+    /** Serializes this config to a JSON string. */
     fun toJsonString(): String {
         return jsonSerializer.encodeToString(this)
     }
 
-    /**
-     * Serializes this config to a pretty-printed JSON string.
-     */
+    /** Serializes this config to a pretty-printed JSON string. */
     fun toPrettyJsonString(): String {
         return prettyJsonSerializer.encodeToString(this)
     }
@@ -176,6 +180,7 @@ data class JsonConfig(
 
         /**
          * Parses a JSON string into a JsonConfig.
+         *
          * @param json The JSON string to parse
          * @return Parsed JsonConfig
          * @throws Exception if parsing fails
@@ -186,6 +191,7 @@ data class JsonConfig(
 
         /**
          * Safely parses a JSON string, returning a default config on failure.
+         *
          * @param json The JSON string to parse
          * @return Parsed JsonConfig or default on error
          */
@@ -198,14 +204,10 @@ data class JsonConfig(
             }
         }
 
-        /**
-         * Creates a default configuration with an initial group.
-         */
+        /** Creates a default configuration with an initial group. */
         fun createDefault(): JsonConfig {
             val defaultGroup = SpoofGroup.createDefaultGroup()
-            return JsonConfig(
-                groups = mapOf(defaultGroup.id to defaultGroup),
-            )
+            return JsonConfig(groups = mapOf(defaultGroup.id to defaultGroup))
         }
     }
 }

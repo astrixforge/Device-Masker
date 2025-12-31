@@ -54,11 +54,11 @@ fun BottomNavBar(
 private fun RowScope.BottomNavItem(item: NavItem, isSelected: Boolean, onClick: () -> Unit) {
     // Animate icon scale for selection
     val scale by
-    animateFloatAsState(
-        targetValue = if (isSelected) 1.1f else 1.0f,
-        animationSpec = AppMotion.Spatial.Standard,
-        label = "iconScale_${item.route}",
-    )
+        animateFloatAsState(
+            targetValue = if (isSelected) 1.1f else 1.0f,
+            animationSpec = AppMotion.Spatial.Standard,
+            label = "iconScale_${item.route}",
+        )
 
     NavigationBarItem(
         selected = isSelected,
@@ -82,16 +82,16 @@ private fun RowScope.BottomNavItem(item: NavItem, isSelected: Boolean, onClick: 
 @Composable
 private fun AnimatedNavIcon(item: NavItem, isSelected: Boolean, modifier: Modifier = Modifier) {
     val iconColor by
-    animateColorAsState(
-        targetValue =
-            if (isSelected) {
-                MaterialTheme.colorScheme.onSecondaryContainer
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
-            },
-        animationSpec = AppMotion.Effect.Color,
-        label = "iconColor",
-    )
+        animateColorAsState(
+            targetValue =
+                if (isSelected) {
+                    MaterialTheme.colorScheme.onSecondaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            animationSpec = AppMotion.Effect.Color,
+            label = "iconColor",
+        )
 
     Icon(
         imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,

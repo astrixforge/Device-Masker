@@ -25,8 +25,8 @@ import kotlinx.coroutines.flow.map
 /**
  * Main repository combining all spoof-related data operations.
  *
- * Multi-Module Architecture: This repository now wraps ConfigManager and provides
- * the same API to the UI while using JsonConfig as the backing store.
+ * Multi-Module Architecture: This repository now wraps ConfigManager and provides the same API to
+ * the UI while using JsonConfig as the backing store.
  *
  * @param context Application context (for legacy compatibility)
  */
@@ -45,8 +45,8 @@ class SpoofRepository(private val context: Context) {
     /**
      * Cached groups for correlated value generation.
      *
-     * These ensure that values in the same correlation group always use
-     * the same underlying group, preventing detection from mismatches.
+     * These ensure that values in the same correlation group always use the same underlying group,
+     * preventing detection from mismatches.
      */
     private var cachedSIMConfig: SIMConfig? = null
     private var cachedLocationConfig: LocationConfig? = null
@@ -80,10 +80,11 @@ class SpoofRepository(private val context: Context) {
     )
 
     val dashboardState: Flow<DashboardState> =
-        combine(moduleEnabled, activeGroup, enabledAppCount, groups) { enabled,
-                                                                       group,
-                                                                       appCount,
-                                                                       groupList ->
+        combine(moduleEnabled, activeGroup, enabledAppCount, groups) {
+            enabled,
+            group,
+            appCount,
+            groupList ->
             DashboardState(
                 isModuleEnabled = enabled,
                 activeGroup = group,
@@ -123,8 +124,8 @@ class SpoofRepository(private val context: Context) {
     /**
      * Generates a new random value for a spoof type.
      *
-     * Values in the same correlation group will use the same underlying
-     * profile to ensure consistency (e.g., IMSI and ICCID both use same carrier).
+     * Values in the same correlation group will use the same underlying profile to ensure
+     * consistency (e.g., IMSI and ICCID both use same carrier).
      */
     fun generateValue(type: SpoofType): String {
         return when (type.correlationGroup) {
@@ -136,8 +137,8 @@ class SpoofRepository(private val context: Context) {
     }
 
     /**
-     * Generates correlated SIM card values.
-     * All SIM values use the same carrier profile for consistency.
+     * Generates correlated SIM card values. All SIM values use the same carrier profile for
+     * consistency.
      */
     private fun generateSIMValue(type: SpoofType): String {
         // Generate SIM config if not cached
@@ -163,9 +164,9 @@ class SpoofRepository(private val context: Context) {
     /**
      * Regenerates ONLY a specific SIM value while keeping the same carrier.
      *
-     * This is used when the user wants to regenerate just the phone number, IMSI, or ICCID
-     * without changing the carrier. This prevents the bug where regenerating phone number
-     * would show wrong country code.
+     * This is used when the user wants to regenerate just the phone number, IMSI, or ICCID without
+     * changing the carrier. This prevents the bug where regenerating phone number would show wrong
+     * country code.
      *
      * @param type The specific SIM type to regenerate
      * @return The new value, using the SAME carrier as currently cached
@@ -190,11 +191,7 @@ class SpoofRepository(private val context: Context) {
         }
     }
 
-
-    /**
-     * Generates correlated location values.
-     * Timezone and locale are from the same country.
-     */
+    /** Generates correlated location values. Timezone and locale are from the same country. */
     private fun generateLocationValue(type: SpoofType): String {
         // Generate location config if not cached
         if (cachedLocationConfig == null) {
@@ -209,8 +206,7 @@ class SpoofRepository(private val context: Context) {
     }
 
     /**
-     * Generates correlated device hardware values.
-     * IMEI, Serial, WiFi MAC match the device profile.
+     * Generates correlated device hardware values. IMEI, Serial, WiFi MAC match the device profile.
      *
      * Note: MEID removed - CDMA deprecated since 2022.
      */
@@ -228,9 +224,7 @@ class SpoofRepository(private val context: Context) {
         }
     }
 
-    /**
-     * Generates independent values (no correlation needed).
-     */
+    /** Generates independent values (no correlation needed). */
     private fun generateIndependentValue(type: SpoofType): String {
         return when (type) {
             // Network (independent)
@@ -260,8 +254,7 @@ class SpoofRepository(private val context: Context) {
     }
 
     /**
-     * Clears cached correlation profiles.
-     * Call this to force generation of new correlated values.
+     * Clears cached correlation profiles. Call this to force generation of new correlated values.
      */
     fun resetCorrelations() {
         cachedSIMConfig = null
@@ -270,15 +263,16 @@ class SpoofRepository(private val context: Context) {
     }
 
     /**
-     * Resets a specific correlation group's cache.
-     * Call this before regenerating correlated values to get fresh values.
+     * Resets a specific correlation group's cache. Call this before regenerating correlated values
+     * to get fresh values.
      */
     fun resetCorrelationGroup(group: CorrelationGroup) {
         when (group) {
             CorrelationGroup.SIM_CARD -> cachedSIMConfig = null
             CorrelationGroup.LOCATION -> cachedLocationConfig = null
             CorrelationGroup.DEVICE_HARDWARE -> cachedDeviceHardwareConfig = null
-            CorrelationGroup.NONE -> { /* No cache for independent values */
+            CorrelationGroup.NONE -> {
+                /* No cache for independent values */
             }
         }
     }
@@ -286,8 +280,8 @@ class SpoofRepository(private val context: Context) {
     /**
      * Regenerates both timezone and locale values together.
      *
-     * This ensures both come from the SAME location config (same country),
-     * avoiding mismatches like "Asia/Kolkata" with "en_US".
+     * This ensures both come from the SAME location config (same country), avoiding mismatches like
+     * "Asia/Kolkata" with "en_US".
      *
      * @param groupId Group to update
      */
@@ -311,19 +305,16 @@ class SpoofRepository(private val context: Context) {
     /**
      * Updates a group with SIM values from a specific carrier.
      *
-     * This generates all SIM-related values (IMSI, ICCID, Phone, etc.)
-     * from the selected carrier and updates the group.
+     * This generates all SIM-related values (IMSI, ICCID, Phone, etc.) from the selected carrier
+     * and updates the group.
      *
-     * ALSO syncs Location values (timezone/locale) to match carrier's country.
-     * This prevents detection from SIM/Location country mismatches.
+     * ALSO syncs Location values (timezone/locale) to match carrier's country. This prevents
+     * detection from SIM/Location country mismatches.
      *
      * @param groupId Group to update
      * @param carrier The carrier to use for generation
      */
-    suspend fun updateGroupWithCarrier(
-        groupId: String,
-        carrier: Carrier
-    ) {
+    suspend fun updateGroupWithCarrier(groupId: String, carrier: Carrier) {
         val group = ConfigManager.getGroup(groupId) ?: return
 
         // Generate SIM config from specific carrier
@@ -354,14 +345,16 @@ class SpoofRepository(private val context: Context) {
         updatedGroup = updatedGroup.withValue(SpoofType.LOCALE, locationConfig.locale)
 
         // NEW: Sync GPS coordinates to carrier country
-        updatedGroup = updatedGroup.withValue(
-            SpoofType.LOCATION_LATITUDE,
-            String.format(java.util.Locale.US, "%.6f", locationConfig.latitude)
-        )
-        updatedGroup = updatedGroup.withValue(
-            SpoofType.LOCATION_LONGITUDE,
-            String.format(java.util.Locale.US, "%.6f", locationConfig.longitude)
-        )
+        updatedGroup =
+            updatedGroup.withValue(
+                SpoofType.LOCATION_LATITUDE,
+                String.format(java.util.Locale.US, "%.6f", locationConfig.latitude),
+            )
+        updatedGroup =
+            updatedGroup.withValue(
+                SpoofType.LOCATION_LONGITUDE,
+                String.format(java.util.Locale.US, "%.6f", locationConfig.longitude),
+            )
 
         ConfigManager.updateGroup(updatedGroup)
     }
@@ -394,38 +387,36 @@ class SpoofRepository(private val context: Context) {
         ConfigManager.updateGroup(updatedGroup)
     }
 
-    /**
-     * Generates realistic WiFi SSID names.
-     * Uses common router brands and patterns.
-     */
+    /** Generates realistic WiFi SSID names. Uses common router brands and patterns. */
     private fun generateRealisticSSID(): String {
-        val patterns = listOf(
-            // US ISP Routers
-            { "\"NETGEAR-${randomHex(4)}\"" },
-            { "\"NETGEAR-5G-${randomHex(2)}\"" },
-            { "\"xfinitywifi\"" },
-            { "\"XFINITY\"" },
-            { "\"ATT${randomHex(6)}\"" },
-            { "\"ATTWiFi-${randomHex(4)}\"" },
-            // Common router brands
-            { "\"TP-LINK_${randomHex(4)}\"" },
-            { "\"TP-Link_${randomHex(4)}_5G\"" },
-            { "\"ASUS_${randomHex(4)}\"" },
-            { "\"ASUS_RT-${randomHex(4)}\"" },
-            { "\"Linksys${randomDigits(5)}\"" },
-            { "\"dlink-${randomHex(4)}\"" },
-            { "\"ORBI${randomDigits(2)}\"" },
-            { "\"eero-${randomHex(4)}\"" },
-            { "\"GoogleWifi-${randomHex(4)}\"" },
-            { "\"ARRIS-${randomHex(4)}\"" },
-            // Generic home networks
-            { "\"Home_WiFi\"" },
-            { "\"MyNetwork-5G\"" },
-            { "\"WiFi-${randomDigits(4)}\"" },
-            { "\"Guest_Network\"" },
-            { "\"${randomFamilyName()}_WiFi\"" },
-            { "\"${randomFamilyName()}_5G\"" },
-        )
+        val patterns =
+            listOf(
+                // US ISP Routers
+                { "\"NETGEAR-${randomHex(4)}\"" },
+                { "\"NETGEAR-5G-${randomHex(2)}\"" },
+                { "\"xfinitywifi\"" },
+                { "\"XFINITY\"" },
+                { "\"ATT${randomHex(6)}\"" },
+                { "\"ATTWiFi-${randomHex(4)}\"" },
+                // Common router brands
+                { "\"TP-LINK_${randomHex(4)}\"" },
+                { "\"TP-Link_${randomHex(4)}_5G\"" },
+                { "\"ASUS_${randomHex(4)}\"" },
+                { "\"ASUS_RT-${randomHex(4)}\"" },
+                { "\"Linksys${randomDigits(5)}\"" },
+                { "\"dlink-${randomHex(4)}\"" },
+                { "\"ORBI${randomDigits(2)}\"" },
+                { "\"eero-${randomHex(4)}\"" },
+                { "\"GoogleWifi-${randomHex(4)}\"" },
+                { "\"ARRIS-${randomHex(4)}\"" },
+                // Generic home networks
+                { "\"Home_WiFi\"" },
+                { "\"MyNetwork-5G\"" },
+                { "\"WiFi-${randomDigits(4)}\"" },
+                { "\"Guest_Network\"" },
+                { "\"${randomFamilyName()}_WiFi\"" },
+                { "\"${randomFamilyName()}_5G\"" },
+            )
         return patterns.random()()
     }
 
@@ -438,18 +429,19 @@ class SpoofRepository(private val context: Context) {
     }
 
     private fun randomFamilyName(): String {
-        val names = listOf(
-            "Smith",
-            "Johnson",
-            "Williams",
-            "Brown",
-            "Jones",
-            "Miller",
-            "Davis",
-            "Wilson",
-            "Moore",
-            "Taylor"
-        )
+        val names =
+            listOf(
+                "Smith",
+                "Johnson",
+                "Williams",
+                "Brown",
+                "Jones",
+                "Miller",
+                "Davis",
+                "Wilson",
+                "Moore",
+                "Taylor",
+            )
         return names.random()
     }
 
@@ -532,9 +524,7 @@ class SpoofRepository(private val context: Context) {
         return try {
             val config = com.astrixforge.devicemasker.common.JsonConfig.parse(jsonString)
             if (config != null) {
-                config.getAllGroups().forEach { group ->
-                    ConfigManager.updateGroup(group)
-                }
+                config.getAllGroups().forEach { group -> ConfigManager.updateGroup(group) }
                 true
             } else {
                 false
@@ -545,17 +535,13 @@ class SpoofRepository(private val context: Context) {
     }
 
     companion object {
-        @SuppressLint("StaticFieldLeak")
-        @Volatile
-        private var INSTANCE: SpoofRepository? = null
+        @SuppressLint("StaticFieldLeak") @Volatile private var INSTANCE: SpoofRepository? = null
 
         /** Gets the singleton instance. */
         fun getInstance(context: Context): SpoofRepository {
             return INSTANCE
                 ?: synchronized(this) {
-                    INSTANCE
-                        ?: SpoofRepository(context.applicationContext)
-                            .also { INSTANCE = it }
+                    INSTANCE ?: SpoofRepository(context.applicationContext).also { INSTANCE = it }
                 }
         }
     }

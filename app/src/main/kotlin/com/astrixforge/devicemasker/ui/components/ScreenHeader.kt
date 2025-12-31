@@ -18,8 +18,8 @@ import com.astrixforge.devicemasker.ui.theme.DeviceMaskerTheme
 /**
  * Consistent screen header for main navigation destinations.
  *
- * Displays a headlineMedium title with optional action buttons on the right.
- * Used as the first item in LazyColumn for main screens.
+ * Displays a headlineMedium title with optional action buttons on the right. Used as the first item
+ * in LazyColumn for main screens.
  *
  * @param title The screen title
  * @param modifier Optional modifier
@@ -32,9 +32,7 @@ fun ScreenHeader(
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+        modifier = modifier.fillMaxWidth().padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -44,10 +42,7 @@ fun ScreenHeader(
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
         )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            content = actions,
-        )
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), content = actions)
     }
 }
 
@@ -58,9 +53,7 @@ fun ScreenHeader(
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
 private fun ScreenHeaderPreview() {
-    DeviceMaskerTheme {
-        ScreenHeader(title = "Settings")
-    }
+    DeviceMaskerTheme { ScreenHeader(title = "Settings") }
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
@@ -69,9 +62,7 @@ private fun ScreenHeaderWithActionsPreview() {
     DeviceMaskerTheme {
         ScreenHeader(
             title = "Groups",
-            actions = {
-                Text("Action", color = MaterialTheme.colorScheme.primary)
-            }
+            actions = { Text("Action", color = MaterialTheme.colorScheme.primary) },
         )
     }
 }

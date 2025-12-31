@@ -12,8 +12,8 @@ import com.astrixforge.devicemasker.ui.theme.AppMotion
 /**
  * Material 3 Expressive Shape Morphing Utilities.
  *
- * These utilities enable smooth shape transitions with physics-based spring animations,
- * following Material 3 Expressive design principles.
+ * These utilities enable smooth shape transitions with physics-based spring animations, following
+ * Material 3 Expressive design principles.
  *
  * Use cases:
  * - Card corner radius changes on selection
@@ -43,15 +43,13 @@ import com.astrixforge.devicemasker.ui.theme.AppMotion
  * ```
  */
 @Composable
-fun animatedRoundedCornerShape(
-    targetRadius: Dp,
-    label: String = "cornerRadiusMorph"
-): Shape {
-    val animatedRadius by animateFloatAsState(
-        targetValue = targetRadius.value,
-        animationSpec = AppMotion.Spatial.Expressive,
-        label = label
-    )
+fun animatedRoundedCornerShape(targetRadius: Dp, label: String = "cornerRadiusMorph"): Shape {
+    val animatedRadius by
+        animateFloatAsState(
+            targetValue = targetRadius.value,
+            animationSpec = AppMotion.Spatial.Expressive,
+            label = label,
+        )
     return RoundedCornerShape(animatedRadius.dp)
 }
 
@@ -62,4 +60,3 @@ fun animatedRoundedCornerShape(
 // ═══════════════════════════════════════════════════════════
 // Predefined Shape Presets
 // ═══════════════════════════════════════════════════════════
-

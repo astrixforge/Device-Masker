@@ -6,9 +6,8 @@ import kotlinx.serialization.Serializable
 /**
  * A named collection of spoofed device identifiers.
  *
- * Groups allow users to save and switch between different device identities.
- * Each group contains values for all supported spoof types and can be assigned
- * to specific apps or set as the default.
+ * Groups allow users to save and switch between different device identities. Each group contains
+ * values for all supported spoof types and can be assigned to specific apps or set as the default.
  *
  * @property id Unique identifier for this group
  * @property name User-defined group name
@@ -33,7 +32,7 @@ data class SpoofGroup(
     val updatedAt: Long = System.currentTimeMillis(),
     val identifiers: Map<SpoofType, DeviceIdentifier> = emptyMap(),
     val assignedApps: Set<String> = emptySet(),
-    val selectedCarrierMccMnc: String? = null,  // Selected carrier for SIM spoofing
+    val selectedCarrierMccMnc: String? = null, // Selected carrier for SIM spoofing
 ) {
     /**
      * Gets a specific identifier value from this group.
@@ -98,17 +97,16 @@ data class SpoofGroup(
 
     /** Regenerates all identifier values. */
     fun regenerateAll(): SpoofGroup {
-        val regeneratedIdentifiers = identifiers.mapValues { (_, identifier) ->
-            identifier.withValue(null) // Trigger regeneration
-        }
-        return copy(
-            identifiers = regeneratedIdentifiers,
-            updatedAt = System.currentTimeMillis()
-        )
+        val regeneratedIdentifiers =
+            identifiers.mapValues { (_, identifier) ->
+                identifier.withValue(null) // Trigger regeneration
+            }
+        return copy(identifiers = regeneratedIdentifiers, updatedAt = System.currentTimeMillis())
     }
 
     /** Gets last modification timestamp (alias for updatedAt). */
-    val lastModified: Long get() = updatedAt
+    val lastModified: Long
+        get() = updatedAt
 
     // ═══════════════════════════════════════════════════════════
     // ASSIGNED APPS MANAGEMENT
@@ -168,11 +166,7 @@ data class SpoofGroup(
             val defaultIdentifiers =
                 SpoofType.entries.associateWith { type -> DeviceIdentifier.createDefault(type) }
 
-            return SpoofGroup(
-                name = name,
-                isDefault = isDefault,
-                identifiers = defaultIdentifiers,
-            )
+            return SpoofGroup(name = name, isDefault = isDefault, identifiers = defaultIdentifiers)
         }
 
         /** Creates a "Default" group that is automatically applied. */

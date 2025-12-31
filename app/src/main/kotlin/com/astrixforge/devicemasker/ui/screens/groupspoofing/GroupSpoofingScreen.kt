@@ -75,16 +75,10 @@ fun GroupSpoofingScreen(
     LaunchedEffect(pagerState.currentPage) { selectedTab = pagerState.currentPage }
 
     Box(modifier = modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .alpha(if (group == null) 0f else 1f)
-        ) {
+        Column(modifier = Modifier.fillMaxSize().alpha(if (group == null) 0f else 1f)) {
             // Header
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 IconButton(onClick = onNavigateBack) {
@@ -123,29 +117,33 @@ fun GroupSpoofingScreen(
             // Pager content
             HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
                 when (page) {
-                    0 -> SpoofTabContent(
-                        group = group,
-                        onRegenerate = { type -> viewModel.regenerateValue(type) },
-                        onRegenerateCategory = { category ->
-                            viewModel.regenerateCategory(category.types, category.isCorrelated)
-                        },
-                        onToggle = { type, enabled -> viewModel.toggleSpoofType(type, enabled) },
-                        onRegenerateLocation = { viewModel.regenerateLocation() },
-                        onCarrierChange = { carrier -> viewModel.updateCarrier(carrier) },
-                    )
+                    0 ->
+                        SpoofTabContent(
+                            group = group,
+                            onRegenerate = { type -> viewModel.regenerateValue(type) },
+                            onRegenerateCategory = { category ->
+                                viewModel.regenerateCategory(category.types, category.isCorrelated)
+                            },
+                            onToggle = { type, enabled ->
+                                viewModel.toggleSpoofType(type, enabled)
+                            },
+                            onRegenerateLocation = { viewModel.regenerateLocation() },
+                            onCarrierChange = { carrier -> viewModel.updateCarrier(carrier) },
+                        )
 
-                    1 -> AppsTabContent(
-                        group = group,
-                        allGroups = groups,
-                        installedApps = installedApps,
-                        onAppToggle = { app, checked ->
-                            if (checked) {
-                                viewModel.addAppToGroup(app.packageName)
-                            } else {
-                                viewModel.removeAppFromGroup(app.packageName)
-                            }
-                        },
-                    )
+                    1 ->
+                        AppsTabContent(
+                            group = group,
+                            allGroups = groups,
+                            installedApps = installedApps,
+                            onAppToggle = { app, checked ->
+                                if (checked) {
+                                    viewModel.addAppToGroup(app.packageName)
+                                } else {
+                                    viewModel.removeAppFromGroup(app.packageName)
+                                }
+                            },
+                        )
                 }
             }
         }
