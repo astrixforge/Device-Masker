@@ -63,6 +63,7 @@ fun SpoofTabContent(
     onRegenerateLocation: () -> Unit,
     onToggle: (SpoofType, Boolean) -> Unit,
     onCarrierChange: (Carrier) -> Unit,
+    onTimezoneSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val clipboardManager = LocalClipboardManager.current
@@ -120,6 +121,7 @@ fun SpoofTabContent(
                     onRegenerateLocation = onRegenerateLocation,
                     onToggle = onToggle,
                     onCarrierChange = onCarrierChange,
+                    onTimezoneSelected = onTimezoneSelected,
                     onCopy = { value -> clipboardManager.setText(AnnotatedString(value)) },
                     modifier = Modifier.fillMaxWidth(),
                 )

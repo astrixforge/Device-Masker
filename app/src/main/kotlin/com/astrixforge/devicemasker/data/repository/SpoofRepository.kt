@@ -458,11 +458,18 @@ class SpoofRepository(private val context: Context) {
 
     /** Creates a new group with generated spoof values. */
     suspend fun createGroup(name: String, description: String = "") {
+        // Check if this is the first group (to auto-set as default)
+        val isFirstGroup = ConfigManager.getAllGroups().isEmpty()
+
         // Create the group with generated values
         val newGroup = ConfigManager.createGroup(name)
 
         // Add description and initialize with generated values
-        var updatedGroup = newGroup.copy(description = description)
+        // If first group, also set as default
+        var updatedGroup = newGroup.copy(
+            description = description,
+            isDefault = isFirstGroup, // First group becomes default automatically
+        )
         SpoofType.entries.forEach { type ->
             val value = generateValue(type)
             updatedGroup = updatedGroup.withValue(type, value)

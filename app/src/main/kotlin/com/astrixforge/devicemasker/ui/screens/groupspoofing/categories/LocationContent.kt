@@ -1,39 +1,51 @@
 package com.astrixforge.devicemasker.ui.screens.groupspoofing.categories
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.astrixforge.devicemasker.R
 import com.astrixforge.devicemasker.common.SpoofGroup
 import com.astrixforge.devicemasker.common.SpoofType
-import com.astrixforge.devicemasker.ui.components.expressive.CompactExpressiveIconButton
+import com.astrixforge.devicemasker.ui.components.dialog.TimezonePickerDialog
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveOutlinedCard
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveSwitch
 import com.astrixforge.devicemasker.ui.screens.groupspoofing.items.IndependentSpoofItem
 
 /**
- * Special content layout for Location category.
- * - Timezone + Locale: Single card, single switch. Regenerate button updates both.
- * - Latitude/Longitude: Each has its own Switch + Regenerate (fully independent)
+ * Content layout for Location category - mirrors SIM Card design pattern exactly.
+ *
+ * UI Structure:
+ * 1. Location Selection Card - "Choose Location" switch, Timezone picker, Locale display
+ * 2. Latitude/Longitude - Each has its own Switch + Regenerate (fully independent)
  *
  * Long-press on values to copy.
  */
@@ -43,9 +55,13 @@ fun LocationCategoryContent(
     group: SpoofGroup?,
     onToggle: (SpoofType, Boolean) -> Unit,
     onRegenerate: (SpoofType) -> Unit,
+    @Suppress("UNUSED_PARAMETER") // Parameter kept for interface compatibility
     onRegenerateLocation: () -> Unit,
+    onTimezoneSelected: (String) -> Unit,
     onCopy: (String) -> Unit,
 ) {
+    var showTimezoneDialog by remember { mutableStateOf(false) }
+
     val timezoneEnabled = group?.isTypeEnabled(SpoofType.TIMEZONE) ?: false
     val timezoneValue = group?.getValue(SpoofType.TIMEZONE) ?: ""
     val localeValue = group?.getValue(SpoofType.LOCALE) ?: ""
@@ -54,32 +70,44 @@ fun LocationCategoryContent(
     val longEnabled = group?.isTypeEnabled(SpoofType.LOCATION_LONGITUDE) ?: false
     val longValue = group?.getValue(SpoofType.LOCATION_LONGITUDE) ?: ""
 
-    // 1. Timezone + Locale combined card - one switch controls both
+    // Timezone Picker Dialog
+    if (showTimezoneDialog) {
+        TimezonePickerDialog(
+            selectedTimezone = timezoneValue,
+            onTimezoneSelected = { timezone ->
+                onTimezoneSelected(timezone)
+                showTimezoneDialog = false
+            },
+            onDismiss = { showTimezoneDialog = false },
+        )
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 1. LOCATION SELECTION CARD (100% same as SIM Card carrier selection)
+    // ═══════════════════════════════════════════════════════════
     ExpressiveCard(
-        onClick = { /* Combined setting feedback */ },
+        onClick = { /* Selection action feedback */ },
         modifier = Modifier.fillMaxWidth(),
         containerColor = MaterialTheme.colorScheme.surface,
         shape = MaterialTheme.shapes.medium,
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // Header with switch - controls both Timezone AND Locale
+            // Choose Location Switch (same as Choose Sim)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column {
-                    Text(
-                        text = SpoofType.TIMEZONE.displayName,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Medium,
-                    )
-                }
-                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = stringResource(id = R.string.label_choose_location),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
                 ExpressiveSwitch(
                     checked = timezoneEnabled,
                     onCheckedChange = { enabled ->
@@ -90,72 +118,100 @@ fun LocationCategoryContent(
                 )
             }
 
-            if (timezoneEnabled) {
-                // Timezone value row - long press to copy
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text =
-                            timezoneValue.ifEmpty {
-                                stringResource(id = R.string.group_spoofing_not_set)
-                            },
-                        style = MaterialTheme.typography.bodySmall,
-                        fontFamily = FontFamily.Monospace,
-                        color = MaterialTheme.colorScheme.primary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier =
-                            Modifier.weight(1f)
-                                .combinedClickable(
-                                    onClick = {},
-                                    onLongClick = {
-                                        if (timezoneValue.isNotEmpty()) onCopy(timezoneValue)
-                                    },
-                                ),
-                    )
+            // Collapsible content for Timezone and Locale
+            AnimatedVisibility(
+                visible = timezoneEnabled,
+                enter = expandVertically(animationSpec = spring()) + fadeIn(),
+                exit = shrinkVertically(animationSpec = spring()) + fadeOut(),
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    // Timezone picker row (same as Country picker row)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(text = "Timezone", style = MaterialTheme.typography.bodyMedium)
 
-                    // Regenerate Timezone + Locale together from same country
-                    CompactExpressiveIconButton(
-                        onClick = onRegenerateLocation,
-                        icon = Icons.Filled.Refresh,
-                        contentDescription = stringResource(id = R.string.action_regenerate),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }
+                        // Timezone button - opens dialog (same width as Country button: 200.dp)
+                        ExpressiveOutlinedCard(
+                            enabled = timezoneEnabled,
+                            onClick = { showTimezoneDialog = true },
+                            onLongClick = { if (timezoneValue.isNotEmpty()) onCopy(timezoneValue) },
+                            modifier = Modifier.width(200.dp),
+                            shape = RoundedCornerShape(12.dp),
+                        ) {
+                            Row(
+                                modifier =
+                                    Modifier.fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                // Centered: Timezone display
+                                Row(
+                                    modifier = Modifier.weight(1f),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        text = timezoneValue.ifEmpty {
+                                            stringResource(id = R.string.group_spoofing_not_set)
+                                        },
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                }
+                                // Right arrow indicator
+                                Icon(
+                                    imageVector = Icons.Filled.ChevronRight,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
 
-                // Locale section with its own header
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = SpoofType.LOCALE.displayName,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text =
-                        localeValue.ifEmpty {
-                            stringResource(id = R.string.group_spoofing_not_set)
-                        },
-                    style = MaterialTheme.typography.bodySmall,
-                    fontFamily = FontFamily.Monospace,
-                    color = MaterialTheme.colorScheme.primary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier =
-                        Modifier.combinedClickable(
-                            onClick = {},
+                    // Locale row (same as Carrier row, but read-only)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(text = "Locale", style = MaterialTheme.typography.bodyMedium)
+
+                        // Locale display (same style as Carrier dropdown, but disabled/read-only)
+                        ExpressiveOutlinedCard(
+                            enabled = false, // Read-only
+                            onClick = { /* No action - read only */ },
                             onLongClick = { if (localeValue.isNotEmpty()) onCopy(localeValue) },
-                        ),
-                )
+                            modifier = Modifier.width(200.dp),
+                            shape = RoundedCornerShape(12.dp),
+                        ) {
+                            Row(
+                                modifier =
+                                    Modifier.fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = localeValue.ifEmpty {
+                                        stringResource(id = R.string.group_spoofing_not_set)
+                                    },
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
-    // 2. Latitude - independent with own switch and regenerate
+    // ═══════════════════════════════════════════════════════════
+    // 2. LATITUDE - independent with own switch and regenerate
+    // ═══════════════════════════════════════════════════════════
     IndependentSpoofItem(
         type = SpoofType.LOCATION_LATITUDE,
         value = latValue,
@@ -166,7 +222,9 @@ fun LocationCategoryContent(
         modifier = Modifier.fillMaxWidth(),
     )
 
-    // 3. Longitude - independent with own switch and regenerate
+    // ═══════════════════════════════════════════════════════════
+    // 3. LONGITUDE - independent with own switch and regenerate
+    // ═══════════════════════════════════════════════════════════
     IndependentSpoofItem(
         type = SpoofType.LOCATION_LONGITUDE,
         value = longValue,

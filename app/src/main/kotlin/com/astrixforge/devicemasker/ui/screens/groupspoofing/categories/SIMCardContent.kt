@@ -117,7 +117,7 @@ fun SIMCardCategoryContent(
     }
 
     // ═══════════════════════════════════════════════════════════
-    // 1. CARRIER SELECTION CARD
+    // 1. CARRIER SELECTION CARD + CARRIER INFO (merged)
     // ═══════════════════════════════════════════════════════════
     val isSimEnabled = group?.isTypeEnabled(SpoofType.CARRIER_NAME) ?: false
     ExpressiveCard(
@@ -131,7 +131,7 @@ fun SIMCardCategoryContent(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // Choose Sim Switch (Moved to Top)
+            // Choose Sim Switch (header)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -161,12 +161,8 @@ fun SIMCardCategoryContent(
                 )
             }
 
-            // Collapsible content for Country and Carrier
-            AnimatedVisibility(
-                visible = isSimEnabled,
-                enter = expandVertically(animationSpec = spring()) + fadeIn(),
-                exit = shrinkVertically(animationSpec = spring()) + fadeOut(),
-            ) {
+            // Collapsible content for Country, Carrier, and Carrier Info (use if for instant hide)
+            if (isSimEnabled) {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     // Country picker row
                     Row(
@@ -274,67 +270,44 @@ fun SIMCardCategoryContent(
                             }
                         }
                     }
+
+                    // Carrier Info (embedded in same card)
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        ReadOnlyValueRow(
+                            label = "SIM Country",
+                            value = simCountryValue,
+                            onCopy = { onCopy(simCountryValue) },
+                        )
+                        ReadOnlyValueRow(
+                            label = "Network Country",
+                            value = networkCountryValue,
+                            onCopy = { onCopy(networkCountryValue) },
+                        )
+                        ReadOnlyValueRow(
+                            label = "MCC/MNC",
+                            value = mccMncValue,
+                            onCopy = { onCopy(mccMncValue) },
+                        )
+                        ReadOnlyValueRow(
+                            label = "Carrier Name",
+                            value = carrierNameValue,
+                            onCopy = { onCopy(carrierNameValue) },
+                        )
+                        ReadOnlyValueRow(
+                            label = "SIM Operator",
+                            value = simOperatorValue,
+                            onCopy = { onCopy(simOperatorValue) },
+                        )
+                        ReadOnlyValueRow(
+                            label = "Network Operator",
+                            value = networkOperatorValue,
+                            onCopy = { onCopy(networkOperatorValue) },
+                        )
+                    }
                 }
-            }
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // 2. LOCKED VALUES (derived from carrier, no switch/regenerate)
-    // ═══════════════════════════════════════════════════════════
-    AnimatedVisibility(
-        visible = isSimEnabled,
-        enter = expandVertically(animationSpec = spring()) + fadeIn(),
-        exit = shrinkVertically(animationSpec = spring()) + fadeOut(),
-    ) {
-        ExpressiveCard(
-            onClick = { /* Info action feedback */ },
-            modifier = Modifier.fillMaxWidth(),
-            containerColor = MaterialTheme.colorScheme.surface,
-            shape = MaterialTheme.shapes.medium,
-            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Text(
-                    text = "Carrier Info",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-
-                ReadOnlyValueRow(
-                    label = "SIM Country",
-                    value = simCountryValue,
-                    onCopy = { onCopy(simCountryValue) },
-                )
-                ReadOnlyValueRow(
-                    label = "Network Country",
-                    value = networkCountryValue,
-                    onCopy = { onCopy(networkCountryValue) },
-                )
-                ReadOnlyValueRow(
-                    label = "MCC/MNC",
-                    value = mccMncValue,
-                    onCopy = { onCopy(mccMncValue) },
-                )
-                ReadOnlyValueRow(
-                    label = "Carrier Name",
-                    value = carrierNameValue,
-                    onCopy = { onCopy(carrierNameValue) },
-                )
-                ReadOnlyValueRow(
-                    label = "SIM Operator",
-                    value = simOperatorValue,
-                    onCopy = { onCopy(simOperatorValue) },
-                )
-                ReadOnlyValueRow(
-                    label = "Network Operator",
-                    value = networkOperatorValue,
-                    onCopy = { onCopy(networkOperatorValue) },
-                )
             }
         }
     }

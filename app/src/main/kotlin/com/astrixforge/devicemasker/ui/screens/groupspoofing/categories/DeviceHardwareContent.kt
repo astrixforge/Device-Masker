@@ -9,19 +9,27 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.astrixforge.devicemasker.common.DeviceProfilePreset
 import com.astrixforge.devicemasker.common.SpoofGroup
 import com.astrixforge.devicemasker.common.SpoofType
+import com.astrixforge.devicemasker.ui.components.expressive.CompactExpressiveIconButton
 import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveCard
+import com.astrixforge.devicemasker.ui.components.expressive.ExpressiveSwitch
 import com.astrixforge.devicemasker.ui.screens.groupspoofing.items.IndependentSpoofItem
 import com.astrixforge.devicemasker.ui.screens.groupspoofing.items.ReadOnlyValueRow
 
@@ -54,86 +62,117 @@ fun DeviceHardwareCategoryContent(
     val serialEnabled = group?.isTypeEnabled(SpoofType.SERIAL) ?: false
     val serialValue = group?.getValue(SpoofType.SERIAL) ?: ""
 
-    // 1. Device Profile - independent (shows preset name instead of ID)
+    // 1. Device Profile + Device Info (combined in one card)
     val currentPreset = DeviceProfilePreset.findById(deviceProfileRawValue)
 
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        IndependentSpoofItem(
-            type = SpoofType.DEVICE_PROFILE,
-            value = deviceProfileDisplayValue,
-            isEnabled = deviceProfileEnabled,
-            onToggle = { enabled -> onToggle(SpoofType.DEVICE_PROFILE, enabled) },
-            onRegenerate = { onRegenerate(SpoofType.DEVICE_PROFILE) },
-            onCopy = { onCopy(deviceProfileDisplayValue) },
-            modifier = Modifier.fillMaxWidth(),
-        )
-
-        // Collapsible Device Info
-        AnimatedVisibility(
-            visible = deviceProfileEnabled && currentPreset != null,
-            enter = expandVertically(animationSpec = spring()) + fadeIn(),
-            exit = shrinkVertically(animationSpec = spring()) + fadeOut(),
+    ExpressiveCard(
+        onClick = { /* Card click feedback */ },
+        onLongClick = { if (deviceProfileEnabled && deviceProfileDisplayValue.isNotEmpty()) onCopy(deviceProfileDisplayValue) },
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        containerColor = MaterialTheme.colorScheme.surface,
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            ExpressiveCard(
-                onClick = { /* Info action feedback */ },
+            // Header row with switch
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                containerColor = MaterialTheme.colorScheme.surface,
-                shape = MaterialTheme.shapes.medium,
-                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                Text(
+                    text = SpoofType.DEVICE_PROFILE.displayName,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.weight(1f),
+                )
+                ExpressiveSwitch(
+                    checked = deviceProfileEnabled,
+                    onCheckedChange = { onToggle(SpoofType.DEVICE_PROFILE, it) },
+                )
+            }
+
+            // Value and regenerate (only when enabled)
+            if (deviceProfileEnabled) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Device Info",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text = deviceProfileDisplayValue.ifEmpty { "Not set" },
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
                     )
 
-                    currentPreset?.let { preset ->
-                        ReadOnlyValueRow(
-                            label = "Manufacturer",
-                            value = preset.manufacturer,
-                            onCopy = { onCopy(preset.manufacturer) },
-                        )
-                        ReadOnlyValueRow(
-                            label = "Brand",
-                            value = preset.brand,
-                            onCopy = { onCopy(preset.brand) },
-                        )
-                        ReadOnlyValueRow(
-                            label = "Model",
-                            value = preset.model,
-                            onCopy = { onCopy(preset.model) },
-                        )
-                        ReadOnlyValueRow(
-                            label = "Device",
-                            value = preset.device,
-                            onCopy = { onCopy(preset.device) },
-                        )
-                        ReadOnlyValueRow(
-                            label = "Product",
-                            value = preset.product,
-                            onCopy = { onCopy(preset.product) },
-                        )
-                        ReadOnlyValueRow(
-                            label = "Board",
-                            value = preset.board,
-                            onCopy = { onCopy(preset.board) },
-                        )
-                        ReadOnlyValueRow(
-                            label = "Fingerprint",
-                            value = preset.fingerprint,
-                            onCopy = { onCopy(preset.fingerprint) },
-                        )
-                        if (preset.securityPatch.isNotBlank()) {
+                    CompactExpressiveIconButton(
+                        onClick = { onRegenerate(SpoofType.DEVICE_PROFILE) },
+                        icon = Icons.Filled.Refresh,
+                        contentDescription = "Regenerate",
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+
+                // Device Info details (within same card)
+                AnimatedVisibility(
+                    visible = currentPreset != null,
+                    enter = expandVertically(animationSpec = spring()) + fadeIn(),
+                    exit = shrinkVertically(animationSpec = spring()) + fadeOut(),
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        currentPreset?.let { preset ->
                             ReadOnlyValueRow(
-                                label = "Security Patch",
-                                value = preset.securityPatch,
-                                onCopy = { onCopy(preset.securityPatch) },
+                                label = "Manufacturer",
+                                value = preset.manufacturer,
+                                onCopy = { onCopy(preset.manufacturer) },
                             )
+                            ReadOnlyValueRow(
+                                label = "Brand",
+                                value = preset.brand,
+                                onCopy = { onCopy(preset.brand) },
+                            )
+                            ReadOnlyValueRow(
+                                label = "Model",
+                                value = preset.model,
+                                onCopy = { onCopy(preset.model) },
+                            )
+                            ReadOnlyValueRow(
+                                label = "Device",
+                                value = preset.device,
+                                onCopy = { onCopy(preset.device) },
+                            )
+                            ReadOnlyValueRow(
+                                label = "Product",
+                                value = preset.product,
+                                onCopy = { onCopy(preset.product) },
+                            )
+                            ReadOnlyValueRow(
+                                label = "Board",
+                                value = preset.board,
+                                onCopy = { onCopy(preset.board) },
+                            )
+                            ReadOnlyValueRow(
+                                label = "Fingerprint",
+                                value = preset.fingerprint,
+                                onCopy = { onCopy(preset.fingerprint) },
+                            )
+                            if (preset.securityPatch.isNotBlank()) {
+                                ReadOnlyValueRow(
+                                    label = "Security Patch",
+                                    value = preset.securityPatch,
+                                    onCopy = { onCopy(preset.securityPatch) },
+                                )
+                            }
                         }
                     }
                 }

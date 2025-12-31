@@ -129,6 +129,7 @@ fun GroupSpoofingScreen(
                             },
                             onRegenerateLocation = { viewModel.regenerateLocation() },
                             onCarrierChange = { carrier -> viewModel.updateCarrier(carrier) },
+                            onTimezoneSelected = { timezone -> viewModel.updateTimezone(timezone) },
                         )
 
                     1 ->

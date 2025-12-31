@@ -31,10 +31,11 @@ class HomeViewModel(private val repository: SpoofRepository) : ViewModel() {
         viewModelScope.launch {
             repository.groups.collect { groups ->
                 _state.update { currentState ->
-                    val selectedGroup =
-                        currentState.selectedGroup
-                            ?: groups.find { it.isDefault }
-                            ?: groups.firstOrNull()
+                    // Find the default group from the fresh list
+                    val defaultGroup = groups.find { it.isDefault }
+
+                    // Use default group (synced), or fallback to first
+                    val selectedGroup = defaultGroup ?: groups.firstOrNull()
 
                     currentState.copy(
                         groups = groups,
@@ -50,14 +51,14 @@ class HomeViewModel(private val repository: SpoofRepository) : ViewModel() {
             }
         }
 
-        // Collect dashboard state
+        // Collect active group changes (when default changes)
         viewModelScope.launch {
-            repository.dashboardState.collect { dashboard ->
+            repository.activeGroup.collect { activeGroup ->
                 _state.update { currentState ->
-                    val selectedGroup = currentState.selectedGroup ?: dashboard.activeGroup
+                    // Always sync selectedGroup with the active (default) group
+                    val selectedGroup = activeGroup ?: currentState.groups.firstOrNull()
 
                     currentState.copy(
-                        isModuleEnabled = dashboard.isModuleEnabled,
                         selectedGroup = selectedGroup,
                         enabledAppsCount =
                             if (selectedGroup?.isEnabled == true) {
@@ -66,6 +67,13 @@ class HomeViewModel(private val repository: SpoofRepository) : ViewModel() {
                         maskedIdentifiersCount = selectedGroup?.enabledCount() ?: 0,
                     )
                 }
+            }
+        }
+
+        // Collect module enabled state
+        viewModelScope.launch {
+            repository.moduleEnabled.collect { isEnabled ->
+                _state.update { it.copy(isModuleEnabled = isEnabled) }
             }
         }
     }

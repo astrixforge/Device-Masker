@@ -56,6 +56,7 @@ fun CategorySection(
     onRegenerateLocation: () -> Unit,
     onToggle: (SpoofType, Boolean) -> Unit,
     onCarrierChange: (Carrier) -> Unit,
+    onTimezoneSelected: (String) -> Unit,
     onCopy: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -176,6 +177,7 @@ fun CategorySection(
                                 onToggle = onToggle,
                                 onRegenerate = onRegenerate,
                                 onRegenerateLocation = onRegenerateLocation,
+                                onTimezoneSelected = onTimezoneSelected,
                                 onCopy = onCopy,
                             )
                         }

@@ -167,4 +167,5 @@
 
     <!-- Misc -->
     <string name="label_choose_sim">Choose Sim</string>
+    <string name="label_choose_location">Choose Location</string>
 </resources>

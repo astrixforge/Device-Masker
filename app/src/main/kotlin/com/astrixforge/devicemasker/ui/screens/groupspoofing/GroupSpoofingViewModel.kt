@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.astrixforge.devicemasker.common.CorrelationGroup
 import com.astrixforge.devicemasker.common.SpoofType
 import com.astrixforge.devicemasker.common.models.Carrier
+import com.astrixforge.devicemasker.common.models.LocationConfig
 import com.astrixforge.devicemasker.data.models.DeviceIdentifier
 import com.astrixforge.devicemasker.data.repository.SpoofRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -107,6 +108,22 @@ class GroupSpoofingViewModel(private val repository: SpoofRepository, private va
     fun updateCarrier(carrier: Carrier) {
         val group = state.value.group ?: return
         viewModelScope.launch { repository.updateGroupWithCarrier(group.id, carrier) }
+    }
+
+    fun updateTimezone(timezoneId: String) {
+        val group = state.value.group ?: return
+        viewModelScope.launch {
+            // Update timezone value
+            var updated = group.withValue(SpoofType.TIMEZONE, timezoneId)
+
+            // Sync locale with timezone - get matching locale for the timezone's country
+            val locale = LocationConfig.getLocaleForTimezone(timezoneId)
+            if (locale != null) {
+                updated = updated.withValue(SpoofType.LOCALE, locale)
+            }
+
+            repository.updateGroup(updated)
+        }
     }
 
     fun addAppToGroup(packageName: String) {
